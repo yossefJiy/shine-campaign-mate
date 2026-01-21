@@ -1,5 +1,4 @@
 import { MainLayout } from "@/components/layout/MainLayout";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { useClient } from "@/hooks/useClient";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,22 +6,22 @@ import { Link } from "react-router-dom";
 import { 
   CheckSquare,
   Loader2,
-  Circle,
-  Calendar,
   Clock,
   FolderKanban,
   TrendingUp,
-  Flame,
   Trophy,
-  Target
+  Target,
+  Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useGamification } from "@/hooks/useGamification";
+import { StreakCounter, ProgressRing } from "@/components/gamification";
 
 export default function Dashboard() {
   const { selectedClient } = useClient();
+  const { points, streak, levelInfo } = useGamification();
 
   // Get current user's team member name
   const { data: currentTeamMember } = useQuery({

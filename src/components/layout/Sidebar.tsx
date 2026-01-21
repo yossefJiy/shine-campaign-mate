@@ -1,44 +1,21 @@
-import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
-  Target, 
-  Megaphone, 
   CheckSquare, 
+  FolderKanban,
   Users, 
   Settings,
   ChevronLeft,
   ChevronRight,
   LogOut,
   User,
-  Plug,
   Bell,
   Palette,
-  BarChart3,
-  ShoppingBag,
-  Activity,
-  Network,
-  HeartPulse,
-  Bot,
-  Puzzle,
-  TrendingUp,
-  FileText,
-  Shield,
-  Building2,
-  Crosshair,
-  FolderKanban,
-  LayoutGrid,
-  UserSearch,
-  Share2,
-  Receipt,
-  ClipboardCheck,
-  Contact,
+  Trophy,
+  Flame,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { useClientModules, ClientModules } from "@/hooks/useClientModules";
-import { useCodeHealth } from "@/hooks/useCodeHealth";
-import { useRoleSimulation } from "@/hooks/useRoleSimulation";
 import { useSidebar } from "@/contexts/SidebarContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,135 +27,34 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { ClientSwitcher } from "./ClientSwitcher";
-import { RoleSimulatorMenu } from "@/components/admin/RoleSimulatorMenu";
-import { RoleSimulatorDialog } from "@/components/admin/RoleSimulatorDialog";
-import logoIcon from "@/assets/logo-icon.svg";
-import logoText from "@/assets/logo-text.svg";
-import byJiyLogo from "@/assets/by-jiy-logo.svg";
+import { useGamification } from "@/hooks/useGamification";
 
 interface MenuItem {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   path: string;
-  moduleKey?: keyof ClientModules;
 }
 
-interface MenuCategory {
-  key: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  items: MenuItem[];
-}
-
-// Admin-only menu items - only for master account
-const agencyItem: MenuItem = { icon: LayoutGrid, label: "סוכנות", path: "/agency" };
-const planningItem: MenuItem = { icon: Bot, label: "אפיון מערכות", path: "/system-planning" };
-
-const menuCategories: MenuCategory[] = [
-  {
-    key: "core",
-    label: "ליבה",
-    icon: LayoutDashboard,
-    items: [
-      { icon: LayoutDashboard, label: "דשבורד", path: "/dashboard", moduleKey: "dashboard" },
-      { icon: FolderKanban, label: "פרויקטים", path: "/projects", moduleKey: "projects" },
-      { icon: CheckSquare, label: "משימות", path: "/tasks", moduleKey: "tasks" },
-      { icon: Users, label: "צוות", path: "/team", moduleKey: "team" },
-    ],
-  },
-  {
-    key: "marketing",
-    label: "שיווק",
-    icon: Target,
-    items: [
-      { icon: Target, label: "שיווק", path: "/marketing", moduleKey: "marketing" },
-      { icon: Crosshair, label: "יעדים", path: "/kpis", moduleKey: "kpis" },
-      { icon: UserSearch, label: "מתחרים", path: "/competitors", moduleKey: "competitors" },
-      { icon: Share2, label: "סושיאל", path: "/social", moduleKey: "social" },
-      { icon: Palette, label: "סטודיו", path: "/content-studio", moduleKey: "content_studio" },
-    ],
-  },
-  {
-    key: "campaigns",
-    label: "קמפיינים",
-    icon: Megaphone,
-    items: [
-      { icon: Megaphone, label: "קמפיינים", path: "/campaigns", moduleKey: "campaigns" },
-      { icon: Network, label: "פרוגרמטי", path: "/programmatic", moduleKey: "programmatic" },
-      { icon: Target, label: "A/B Tests", path: "/ab-tests", moduleKey: "ab_tests" },
-    ],
-  },
-  {
-    key: "ecommerce",
-    label: "איקומרס",
-    icon: ShoppingBag,
-    items: [
-      { icon: ShoppingBag, label: "איקומרס", path: "/ecommerce", moduleKey: "ecommerce" },
-      { icon: ShoppingBag, label: "Google Shopping", path: "/google-shopping", moduleKey: "google_shopping" },
-    ],
-  },
-  {
-    key: "data",
-    label: "נתונים",
-    icon: BarChart3,
-    items: [
-      { icon: BarChart3, label: "אנליטיקס", path: "/analytics", moduleKey: "analytics" },
-      { icon: TrendingUp, label: "תובנות", path: "/insights", moduleKey: "insights" },
-      { icon: FileText, label: "דוחות", path: "/reports", moduleKey: "reports" },
-    ],
-  },
-  {
-    key: "ai",
-    label: "AI",
-    icon: Bot,
-    items: [
-      { icon: Bot, label: "AI Agents", path: "/ai-agents", moduleKey: "ai_agent" },
-      { icon: Bot, label: "AI Insights", path: "/ai-insights", moduleKey: "ai_insights" },
-      { icon: BarChart3, label: "אנליטיקס מודולים", path: "/module-analytics" },
-    ],
-  },
-  {
-    key: "business",
-    label: "עסקי",
-    icon: Receipt,
-    items: [
-      { icon: Contact, label: "לידים", path: "/leads", moduleKey: "leads" },
-      { icon: Receipt, label: "חיובים", path: "/billing", moduleKey: "billing" },
-      { icon: ClipboardCheck, label: "אישורים", path: "/approvals", moduleKey: "approvals" },
-    ],
-  },
+const menuItems: MenuItem[] = [
+  { icon: LayoutDashboard, label: "דשבורד", path: "/dashboard" },
+  { icon: FolderKanban, label: "פרויקטים", path: "/projects" },
+  { icon: CheckSquare, label: "משימות", path: "/tasks" },
+  { icon: Users, label: "צוות", path: "/team" },
 ];
 
 const settingsItems = [
-  { icon: User, label: "פרופיל", path: "/settings", section: "profile", adminOnly: false },
-  { icon: Bell, label: "התראות", path: "/settings", section: "notifications", adminOnly: false },
-  { icon: Plug, label: "חיבורים", path: "/analytics?integrations=open", adminOnly: false },
-  { icon: Palette, label: "מראה", path: "/settings", section: "appearance", adminOnly: false },
-  { icon: Puzzle, label: "ניהול מודולים", path: "/module-management", adminOnly: true },
-  { icon: Shield, label: "הרשאות", path: "/permissions", adminOnly: true },
-  { icon: Building2, label: "ניהול לקוחות", path: "/client-management", adminOnly: true },
-  { icon: Activity, label: "סטטוס מערכת", path: "/status", adminOnly: true },
-  { icon: HeartPulse, label: "בריאות קוד", path: "/code-health", adminOnly: true },
-  { icon: Network, label: "ארכיטקטורה", path: "/system-diagram", adminOnly: true },
-  { icon: BarChart3, label: "קרדיטים", path: "/credits", adminOnly: true },
+  { icon: User, label: "פרופיל", path: "/settings" },
+  { icon: Bell, label: "התראות", path: "/settings?tab=notifications" },
+  { icon: Palette, label: "מראה", path: "/settings?tab=appearance" },
 ];
-
-
 
 export function Sidebar() {
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut, role } = useAuth();
-  const { isModuleEnabled, selectedClient, isAdmin, modulesOrder } = useClientModules();
-  const { stats: codeHealthStats } = useCodeHealth();
-  const { isSimulating, effectiveRole } = useRoleSimulation();
-  const [roleSimDialogOpen, setRoleSimDialogOpen] = useState(false);
+  const { points, streak } = useGamification();
 
-  // Check if selected client is master account
-  const isMasterAccount = (selectedClient as any)?.is_master_account === true;
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth", { replace: true });
@@ -189,230 +65,158 @@ export function Sidebar() {
 
   const getRoleLabel = (role: string | null) => {
     const labels: Record<string, string> = {
-      super_admin: "סופר אדמין",
+      super_admin: "אדמין ראשי",
       admin: "אדמין",
-      agency_manager: "מנהל סוכנות",
+      agency_manager: "מנהל",
       team_manager: "מנהל צוות",
       employee: "עובד",
       premium_client: "לקוח פרמיום",
-      basic_client: "לקוח בסיס",
+      basic_client: "לקוח",
       demo: "משתמש דמו",
     };
     return role ? labels[role] || role : "משתמש";
   };
 
-  // Get all visible menu items and sort by order
-  const allMenuItems = menuCategories.flatMap(cat => cat.items);
-  const visibleMenuItems = allMenuItems
-    .filter(item => {
-      if (!item.moduleKey) return true;
-      return isModuleEnabled(item.moduleKey);
-    })
-    .sort((a, b) => {
-      const orderA = a.moduleKey ? (modulesOrder[a.moduleKey] ?? 999) : 999;
-      const orderB = b.moduleKey ? (modulesOrder[b.moduleKey] ?? 999) : 999;
-      return orderA - orderB;
-    });
-
-  // Show agency only if admin + not simulating + (no client selected OR master account)
-  const showAgencyItem = isAdmin && !isSimulating && (!selectedClient || isMasterAccount);
-
-  // Display role - show effective role if simulating
-  const displayRole = isSimulating ? effectiveRole : role;
-
-  
-
   return (
     <aside 
       className={cn(
-        "fixed right-0 top-0 h-screen bg-sidebar border-l border-sidebar-border transition-all duration-300 z-50 flex flex-col",
-        isCollapsed ? "w-20" : "w-64"
+        "fixed right-0 top-0 h-screen bg-background border-l border-border transition-all duration-300 z-50 flex flex-col",
+        isCollapsed ? "w-[72px]" : "w-64"
       )}
-      style={{ background: "var(--gradient-sidebar)" }}
     >
-      {/* Logo */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border shrink-0">
+      {/* Logo & Toggle */}
+      <div className="h-16 flex items-center justify-between px-4 border-b border-border shrink-0">
         <Link to="/dashboard" className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
+            <CheckSquare className="w-5 h-5 text-primary-foreground" />
+          </div>
           {!isCollapsed && (
-            <div className="flex flex-col items-end animate-fade-in">
-              <img src={logoText} alt="Converto" className="h-4 w-auto" />
-              <img src={byJiyLogo} alt="by JIY" className="h-2 w-auto mt-1.5 opacity-70" />
-            </div>
+            <span className="font-semibold text-lg">Tasks</span>
           )}
-          <img 
-            src={logoIcon} 
-            alt="Converto" 
-            className={cn(
-              "transition-all duration-300",
-              isCollapsed ? "h-10 w-auto" : "h-7 w-auto"
-            )} 
-          />
         </Link>
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-2 rounded-lg hover:bg-sidebar-accent transition-colors"
+          className="p-2 rounded-lg hover:bg-muted transition-colors"
         >
           {isCollapsed ? (
-            <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+            <ChevronLeft className="w-4 h-4 text-muted-foreground" />
           ) : (
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
           )}
         </button>
       </div>
 
-      {/* Client Switcher */}
-      <div className="p-3 border-b border-sidebar-border shrink-0">
-        <ClientSwitcher collapsed={isCollapsed} />
-      </div>
+      {/* Gamification Stats */}
+      {!isCollapsed && (
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full">
+              <Trophy className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium">{points?.total_points || 0}</span>
+            </div>
+            <div className={cn(
+              "flex items-center gap-2 px-3 py-1.5 rounded-full",
+              streak?.current_streak && streak.current_streak > 0 
+                ? "bg-orange-500/10" 
+                : "bg-muted"
+            )}>
+              <Flame className={cn(
+                "w-4 h-4",
+                streak?.current_streak && streak.current_streak > 0 
+                  ? "text-orange-500 animate-pulse" 
+                  : "text-muted-foreground"
+              )} />
+              <span className="text-sm font-medium">{streak?.current_streak || 0}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Collapsed Gamification */}
+      {isCollapsed && (
+        <div className="p-2 border-b border-border flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-1 bg-primary/10 p-2 rounded-lg">
+            <Trophy className="w-4 h-4 text-primary" />
+            <span className="text-xs font-medium">{points?.total_points || 0}</span>
+          </div>
+          <div className={cn(
+            "flex flex-col items-center gap-1 p-2 rounded-lg",
+            streak?.current_streak && streak.current_streak > 0 
+              ? "bg-orange-500/10" 
+              : "bg-muted"
+          )}>
+            <Flame className={cn(
+              "w-4 h-4",
+              streak?.current_streak && streak.current_streak > 0 
+                ? "text-orange-500 animate-pulse" 
+                : "text-muted-foreground"
+            )} />
+            <span className="text-xs font-medium">{streak?.current_streak || 0}</span>
+          </div>
+        </div>
+      )}
 
       {/* Navigation */}
-      <nav className="p-3 space-y-3 flex-1 overflow-y-auto">
-        {/* Admin items - only for master account / admin */}
-        {showAgencyItem && (
-          <>
-            <Link
-              to={agencyItem.path}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
-                "opacity-0 animate-slide-right",
-                location.pathname === agencyItem.path
-                  ? "bg-primary/10 text-primary" 
-                  : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
-              )}
-              style={{ animationDelay: "0s", animationFillMode: "forwards" }}
-            >
-              <agencyItem.icon className={cn(
-                "w-5 h-5 transition-transform duration-200 shrink-0",
-                location.pathname === agencyItem.path && "scale-110"
-              )} />
-              {!isCollapsed && (
-                <span className="font-medium flex-1">{agencyItem.label}</span>
-              )}
-              {location.pathname === agencyItem.path && (
-                <div className="absolute right-0 w-1 h-6 bg-primary rounded-l-full" />
-              )}
-            </Link>
-            <Link
-              to={planningItem.path}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
-                "opacity-0 animate-slide-right",
-                location.pathname === planningItem.path
-                  ? "bg-primary/10 text-primary" 
-                  : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
-              )}
-              style={{ animationDelay: "0.03s", animationFillMode: "forwards" }}
-            >
-              <planningItem.icon className={cn(
-                "w-5 h-5 transition-transform duration-200 shrink-0",
-                location.pathname === planningItem.path && "scale-110"
-              )} />
-              {!isCollapsed && (
-                <span className="font-medium flex-1">{planningItem.label}</span>
-              )}
-              {location.pathname === planningItem.path && (
-                <div className="absolute right-0 w-1 h-6 bg-primary rounded-l-full" />
-              )}
-            </Link>
-          </>
-        )}
-
-        {visibleMenuItems.map((item, index) => {
+      <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
+        {menuItems.map((item, index) => {
           const isActive = location.pathname === item.path;
           return (
             <Link
               key={item.path}
               to={item.path}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group relative",
-                "opacity-0 animate-slide-right",
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
                 isActive 
-                  ? "bg-primary/10 text-primary" 
-                  : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                  ? "bg-primary text-primary-foreground" 
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
-              style={{ 
-                animationDelay: `${(showAgencyItem ? index + 1 : index) * 0.03}s`, 
-                animationFillMode: "forwards" 
-              }}
             >
-              <div className="relative">
-                <item.icon className={cn(
-                  "w-5 h-5 transition-transform duration-200 shrink-0",
-                  isActive && "scale-110"
-                )} />
-              </div>
+              <item.icon className={cn(
+                "w-5 h-5 shrink-0 transition-transform duration-200",
+                isActive && "scale-110"
+              )} />
               {!isCollapsed && (
-                <span className="font-medium flex-1 text-sm">{item.label}</span>
-              )}
-              {isActive && (
-                <div className="absolute right-0 w-1 h-5 bg-primary rounded-l-full" />
+                <span className="font-medium text-sm">{item.label}</span>
               )}
             </Link>
           );
         })}
-
-        {/* Client Settings - Only for admins when client is selected and NOT simulating */}
-        {selectedClient && isAdmin && !isSimulating && (
-          <Link
-            to="/clients"
-            className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative",
-              location.pathname === "/clients"
-                ? "bg-primary/10 text-primary" 
-                : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
-            )}
-          >
-            <Settings className="w-5 h-5 shrink-0" />
-            {!isCollapsed && (
-              <span className="font-medium">הגדרות לקוח</span>
-            )}
-          </Link>
-        )}
       </nav>
 
       {/* Bottom Section */}
-      <div className="border-t border-sidebar-border shrink-0">
-        {/* Settings Dropdown - Hide when simulating */}
-        {!isSimulating && (
-          <div className="p-3">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "w-full justify-start gap-3 h-10",
-                    isCollapsed && "justify-center px-2",
-                    location.pathname === "/settings"
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
-                  )}
-                >
-                  <Settings className="w-5 h-5 shrink-0" />
-                  {!isCollapsed && <span className="font-medium">הגדרות</span>}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="top" className="w-56">
-                <DropdownMenuLabel>הגדרות</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {settingsItems
-                  .filter(item => !item.adminOnly || isAdmin)
-                  .map((item) => (
-                  <DropdownMenuItem key={item.label} asChild>
-                    <Link to={item.path} className="flex items-center gap-2 cursor-pointer">
-                      <item.icon className="w-4 h-4" />
-                      <span className="flex-1">{item.label}</span>
-                      {item.path === "/code-health" && codeHealthStats && codeHealthStats.criticalCount > 0 && (
-                        <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-xs">
-                          {codeHealthStats.criticalCount}
-                        </Badge>
-                      )}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )}
+      <div className="border-t border-border shrink-0">
+        {/* Settings Dropdown */}
+        <div className="p-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start gap-3 h-10",
+                  isCollapsed && "justify-center px-2",
+                  location.pathname === "/settings"
+                    ? "bg-muted text-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <Settings className="w-5 h-5 shrink-0" />
+                {!isCollapsed && <span className="font-medium text-sm">הגדרות</span>}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="w-48">
+              <DropdownMenuLabel>הגדרות</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {settingsItems.map((item) => (
+                <DropdownMenuItem key={item.label} asChild>
+                  <Link to={item.path} className="flex items-center gap-2 cursor-pointer">
+                    <item.icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         {/* User Menu */}
         <div className="p-3 pt-0">
@@ -422,15 +226,11 @@ export function Sidebar() {
                 variant="ghost"
                 className={cn(
                   "w-full justify-start gap-3 h-auto py-2",
-                  isCollapsed && "justify-center px-2",
-                  isSimulating && "ring-2 ring-blue-500 ring-offset-2 ring-offset-sidebar"
+                  isCollapsed && "justify-center px-2"
                 )}
               >
                 <Avatar className="h-8 w-8 shrink-0">
-                  <AvatarFallback className={cn(
-                    "text-sm",
-                    isSimulating ? "bg-blue-500/20 text-blue-500" : "bg-primary/20 text-primary"
-                  )}>
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm">
                     {userInitials}
                   </AvatarFallback>
                 </Avatar>
@@ -439,43 +239,31 @@ export function Sidebar() {
                     <span className="text-sm font-medium truncate max-w-[140px]">
                       {userEmail}
                     </span>
-                    <span className={cn(
-                      "text-xs",
-                      isSimulating ? "text-blue-500" : "text-muted-foreground"
-                    )}>
-                      {getRoleLabel(displayRole)}
-                      {isSimulating && " (סימולציה)"}
+                    <span className="text-xs text-muted-foreground">
+                      {getRoleLabel(role)}
                     </span>
                   </div>
                 )}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent forceMount align="end" side="top" className="w-56">
+            <DropdownMenuContent align="end" side="top" className="w-48">
               <DropdownMenuLabel>החשבון שלי</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
                   <User className="w-4 h-4" />
-                  פרופיל
+                  <span>פרופיל</span>
                 </Link>
               </DropdownMenuItem>
-              
-              {/* Role Simulator Menu */}
-              <RoleSimulatorMenu onOpenDialog={() => setRoleSimDialogOpen(true)} />
-              
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={handleSignOut}
-                className="text-destructive focus:text-destructive cursor-pointer"
-              >
+              <DropdownMenuItem onClick={handleSignOut} className="text-destructive cursor-pointer">
                 <LogOut className="w-4 h-4 ml-2" />
-                התנתקות
+                <span>התנתקות</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
-      <RoleSimulatorDialog open={roleSimDialogOpen} onOpenChange={setRoleSimDialogOpen} />
     </aside>
   );
 }
