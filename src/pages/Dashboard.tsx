@@ -11,11 +11,15 @@ import {
   TrendingUp,
   Trophy,
   Target,
-  Plus
+  Plus,
+  Calendar,
+  CircleDot
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { useGamification } from "@/hooks/useGamification";
 import { StreakCounter, ProgressRing } from "@/components/gamification";
 
@@ -49,42 +53,40 @@ export default function Dashboard() {
       }
       const { data: tasks } = await tasksQuery;
 
-      // Get projects
-      let projectsQuery = supabase.from("projects").select("id, status");
+      // Get projects  
+      let projectsQuery = supabase.from("projects").select("status, client_id");
       if (selectedClient) {
         projectsQuery = projectsQuery.eq("client_id", selectedClient.id);
       }
       const { data: projects } = await projectsQuery;
 
-      const openTasks = tasks?.filter(t => t.status !== "completed").length || 0;
-      const completedTasks = tasks?.filter(t => t.status === "completed").length || 0;
-      const todayStr = new Date().toISOString().split("T")[0];
-      const todayTasks = tasks?.filter(t => t.due_date === todayStr && t.status !== "completed").length || 0;
-      const activeProjects = projects?.filter(p => p.status === "active").length || 0;
-
+      const today = new Date().toISOString().split("T")[0];
+      
       return {
-        openTasks,
-        completedTasks,
-        todayTasks,
-        activeProjects,
         totalTasks: tasks?.length || 0,
+        completedTasks: tasks?.filter(t => t.status === "completed").length || 0,
+        openTasks: tasks?.filter(t => t.status !== "completed").length || 0,
+        todayTasks: tasks?.filter(t => t.due_date === today && t.status !== "completed").length || 0,
+        activeProjects: projects?.filter(p => p.status === "active").length || 0,
       };
     },
   });
 
-  // Fetch recent tasks
+  // Get recent tasks
   const { data: recentTasks = [] } = useQuery({
-    queryKey: ["recent-tasks-dashboard", selectedClient?.id],
+    queryKey: ["recent-tasks", selectedClient?.id],
     queryFn: async () => {
       let query = supabase
         .from("tasks")
-        .select("*, projects:projects!tasks_project_id_fkey(name, color)")
+        .select("id, title, status, priority, due_date, projects(name, color)")
         .neq("status", "completed")
-        .order("due_date", { ascending: true })
+        .order("due_date", { ascending: true, nullsFirst: false })
         .limit(5);
+      
       if (selectedClient) {
         query = query.eq("client_id", selectedClient.id);
       }
+      
       const { data } = await query;
       return data || [];
     },
@@ -96,11 +98,24 @@ export default function Dashboard() {
 
   return (
     <MainLayout>
-      <div className="p-8 max-w-7xl mx-auto">
-        <PageHeader 
-          title={`שלום${currentTeamMember?.name ? `, ${currentTeamMember.name}` : ''}`}
-          description="הנה סיכום המשימות שלך"
-        />
+      <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">
+              שלום{currentTeamMember?.name ? `, ${currentTeamMember.name}` : ''} 👋
+            </h1>
+            <p className="text-muted-foreground">
+              {selectedClient ? `דשבורד ${selectedClient.name}` : "הנה סיכום המשימות שלך"}
+            </p>
+          </div>
+          <Button asChild>
+            <Link to="/tasks">
+              <Plus className="w-4 h-4 ml-2" />
+              משימה חדשה
+            </Link>
+          </Button>
+        </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
@@ -108,59 +123,100 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
+            {/* Gamification Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Progress Ring */}
+              <Card className="border-0 shadow-sm">
+                <CardContent className="pt-6 flex flex-col items-center">
+                  <ProgressRing progress={completionPercent} size={100}>
+                    <div className="text-center">
+                      <span className="text-2xl font-bold">{completionPercent}%</span>
+                    </div>
+                  </ProgressRing>
+                  <p className="text-sm text-muted-foreground mt-3">שיעור השלמה</p>
+                </CardContent>
+              </Card>
+
+              {/* Points */}
+              <Card className="border-0 shadow-sm">
+                <CardContent className="pt-6 flex flex-col items-center">
+                  <div className="w-20 h-20 rounded-full bg-primary/10 flex flex-col items-center justify-center">
+                    <Trophy className="w-8 h-8 text-primary" />
+                    <span className="text-lg font-bold">{points?.total_points || 0}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-3">
+                    רמה {levelInfo.level} · {levelInfo.progress}%
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Streak */}
+              <Card className="border-0 shadow-sm">
+                <CardContent className="pt-6 flex flex-col items-center">
+                  <StreakCounter 
+                    streak={streak?.current_streak || 0} 
+                    longestStreak={streak?.longest_streak}
+                    size="md"
+                    showLabel={false}
+                  />
+                  <p className="text-sm text-muted-foreground mt-3">רצף ימים</p>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-              <Card className="card-clean hover-lift">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Target className="w-6 h-6 text-primary" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Target className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <p className="text-3xl font-bold">{stats?.todayTasks || 0}</p>
-                      <p className="text-sm text-muted-foreground">משימות להיום</p>
+                      <p className="text-2xl font-bold">{stats?.todayTasks || 0}</p>
+                      <p className="text-xs text-muted-foreground">משימות להיום</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="card-clean hover-lift">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center">
-                      <Circle className="w-6 h-6 text-warning" />
+              <Card className="border-0 shadow-sm">
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                      <CircleDot className="w-5 h-5 text-amber-500" />
                     </div>
                     <div>
-                      <p className="text-3xl font-bold">{stats?.openTasks || 0}</p>
-                      <p className="text-sm text-muted-foreground">משימות פתוחות</p>
+                      <p className="text-2xl font-bold">{stats?.openTasks || 0}</p>
+                      <p className="text-xs text-muted-foreground">משימות פתוחות</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="card-clean hover-lift">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center">
-                      <CheckSquare className="w-6 h-6 text-success" />
+              <Card className="border-0 shadow-sm">
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                      <CheckSquare className="w-5 h-5 text-green-500" />
                     </div>
                     <div>
-                      <p className="text-3xl font-bold">{stats?.completedTasks || 0}</p>
-                      <p className="text-sm text-muted-foreground">הושלמו</p>
+                      <p className="text-2xl font-bold">{stats?.completedTasks || 0}</p>
+                      <p className="text-xs text-muted-foreground">הושלמו</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="card-clean hover-lift">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-info/10 flex items-center justify-center">
-                      <FolderKanban className="w-6 h-6 text-info" />
+              <Card className="border-0 shadow-sm">
+                <CardContent className="pt-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                      <FolderKanban className="w-5 h-5 text-purple-500" />
                     </div>
                     <div>
-                      <p className="text-3xl font-bold">{stats?.activeProjects || 0}</p>
-                      <p className="text-sm text-muted-foreground">פרויקטים פעילים</p>
+                      <p className="text-2xl font-bold">{stats?.activeProjects || 0}</p>
+                      <p className="text-xs text-muted-foreground">פרויקטים פעילים</p>
                     </div>
                   </div>
                 </CardContent>
@@ -168,9 +224,9 @@ export default function Dashboard() {
             </div>
 
             {/* Progress & Recent Tasks */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Progress Card */}
-              <Card className="card-clean">
+              <Card className="border-0 shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <TrendingUp className="w-5 h-5 text-primary" />
@@ -192,10 +248,10 @@ export default function Dashboard() {
               </Card>
 
               {/* Recent Tasks */}
-              <Card className="card-clean">
+              <Card className="border-0 shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="flex items-center gap-2 text-lg">
-                    <Clock className="w-5 h-5 text-warning" />
+                    <Clock className="w-5 h-5 text-amber-500" />
                     משימות קרובות
                   </CardTitle>
                   <Link to="/tasks">
@@ -212,11 +268,12 @@ export default function Dashboard() {
                   ) : (
                     <div className="space-y-3">
                       {recentTasks.map((task: any) => (
-                        <div 
+                        <Link 
                           key={task.id}
+                          to={`/tasks?task=${task.id}`}
                           className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
                         >
-                          <Circle className="w-4 h-4 text-muted-foreground" />
+                          <CircleDot className="w-4 h-4 text-muted-foreground" />
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{task.title}</p>
                             <div className="flex items-center gap-2 mt-1">
@@ -240,7 +297,7 @@ export default function Dashboard() {
                               )}
                             </div>
                           </div>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   )}
