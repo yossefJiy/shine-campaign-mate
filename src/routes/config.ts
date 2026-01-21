@@ -1,11 +1,8 @@
 // Routes configuration for Task Management System
 
 export const routes = {
-  // Public routes
-  home: '/',
+  // Auth
   auth: '/auth',
-  privacyPolicy: '/privacy-policy',
-  termsOfService: '/terms-of-service',
   
   // Protected routes
   dashboard: '/dashboard',
