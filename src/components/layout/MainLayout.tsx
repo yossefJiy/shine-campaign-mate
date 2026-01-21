@@ -5,6 +5,7 @@ import { SessionTimeoutDialog } from "@/components/SessionTimeoutDialog";
 import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 import { GlobalSearch } from "@/components/ai/GlobalSearch";
 import { AIChatAssistant } from "@/components/ai/AIChatAssistant";
+import { ClientSwitcher } from "./ClientSwitcher";
 import { cn } from "@/lib/utils";
 
 interface MainLayoutProps {
@@ -19,12 +20,17 @@ function MainLayoutContent({ children }: MainLayoutProps) {
     <div className="min-h-screen bg-background" dir="rtl">
       <Sidebar />
       
-      {/* Top Bar with Global Search */}
+      {/* Top Bar with Client Switcher and Global Search */}
       <header className={cn(
-        "fixed top-0 left-0 h-16 bg-background/80 backdrop-blur-sm border-b border-border z-40 flex items-center px-6 transition-all duration-300",
+        "fixed top-0 left-0 h-16 bg-background/80 backdrop-blur-sm border-b border-border z-40 flex items-center justify-between px-6 transition-all duration-300",
         isCollapsed ? "right-[72px]" : "right-64"
       )}>
-        <GlobalSearch />
+        <div className="flex items-center gap-4">
+          <GlobalSearch />
+        </div>
+        <div className="w-64">
+          <ClientSwitcher />
+        </div>
       </header>
       
       <main className={cn(

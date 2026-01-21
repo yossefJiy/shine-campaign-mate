@@ -295,11 +295,16 @@ export default function Projects() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
                         <Badge className={status.color}>{status.label}</Badge>
                         {category && (
                           <Badge variant="outline" className={category.color}>
                             {category.label}
+                          </Badge>
+                        )}
+                        {project.clients?.name && (
+                          <Badge variant="outline" className="text-xs">
+                            {project.clients.name}
                           </Badge>
                         )}
                       </div>
