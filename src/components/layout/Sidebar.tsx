@@ -3,6 +3,7 @@ import {
   LayoutDashboard, 
   CheckSquare, 
   FolderKanban,
+  Building2,
   Users, 
   Settings,
   ChevronLeft,
@@ -39,6 +40,7 @@ const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "דשבורד", path: "/dashboard" },
   { icon: FolderKanban, label: "פרויקטים", path: "/projects" },
   { icon: CheckSquare, label: "משימות", path: "/tasks" },
+  { icon: Building2, label: "לקוחות", path: "/clients" },
   { icon: Users, label: "צוות", path: "/team" },
 ];
 

@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import Tasks from "./pages/Tasks";
 import Projects from "./pages/Projects";
+import Clients from "./pages/Clients";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
 
@@ -35,11 +36,11 @@ const App = () => (
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
               <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+              <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
               <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               
               {/* Legacy redirects */}
-              <Route path="/clients" element={<Navigate to="/dashboard" replace />} />
               <Route path="/analytics" element={<Navigate to="/dashboard" replace />} />
               <Route path="/campaigns" element={<Navigate to="/dashboard" replace />} />
               <Route path="/privacy-policy" element={<Navigate to="/dashboard" replace />} />
