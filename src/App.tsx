@@ -15,9 +15,6 @@ import Tasks from "./pages/Tasks";
 import Projects from "./pages/Projects";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
-import Home from "./pages/Home";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import TermsOfService from "./pages/TermsOfService";
 
 const queryClient = new QueryClient();
 
@@ -30,11 +27,9 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Home />} />
+              {/* Redirect root to dashboard (auth required) */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms-of-service" element={<TermsOfService />} />
               
               {/* Protected routes */}
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -43,10 +38,12 @@ const App = () => (
               <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               
-              {/* Redirects for old routes */}
+              {/* Legacy redirects */}
               <Route path="/clients" element={<Navigate to="/dashboard" replace />} />
               <Route path="/analytics" element={<Navigate to="/dashboard" replace />} />
               <Route path="/campaigns" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/privacy-policy" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/terms-of-service" element={<Navigate to="/dashboard" replace />} />
               
               {/* 404 */}
               <Route path="*" element={<NotFound />} />
