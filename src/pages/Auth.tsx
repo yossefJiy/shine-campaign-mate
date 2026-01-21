@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { z } from "zod";
-import { CheckSquare, Loader2 } from "lucide-react";
+import { CheckSquare, Loader2, ShieldCheck } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const emailSchema = z.string().email("אימייל לא תקין");
 const passwordSchema = z.string().min(6, "הסיסמה חייבת להכיל לפחות 6 תווים");
@@ -17,7 +18,6 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   useEffect(() => {
@@ -66,46 +66,22 @@ const Auth = () => {
     setLoading(true);
     
     try {
-      if (isSignUp) {
-        // Sign up
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin,
-          },
-        });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-        if (error) {
-          if (error.message.includes("already registered")) {
-            toast.error("האימייל כבר רשום במערכת");
-          } else {
-            toast.error(error.message);
-          }
-          return;
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          toast.error("אימייל או סיסמה שגויים");
+        } else {
+          toast.error(error.message);
         }
-
-        toast.success("נרשמת בהצלחה!");
-        navigate("/dashboard");
-      } else {
-        // Sign in
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) {
-          if (error.message.includes("Invalid login credentials")) {
-            toast.error("אימייל או סיסמה שגויים");
-          } else {
-            toast.error(error.message);
-          }
-          return;
-        }
-
-        toast.success("התחברת בהצלחה!");
-        navigate("/dashboard");
+        return;
       }
+
+      toast.success("התחברת בהצלחה!");
+      navigate("/dashboard");
     } catch (error) {
       toast.error("שגיאה בהתחברות");
     } finally {
@@ -123,11 +99,17 @@ const Auth = () => {
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">Tasks</CardTitle>
-          <CardDescription>
-            {isSignUp ? "צור חשבון חדש" : "התחבר לחשבון שלך"}
-          </CardDescription>
+          <CardDescription>התחבר לחשבון שלך</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
+          <Alert className="border-primary/30 bg-primary/5">
+            <ShieldCheck className="h-4 w-4" />
+            <AlertTitle>גישה מורשית בלבד</AlertTitle>
+            <AlertDescription className="text-sm">
+              רק משתמשים מורשים יכולים להתחבר למערכת.
+            </AlertDescription>
+          </Alert>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">אימייל</Label>
@@ -163,23 +145,13 @@ const Auth = () => {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 ml-2 animate-spin" />
-                  {isSignUp ? "נרשם..." : "מתחבר..."}
+                  מתחבר...
                 </>
               ) : (
-                isSignUp ? "הרשמה" : "התחברות"
+                "התחברות"
               )}
             </Button>
           </form>
-
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {isSignUp ? "כבר יש לך חשבון? התחבר" : "אין לך חשבון? הרשם"}
-            </button>
-          </div>
         </CardContent>
       </Card>
     </div>
