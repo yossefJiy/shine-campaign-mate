@@ -859,14 +859,26 @@ ${formDescription ? `תיאור: ${formDescription}` : ""}
   // Get selected tasks objects for bulk actions
   const selectedTasksObjects = tasks.filter(t => selectedTaskIds.has(t.id));
 
-
-  // Map assignee names to colors
-  const assigneeColorMap: Record<string, string> = {};
+  // Map assignee ID to name and color
+  const assigneeIdToName: Record<string, string> = {};
+  const assigneeIdToColor: Record<string, string> = {};
   teamMembers.forEach(m => {
-    if (m.name && m.avatar_color) {
-      assigneeColorMap[m.name] = m.avatar_color;
+    if (m.id) {
+      assigneeIdToName[m.id] = m.name;
+      if (m.avatar_color) {
+        assigneeIdToColor[m.id] = m.avatar_color;
+      }
     }
   });
+
+  // Helper function to get assignee display info
+  const getAssigneeInfo = (assigneeId: string | null) => {
+    if (!assigneeId) return null;
+    const name = assigneeIdToName[assigneeId] || assigneeId;
+    const color = assigneeIdToColor[assigneeId] || '#6366f1';
+    const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2);
+    return { name, color, initials };
+  };
 
   // Format time for display
   const formatTime = (time: string | null) => {
@@ -986,15 +998,18 @@ ${formDescription ? `תיאור: ${formDescription}` : ""}
             </div>
 
             {/* Assignee Avatar */}
-            {task.assignee && (
-              <div 
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium text-white flex-shrink-0"
-                style={{ backgroundColor: assigneeColorMap[task.assignee] || '#6366f1' }}
-                title={task.assignee}
-              >
-                {task.assignee.split(' ').map(n => n[0]).join('').slice(0, 2)}
-              </div>
-            )}
+            {task.assignee && (() => {
+              const info = getAssigneeInfo(task.assignee);
+              return info ? (
+                <div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium text-white flex-shrink-0"
+                  style={{ backgroundColor: info.color }}
+                  title={info.name}
+                >
+                  {info.initials}
+                </div>
+              ) : null;
+            })()}
 
             <div className="flex items-center gap-1 flex-shrink-0 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
               {showArchive ? (

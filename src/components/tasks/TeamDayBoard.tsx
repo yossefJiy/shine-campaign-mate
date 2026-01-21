@@ -63,9 +63,9 @@ export function TeamDayBoard({ className }: TeamDayBoardProps) {
     },
   });
 
-  // Calculate stats per team member
+  // Calculate stats per team member (match by team member ID)
   const teamStats: TeamMemberStats[] = teamMembers.map((member: any) => {
-    const memberTasks = todayTasks.filter((t: any) => t.assignee === member.email);
+    const memberTasks = todayTasks.filter((t: any) => t.assignee === member.id);
     const completed = memberTasks.filter((t: any) => t.status === "completed");
     const inProgress = memberTasks.filter((t: any) => t.status === "in-progress");
     const urgent = memberTasks.filter((t: any) => 
@@ -77,7 +77,7 @@ export function TeamDayBoard({ className }: TeamDayBoardProps) {
 
     return {
       email: member.email,
-      name: member.name || member.email.split("@")[0],
+      name: member.name || member.email?.split("@")[0] || "Unknown",
       totalTasks: memberTasks.length,
       completedTasks: completed.length,
       inProgressTasks: inProgress.length,
