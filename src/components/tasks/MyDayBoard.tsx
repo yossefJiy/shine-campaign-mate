@@ -12,11 +12,9 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { PriorityCategoryBadge } from "./PriorityCategoryBadge";
-import { PriorityBalanceBar } from "@/components/agency/PriorityBalanceBar";
 
 interface MyDayBoardProps {
   className?: string;
@@ -80,19 +78,6 @@ export function MyDayBoard({ className }: MyDayBoardProps) {
     ? Math.min(100, Math.round((totalMinutesCompleted / (totalMinutesPlanned + totalMinutesCompleted)) * 100))
     : 0;
 
-  // Priority balance
-  const allMyTasks = [...pendingTasks, ...completedToday];
-  const stabilityTasks = allMyTasks.filter((t: any) => 
-    t.priority_category === "revenue" || t.priority_category === "maintenance"
-  ).length;
-  const innovationTasks = allMyTasks.filter((t: any) => 
-    t.priority_category === "growth" || t.priority_category === "innovation"
-  ).length;
-  const categorizedTasks = stabilityTasks + innovationTasks;
-  const actualStabilityPercent = categorizedTasks > 0 
-    ? Math.round((stabilityTasks / categorizedTasks) * 100) 
-    : 70;
-
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "urgent": return "border-r-destructive bg-destructive/5";
@@ -114,7 +99,7 @@ export function MyDayBoard({ className }: MyDayBoardProps) {
     <div className={cn("space-y-4", className)}>
       {/* Header Stats */}
       <div className="grid grid-cols-4 gap-4">
-        <Card>
+        <Card className="card-clean">
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -128,7 +113,7 @@ export function MyDayBoard({ className }: MyDayBoardProps) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-clean">
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center">
@@ -142,7 +127,7 @@ export function MyDayBoard({ className }: MyDayBoardProps) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-clean">
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
@@ -156,7 +141,7 @@ export function MyDayBoard({ className }: MyDayBoardProps) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-clean">
           <CardContent className="pt-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
@@ -172,7 +157,7 @@ export function MyDayBoard({ className }: MyDayBoardProps) {
       </div>
 
       {/* Progress Bar */}
-      <Card>
+      <Card className="card-clean">
         <CardContent className="pt-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">התקדמות היום</span>
@@ -188,14 +173,8 @@ export function MyDayBoard({ className }: MyDayBoardProps) {
         </CardContent>
       </Card>
 
-      {/* Priority Balance (smaller) */}
-      <PriorityBalanceBar 
-        targetStability={70}
-        actualStability={actualStabilityPercent}
-      />
-
       {/* Task List */}
-      <Card>
+      <Card className="card-clean">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
             <CheckSquare className="w-5 h-5" />

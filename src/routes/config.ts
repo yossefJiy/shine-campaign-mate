@@ -1,165 +1,18 @@
-// Route Configuration
-// Centralized route definitions with domain grouping
+// Routes configuration for Task Management System
 
-import { lazy } from 'react';
+export const routes = {
+  // Public routes
+  home: '/',
+  auth: '/auth',
+  privacyPolicy: '/privacy-policy',
+  termsOfService: '/terms-of-service',
+  
+  // Protected routes
+  dashboard: '/dashboard',
+  tasks: '/tasks',
+  projects: '/projects',
+  team: '/team',
+  settings: '/settings',
+} as const;
 
-// Lazy load pages for better performance
-const Dashboard = lazy(() => import('@/pages/Dashboard'));
-const Analytics = lazy(() => import('@/pages/Analytics'));
-const Campaigns = lazy(() => import('@/pages/Campaigns'));
-const Tasks = lazy(() => import('@/pages/Tasks'));
-const AIAgents = lazy(() => import('@/pages/AIAgents'));
-const Ecommerce = lazy(() => import('@/pages/Ecommerce'));
-const ClientProfile = lazy(() => import('@/pages/ClientProfile'));
-const Settings = lazy(() => import('@/pages/Settings'));
-const Reports = lazy(() => import('@/pages/Reports'));
-const KPIDashboard = lazy(() => import('@/pages/KPIDashboard'));
-const Competitors = lazy(() => import('@/pages/Competitors'));
-const SocialMedia = lazy(() => import('@/pages/SocialMedia'));
-const ContentStudio = lazy(() => import('@/pages/ContentStudio'));
-
-export interface RouteConfig {
-  path: string;
-  element: React.LazyExoticComponent<React.ComponentType<unknown>>;
-  domain: string;
-  requiresAuth: boolean;
-  requiredPermission?: {
-    domain: string;
-    action: string;
-  };
-  children?: RouteConfig[];
-}
-
-export const routeConfig: RouteConfig[] = [
-  // Dashboard
-  {
-    path: '/dashboard',
-    element: Dashboard,
-    domain: 'core',
-    requiresAuth: true,
-  },
-  
-  // Analytics Domain
-  {
-    path: '/analytics',
-    element: Analytics,
-    domain: 'analytics',
-    requiresAuth: true,
-    requiredPermission: { domain: 'analytics', action: 'view' },
-  },
-  
-  // Campaigns Domain
-  {
-    path: '/campaigns',
-    element: Campaigns,
-    domain: 'campaigns',
-    requiresAuth: true,
-    requiredPermission: { domain: 'campaigns', action: 'view' },
-  },
-  
-  // Tasks Domain
-  {
-    path: '/tasks',
-    element: Tasks,
-    domain: 'tasks',
-    requiresAuth: true,
-    requiredPermission: { domain: 'tasks', action: 'view' },
-  },
-  
-  // AI Domain
-  {
-    path: '/ai-agents',
-    element: AIAgents,
-    domain: 'ai',
-    requiresAuth: true,
-    requiredPermission: { domain: 'ai', action: 'view' },
-  },
-  
-  // E-commerce Domain
-  {
-    path: '/ecommerce',
-    element: Ecommerce,
-    domain: 'ecommerce',
-    requiresAuth: true,
-    requiredPermission: { domain: 'ecommerce', action: 'view' },
-  },
-  
-  // Clients Domain
-  {
-    path: '/clients',
-    element: ClientProfile,
-    domain: 'clients',
-    requiresAuth: true,
-    requiredPermission: { domain: 'clients', action: 'view' },
-  },
-  
-  // Reports Domain
-  {
-    path: '/reports',
-    element: Reports,
-    domain: 'reports',
-    requiresAuth: true,
-    requiredPermission: { domain: 'reports', action: 'view' },
-  },
-  
-  // Settings Domain
-  {
-    path: '/settings',
-    element: Settings,
-    domain: 'settings',
-    requiresAuth: true,
-    requiredPermission: { domain: 'settings', action: 'view' },
-  },
-  
-  // KPI Domain
-  {
-    path: '/kpis',
-    element: KPIDashboard,
-    domain: 'marketing',
-    requiresAuth: true,
-    requiredPermission: { domain: 'marketing', action: 'view' },
-  },
-  
-  // Competitors Domain
-  {
-    path: '/competitors',
-    element: Competitors,
-    domain: 'marketing',
-    requiresAuth: true,
-    requiredPermission: { domain: 'marketing', action: 'view' },
-  },
-  
-  // Social Media Domain
-  {
-    path: '/social',
-    element: SocialMedia,
-    domain: 'social',
-    requiresAuth: true,
-    requiredPermission: { domain: 'social', action: 'view' },
-  },
-  
-  // Content Studio Domain
-  {
-    path: '/content-studio',
-    element: ContentStudio,
-    domain: 'content',
-    requiresAuth: true,
-    requiredPermission: { domain: 'content', action: 'view' },
-  },
-];
-
-// Helper to get routes by domain
-export function getRoutesByDomain(domain: string): RouteConfig[] {
-  return routeConfig.filter(route => route.domain === domain);
-}
-
-// Helper to check if user can access route
-export function canAccessRoute(
-  route: RouteConfig, 
-  hasPermission: (domain: string, action: string) => boolean
-): boolean {
-  if (!route.requiredPermission) return true;
-  return hasPermission(route.requiredPermission.domain, route.requiredPermission.action);
-}
-
-export default routeConfig;
+export type RouteKey = keyof typeof routes;

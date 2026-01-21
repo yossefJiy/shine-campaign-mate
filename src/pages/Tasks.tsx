@@ -92,8 +92,6 @@ import { TaskAttachments } from "@/components/tasks/TaskAttachments";
 import { TaskAttachmentsBadge } from "@/components/tasks/TaskAttachmentsBadge";
 import { NewTaskAttachments, PendingAttachment } from "@/components/tasks/NewTaskAttachments";
 import { NotificationHistoryDialog } from "@/components/tasks/NotificationHistoryDialog";
-import { IntegrationsDialog } from "@/components/analytics/IntegrationsDialog";
-import { AITaskAssignmentButton } from "@/components/tasks/AITaskAssignmentButton";
 import { SubtaskList } from "@/components/tasks/SubtaskList";
 import { TaskSubtaskProgress } from "@/components/tasks/TaskSubtaskProgress";
 
@@ -1423,16 +1421,7 @@ ${formDescription ? `תיאור: ${formDescription}` : ""}
             <DialogTitle className="text-center flex-1 font-semibold">
               {selectedTask ? "עריכת משימה" : "משימה חדשה"}
             </DialogTitle>
-            <AITaskAssignmentButton
-              title={formTitle}
-              description={formDescription}
-              onApply={(rec) => {
-                if (rec.department) setFormDepartment(rec.department);
-                if (rec.category) setFormCategory(rec.category);
-                if (rec.assignee_name) setFormAssignee(rec.assignee_name);
-                if (rec.priority) setFormPriority(rec.priority);
-              }}
-            />
+            <div className="w-8" /> {/* Spacer for balance */}
           </div>
 
           <div className="p-4 space-y-2">
@@ -1880,11 +1869,6 @@ ${formDescription ? `תיאור: ${formDescription}` : ""}
         isLoading={bulkImportMutation.isPending}
       />
 
-      {/* Integrations Dialog */}
-      <IntegrationsDialog 
-        open={integrationsDialogOpen}
-        onOpenChange={setIntegrationsDialogOpen}
-      />
 
       {/* Duplicate with Date Dialog */}
       <Dialog open={duplicateDialogOpen} onOpenChange={setDuplicateDialogOpen}>
