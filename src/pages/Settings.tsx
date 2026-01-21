@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { DomainErrorBoundary } from "@/components/shared/DomainErrorBoundary";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useAuth, usePermissions } from "@/hooks/useAuth";
 import { useClient } from "@/hooks/useClient";
@@ -12,13 +10,8 @@ import {
   Save,
   Loader2,
   Shield,
-  Coins,
-  Mail,
-  AlertTriangle,
   Users,
   UserCircle,
-  Bot,
-  LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,24 +19,16 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { AuthorizedUsersManager } from "@/components/admin/AuthorizedUsersManager";
-import { EmailTestingSection } from "@/components/admin/EmailTestingSection";
 import { ClientContactsManager } from "@/components/client/ClientContactsManager";
 import { ClientTeamManager } from "@/components/client/ClientTeamManager";
-import { AICapabilityUsageStats } from "@/components/ai/AICapabilityUsageStats";
-import { GlobalModulesManager } from "@/components/admin/GlobalModulesManager";
 
 const settingsSections = [
   { id: "profile", icon: User, title: "פרופיל", description: "ניהול פרטים אישיים" },
   { id: "notifications", icon: Bell, title: "התראות", description: "הגדרת התראות ועדכונים" },
   { id: "appearance", icon: Palette, title: "מראה", description: "התאמה אישית של הממשק" },
-  { id: "modules", icon: LayoutGrid, title: "מודולים גלובליים", description: "נעילה ופתיחה גלובלית", adminOnly: true },
   { id: "users", icon: Shield, title: "משתמשים מורשים", description: "ניהול גישה למערכת", adminOnly: true },
   { id: "team", icon: Users, title: "צוות עובדים", description: "צוות משויך ללקוח", requiresClient: true },
   { id: "contacts", icon: UserCircle, title: "אנשי קשר", description: "אנשי קשר של הלקוח", requiresClient: true },
-  { id: "ai-stats", icon: Bot, title: "סטטיסטיקות AI", description: "שימוש ביכולות סוכנים", adminOnly: true },
-  { id: "email-testing", icon: Mail, title: "בדיקת מיילים", description: "בדיקת שליחת מיילים", adminOnly: true },
-  { id: "credits", icon: Coins, title: "קרדיטים", description: "ניהול קרדיטים לקוחות", adminOnly: true },
-  { id: "alerts", icon: AlertTriangle, title: "התראות AI", description: "צפייה בהתראות סוכנים", adminOnly: true },
 ];
 
 export default function Settings() {
@@ -68,8 +53,7 @@ export default function Settings() {
 
   return (
     <MainLayout>
-      <DomainErrorBoundary domain="settings">
-      <div className="p-8">
+      <div className="p-8 max-w-6xl mx-auto">
         <PageHeader 
           title="הגדרות"
           description="ניהול חשבון והעדפות"
@@ -81,57 +65,57 @@ export default function Settings() {
           }
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8">
           {/* Settings Menu */}
           <div className="lg:col-span-1">
-            <div className="glass rounded-xl card-shadow opacity-0 animate-slide-up" style={{ animationDelay: "0.1s", animationFillMode: "forwards" }}>
-              <div className="p-2">
-                {visibleSections.map((section) => (
-                  <button
-                    key={section.id}
-                    onClick={() => setActiveSection(section.id)}
-                    className={cn(
-                      "w-full flex items-center gap-3 p-3 rounded-lg text-right transition-colors",
-                      activeSection === section.id ? "bg-primary/10 text-primary" : "hover:bg-muted"
-                    )}
-                  >
-                    <section.icon className="w-5 h-5 shrink-0" />
-                    <div className="flex-1 text-right">
-                      <p className="font-medium">{section.title}</p>
-                      <p className="text-xs text-muted-foreground">{section.description}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
+            <div className="card-clean p-2 animate-fade-in">
+              {visibleSections.map((section) => (
+                <button
+                  key={section.id}
+                  onClick={() => setActiveSection(section.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 p-3 rounded-lg text-right transition-all duration-200",
+                    activeSection === section.id 
+                      ? "bg-primary/10 text-primary" 
+                      : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <section.icon className="w-5 h-5 shrink-0" />
+                  <div className="flex-1 text-right">
+                    <p className="font-medium text-sm">{section.title}</p>
+                    <p className="text-xs text-muted-foreground">{section.description}</p>
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Content Panel */}
           <div className="lg:col-span-3">
             {activeSection === "profile" && (
-              <div className="glass rounded-xl card-shadow opacity-0 animate-slide-up p-6" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
-                <h2 className="text-xl font-bold mb-6">פרופיל</h2>
-                <div className="space-y-4">
+              <div className="card-clean p-6 animate-slide-up">
+                <h2 className="text-xl font-semibold mb-6">פרופיל</h2>
+                <div className="space-y-4 max-w-md">
                   <div>
                     <label className="text-sm text-muted-foreground block mb-2">אימייל</label>
-                    <Input value={user?.email || ""} disabled />
+                    <Input value={user?.email || ""} disabled className="bg-muted" />
                   </div>
                   <div>
                     <label className="text-sm text-muted-foreground block mb-2">שם מלא</label>
                     <Input placeholder="הכנס שם מלא" />
                   </div>
                   <div>
-                    <label className="text-sm text-muted-foreground block mb-2">מחלקה</label>
-                    <Input placeholder="הכנס מחלקה" />
+                    <label className="text-sm text-muted-foreground block mb-2">תפקיד</label>
+                    <Input placeholder="הכנס תפקיד" />
                   </div>
                 </div>
               </div>
             )}
 
             {activeSection === "notifications" && (
-              <div className="glass rounded-xl card-shadow opacity-0 animate-slide-up p-6" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
-                <h2 className="text-xl font-bold mb-6">התראות</h2>
-                <div className="space-y-6">
+              <div className="card-clean p-6 animate-slide-up">
+                <h2 className="text-xl font-semibold mb-6">התראות</h2>
+                <div className="space-y-6 max-w-md">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">התראות אימייל</p>
@@ -141,15 +125,15 @@ export default function Settings() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">התראות משימות</p>
-                      <p className="text-sm text-muted-foreground">קבל התראות על משימות חדשות</p>
+                      <p className="font-medium">תזכורות משימות</p>
+                      <p className="text-sm text-muted-foreground">קבל תזכורות על משימות</p>
                     </div>
                     <Switch defaultChecked />
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium">סיכום שבועי</p>
-                      <p className="text-sm text-muted-foreground">קבל דו"ח שבועי לאימייל</p>
+                      <p className="font-medium">סיכום יומי</p>
+                      <p className="text-sm text-muted-foreground">קבל סיכום יומי לאימייל</p>
                     </div>
                     <Switch defaultChecked />
                   </div>
@@ -158,15 +142,15 @@ export default function Settings() {
             )}
 
             {activeSection === "appearance" && (
-              <div className="glass rounded-xl card-shadow opacity-0 animate-slide-up p-6" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
-                <h2 className="text-xl font-bold mb-6">מראה</h2>
-                <div className="space-y-6">
+              <div className="card-clean p-6 animate-slide-up">
+                <h2 className="text-xl font-semibold mb-6">מראה</h2>
+                <div className="space-y-6 max-w-md">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">מצב כהה</p>
                       <p className="text-sm text-muted-foreground">הפעל מצב כהה</p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch />
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
@@ -179,18 +163,14 @@ export default function Settings() {
               </div>
             )}
 
-            {activeSection === "modules" && isAdmin && (
-              <div className="opacity-0 animate-slide-up" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
-                <GlobalModulesManager />
+            {activeSection === "users" && isAdmin && (
+              <div className="animate-slide-up">
+                <AuthorizedUsersManager />
               </div>
             )}
 
-            {activeSection === "users" && isAdmin && (
-              <AuthorizedUsersManager />
-            )}
-
             {activeSection === "team" && selectedClient && (
-              <div className="opacity-0 animate-slide-up" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
+              <div className="animate-slide-up">
                 <ClientTeamManager 
                   clientId={selectedClient.id} 
                   clientName={selectedClient.name} 
@@ -199,55 +179,16 @@ export default function Settings() {
             )}
 
             {activeSection === "contacts" && selectedClient && (
-              <div className="opacity-0 animate-slide-up" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
+              <div className="animate-slide-up">
                 <ClientContactsManager 
                   clientId={selectedClient.id} 
                   clientName={selectedClient.name} 
                 />
               </div>
             )}
-
-            {activeSection === "ai-stats" && isAdmin && (
-              <div className="opacity-0 animate-slide-up" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
-                <AICapabilityUsageStats />
-              </div>
-            )}
-
-            {activeSection === "email-testing" && isAdmin && (
-              <EmailTestingSection />
-            )}
-
-            {activeSection === "credits" && isAdmin && (
-              <div className="glass rounded-xl card-shadow opacity-0 animate-slide-up p-6" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold">ניהול קרדיטים</h2>
-                  <Link to="/credits">
-                    <Button>מעבר לעמוד קרדיטים</Button>
-                  </Link>
-                </div>
-                <p className="text-muted-foreground">
-                  נהל את הקרדיטים של הלקוחות, צפה בהיסטוריית שימוש ואשר בקשות משימות.
-                </p>
-              </div>
-            )}
-
-            {activeSection === "alerts" && isAdmin && (
-              <div className="glass rounded-xl card-shadow opacity-0 animate-slide-up p-6" style={{ animationDelay: "0.2s", animationFillMode: "forwards" }}>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold">התראות AI</h2>
-                  <Link to="/agent-alerts">
-                    <Button>מעבר לעמוד התראות</Button>
-                  </Link>
-                </div>
-                <p className="text-muted-foreground">
-                  צפה בכל ההתראות שהסוכנים זיהו, כולל חריגות ותובנות חשובות.
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>
-      </DomainErrorBoundary>
     </MainLayout>
   );
 }
