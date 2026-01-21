@@ -51,6 +51,22 @@ export function KanbanBoard({ clientId, projectId }: KanbanBoardProps) {
   const [draggedTask, setDraggedTask] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
+  // Fetch team members for assignee name lookup
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ["team-kanban"],
+    queryFn: async () => {
+      const { data } = await supabase.from("team").select("id, name").eq("is_active", true);
+      return (data || []) as { id: string; name: string }[];
+    },
+  });
+
+  // Map team member ID to name
+  const getAssigneeName = (assigneeId: string | null) => {
+    if (!assigneeId) return null;
+    const member = teamMembers.find(m => m.id === assigneeId);
+    return member?.name || assigneeId.substring(0, 8);
+  };
+
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["kanban-tasks", clientId, projectId],
     queryFn: async () => {
@@ -292,9 +308,9 @@ export function KanbanBoard({ clientId, projectId }: KanbanBoardProps) {
                             </div>
                           )}
                           {task.assignee && (
-                            <Avatar className="h-5 w-5">
+                            <Avatar className="h-5 w-5" title={getAssigneeName(task.assignee) || ''}>
                               <AvatarFallback className="text-[10px] bg-primary/10">
-                                {task.assignee.substring(0, 2)}
+                                {(getAssigneeName(task.assignee) || '??').substring(0, 2)}
                               </AvatarFallback>
                             </Avatar>
                           )}

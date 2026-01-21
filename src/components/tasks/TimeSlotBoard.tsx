@@ -54,9 +54,24 @@ export function TimeSlotBoard({ showAllTeam = false, className }: TimeSlotBoardP
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"day" | "week">("day");
 
+  // Get current user's team member ID
+  const { data: currentTeamMember } = useQuery({
+    queryKey: ["my-team-member-timeslot", user?.email],
+    queryFn: async () => {
+      if (!user?.email) return null;
+      const { data } = await supabase
+        .from("team")
+        .select("id")
+        .eq("email", user.email)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user?.email && !showAllTeam,
+  });
+
   // Fetch tasks for the selected date range
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ["timeslot-tasks", selectedClient?.id, selectedDate.toISOString().split("T")[0], showAllTeam],
+    queryKey: ["timeslot-tasks", selectedClient?.id, selectedDate.toISOString().split("T")[0], showAllTeam, currentTeamMember?.id],
     queryFn: async () => {
       const dateStr = selectedDate.toISOString().split("T")[0];
       
@@ -71,8 +86,8 @@ export function TimeSlotBoard({ showAllTeam = false, className }: TimeSlotBoardP
         query = query.eq("client_id", selectedClient.id);
       }
       
-      if (!showAllTeam && user?.email) {
-        query = query.eq("assignee", user.email);
+      if (!showAllTeam && currentTeamMember?.id) {
+        query = query.eq("assignee", currentTeamMember.id);
       }
       
       const { data } = await query;

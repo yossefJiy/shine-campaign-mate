@@ -25,17 +25,32 @@ export function MyDayBoard({ className }: MyDayBoardProps) {
   const { user } = useAuth();
   const todayStr = new Date().toISOString().split("T")[0];
 
-  // Fetch today's tasks for current user
-  const { data: myTasks = [], isLoading } = useQuery({
-    queryKey: ["my-day-tasks", user?.email, selectedClient?.id, todayStr],
+  // Get current user's team member ID
+  const { data: currentTeamMember } = useQuery({
+    queryKey: ["my-team-member", user?.email],
     queryFn: async () => {
-      if (!user?.email) return [];
+      if (!user?.email) return null;
+      const { data } = await supabase
+        .from("team")
+        .select("id")
+        .eq("email", user.email)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user?.email,
+  });
+
+  // Fetch today's tasks for current user (by team member ID)
+  const { data: myTasks = [], isLoading } = useQuery({
+    queryKey: ["my-day-tasks", currentTeamMember?.id, selectedClient?.id, todayStr],
+    queryFn: async () => {
+      if (!currentTeamMember?.id) return [];
       
       let query = supabase
         .from("tasks")
         .select("*, clients:clients!tasks_client_id_fkey(name)")
         .eq("due_date", todayStr)
-        .eq("assignee", user.email)
+        .eq("assignee", currentTeamMember.id)
         .order("scheduled_time", { ascending: true, nullsFirst: false })
         .order("priority", { ascending: true });
       
@@ -46,25 +61,25 @@ export function MyDayBoard({ className }: MyDayBoardProps) {
       const { data } = await query;
       return data || [];
     },
-    enabled: !!user?.email,
+    enabled: !!currentTeamMember?.id,
   });
 
   // Fetch completed today
   const { data: completedToday = [] } = useQuery({
-    queryKey: ["my-completed-today", user?.email, todayStr],
+    queryKey: ["my-completed-today", currentTeamMember?.id, todayStr],
     queryFn: async () => {
-      if (!user?.email) return [];
+      if (!currentTeamMember?.id) return [];
       
       const { data } = await supabase
         .from("tasks")
         .select("id, duration_minutes, priority_category")
         .eq("status", "completed")
-        .eq("assignee", user.email)
+        .eq("assignee", currentTeamMember.id)
         .gte("updated_at", `${todayStr}T00:00:00`);
       
       return data || [];
     },
-    enabled: !!user?.email,
+    enabled: !!currentTeamMember?.id,
   });
 
   // Calculate stats

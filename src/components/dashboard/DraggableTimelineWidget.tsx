@@ -57,21 +57,34 @@ export function DraggableTimelineWidget({ tasks, masterClientId }: DraggableTime
   const { data: teamMembers = [] } = useQuery({
     queryKey: ["team-colors"],
     queryFn: async () => {
-      const { data } = await supabase.from("team").select("name, avatar_color").eq("is_active", true);
-      return (data || []) as TeamMember[];
+      const { data } = await supabase.from("team").select("id, name, avatar_color").eq("is_active", true);
+      return (data || []) as (TeamMember & { id: string })[];
     },
   });
 
-  // Map assignee names to colors
-  const assigneeColorMap = useMemo(() => {
-    const map: Record<string, string> = {};
+  // Map assignee ID to name and color
+  const { assigneeIdToName, assigneeIdToColor } = useMemo(() => {
+    const idToName: Record<string, string> = {};
+    const idToColor: Record<string, string> = {};
     teamMembers.forEach(m => {
-      if (m.name && m.avatar_color) {
-        map[m.name] = m.avatar_color;
+      if (m.id) {
+        idToName[m.id] = m.name;
+        if (m.avatar_color) {
+          idToColor[m.id] = m.avatar_color;
+        }
       }
     });
-    return map;
+    return { assigneeIdToName: idToName, assigneeIdToColor: idToColor };
   }, [teamMembers]);
+
+  // Helper function to get assignee display info
+  const getAssigneeInfo = (assigneeId: string | null) => {
+    if (!assigneeId) return null;
+    const name = assigneeIdToName[assigneeId] || assigneeId;
+    const color = assigneeIdToColor[assigneeId] || '#6366f1';
+    const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2);
+    return { name, color, initials };
+  };
 
   const { scheduledTasks, unscheduledTasks } = useMemo(() => {
     const today = startOfDay(new Date());
@@ -206,15 +219,18 @@ export function DraggableTimelineWidget({ tasks, masterClientId }: DraggableTime
             </div>
           </div>
           {/* Assignee Avatar */}
-          {task.assignee && (
-            <div 
-              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium text-white flex-shrink-0"
-              style={{ backgroundColor: assigneeColorMap[task.assignee] || '#6366f1' }}
-              title={task.assignee}
-            >
-              {task.assignee.split(' ').map(n => n[0]).join('').slice(0, 2)}
-            </div>
-          )}
+          {task.assignee && (() => {
+            const info = getAssigneeInfo(task.assignee);
+            return info ? (
+              <div 
+                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium text-white flex-shrink-0"
+                style={{ backgroundColor: info.color }}
+                title={info.name}
+              >
+                {info.initials}
+              </div>
+            ) : null;
+          })()}
           <div className="opacity-0 group-hover:opacity-100 transition-opacity">
             <TaskQuickActions
               taskId={task.id}
