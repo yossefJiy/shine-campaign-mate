@@ -21,6 +21,12 @@ import { TaskSubtaskProgress } from "./TaskSubtaskProgress";
 import { PriorityCategoryBadge } from "./PriorityCategoryBadge";
 import { TaskQuickAssign } from "./TaskQuickAssign";
 import { TaskQuickDate } from "./TaskQuickDate";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Task {
   id: string;
@@ -56,10 +62,11 @@ interface TaskTableRowProps {
   isExpanded: boolean;
   childTasks: Task[];
   showArchive: boolean;
+  showCheckboxes?: boolean;
   assigneeInfo: { name: string; color: string; initials: string } | null;
   onToggleSelect: (taskId: string) => void;
   onToggleExpand: (taskId: string) => void;
-  onToggleStatus: (taskId: string, currentStatus: string) => void;
+  onStatusChange: (taskId: string, newStatus: string) => void;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
   onDuplicate: (task: Task) => void;
@@ -86,10 +93,11 @@ export function TaskTableRow({
   isExpanded,
   childTasks,
   showArchive,
+  showCheckboxes = true,
   assigneeInfo,
   onToggleSelect,
   onToggleExpand,
-  onToggleStatus,
+  onStatusChange,
   onEdit,
   onDelete,
   onDuplicate,
@@ -109,8 +117,8 @@ export function TaskTableRow({
         isSelected && "bg-primary/5"
       )}>
         <div className="flex items-start gap-3">
-          {/* Checkbox for selection */}
-          {!isSubtask && (
+          {/* Checkbox for selection - only shown when checkboxes are enabled */}
+          {!isSubtask && showCheckboxes && (
             <Checkbox
               checked={isSelected}
               onCheckedChange={() => onToggleSelect(task.id)}
@@ -118,14 +126,32 @@ export function TaskTableRow({
             />
           )}
 
-          {/* Status toggle button - always shown */}
-          <button
-            onClick={() => onToggleStatus(task.id, task.status)}
-            className={cn("p-2 rounded-lg transition-colors hover:opacity-80 flex-shrink-0", status.bg)}
-            title={`לחץ לשינוי סטטוס (${status.label})`}
-          >
-            <StatusIcon className={cn("w-5 h-5", status.color)} />
-          </button>
+          {/* Status dropdown - opens menu to select status */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className={cn("p-2 rounded-lg transition-colors hover:opacity-80 flex-shrink-0", status.bg)}
+                title={`סטטוס: ${status.label}`}
+              >
+                <StatusIcon className={cn("w-5 h-5", status.color)} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-40">
+              {Object.entries(statusConfig).map(([key, config]) => {
+                const Icon = config.icon;
+                return (
+                  <DropdownMenuItem
+                    key={key}
+                    onClick={() => onStatusChange(task.id, key)}
+                    className={cn(task.status === key && "bg-muted")}
+                  >
+                    <Icon className={cn("w-4 h-4 ml-2", config.color)} />
+                    {config.label}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
           
           {/* Expand button for tasks with children */}
           {!isSubtask && hasChildren && (
@@ -243,7 +269,7 @@ export function TaskTableRow({
               assigneeInfo={null}
               onToggleSelect={onToggleSelect}
               onToggleExpand={onToggleExpand}
-              onToggleStatus={onToggleStatus}
+              onStatusChange={onStatusChange}
               onEdit={onEdit}
               onDelete={onDelete}
               onDuplicate={onDuplicate}
