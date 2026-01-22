@@ -12,7 +12,8 @@ import {
   Eye,
   Check,
   Paperclip,
-  FolderKanban
+  FolderKanban,
+  Building2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -56,6 +57,12 @@ interface Project {
   color: string | null;
 }
 
+interface ClientOption {
+  id: string;
+  name: string;
+  is_master_account?: boolean;
+}
+
 interface TaskEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -80,6 +87,11 @@ interface TaskEditDialogProps {
   handleDepartmentChange: (department: string) => void;
   pendingAttachments: PendingAttachment[];
   setPendingAttachments: (attachments: PendingAttachment[]) => void;
+  // Client selection for agency view
+  showClientSelector?: boolean;
+  clients?: ClientOption[];
+  selectedClientId?: string | null;
+  onClientChange?: (clientId: string | null) => void;
 }
 
 const statusOptions = [
@@ -118,6 +130,10 @@ export function TaskEditDialog({
   handleDepartmentChange,
   pendingAttachments,
   setPendingAttachments,
+  showClientSelector = false,
+  clients = [],
+  selectedClientId,
+  onClientChange,
 }: TaskEditDialogProps) {
   const [addContactDialogOpen, setAddContactDialogOpen] = useState(false);
   const [addContactType, setAddContactType] = useState<'email' | 'phone'>('email');
@@ -183,6 +199,39 @@ export function TaskEditDialog({
               </div>
             </div>
           </CollapsibleField>
+
+          {/* Client Selection - Only for new tasks in agency view */}
+          {showClientSelector && !selectedTaskId && clients.length > 0 && (
+            <CollapsibleField
+              label="לקוח"
+              icon={<Building2 className="w-4 h-4" />}
+              isExpanded={true}
+              onToggle={() => {}}
+              hasValue={!!selectedClientId}
+            >
+              <Select 
+                value={selectedClientId || "agency"} 
+                onValueChange={(v) => onClientChange?.(v === "agency" ? null : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="בחר לקוח" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.filter(c => c.is_master_account).map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-3 h-3 text-primary" />
+                        {c.name} (סוכנות)
+                      </div>
+                    </SelectItem>
+                  ))}
+                  {clients.filter(c => !c.is_master_account).map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CollapsibleField>
+          )}
 
           {/* Assignee & Department */}
           <CollapsibleField

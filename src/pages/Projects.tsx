@@ -18,7 +18,8 @@ import {
   Trash2,
   Play,
   Pause,
-  Check
+  Check,
+  Building2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -65,11 +66,12 @@ const priorityCategories = [
 ];
 
 export default function Projects() {
-  const { selectedClient } = useClient();
+  const { selectedClient, effectiveClient, isAgencyView, clients } = useClient();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingProject, setEditingProject] = useState<any>(null);
+  const [newProjectClientId, setNewProjectClientId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -88,21 +90,24 @@ export default function Projects() {
       // Always fetch all projects - filter by client OR show agency projects
       const { data, error } = await supabase
         .from("projects")
-        .select("*, clients:clients!projects_client_id_fkey(name, is_master_account)")
+        .select("*, clients:clients!projects_client_id_fkey(name, is_master_account, deleted_at)")
         .order("created_at", { ascending: false });
       
       if (error) throw error;
       
+      // Filter out projects from deleted clients
+      const activeProjects = data.filter((p: any) => !p.clients?.deleted_at);
+      
       // Filter: show selected client's projects + agency (master account) projects
       if (selectedClient) {
-        return data.filter((p: any) => 
+        return activeProjects.filter((p: any) => 
           p.client_id === selectedClient.id || 
           p.client_id === null ||
           p.clients?.is_master_account === true
         );
       }
       
-      return data;
+      return activeProjects;
     },
   });
 
@@ -138,8 +143,12 @@ export default function Projects() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      // Validate that client is selected
-      if (!selectedClient) {
+      // Determine target client: for new projects, use selected in dialog or effectiveClient
+      const targetClientId = editingProject
+        ? editingProject.client_id // Don't change client on edit
+        : (newProjectClientId || effectiveClient?.id);
+      
+      if (!targetClientId) {
         throw new Error("יש לבחור לקוח לפני יצירת פרויקט");
       }
 
@@ -152,7 +161,7 @@ export default function Projects() {
         target_date: formData.target_date || null,
         budget_hours: formData.budget_hours ? parseFloat(formData.budget_hours) : null,
         color: formData.color,
-        client_id: selectedClient.id, // Always require client
+        client_id: targetClientId,
       };
 
       if (editingProject) {
@@ -190,6 +199,7 @@ export default function Projects() {
   const closeDialog = () => {
     setShowCreateDialog(false);
     setEditingProject(null);
+    setNewProjectClientId(null); // Reset selected client
     setFormData({
       name: "",
       description: "",
@@ -394,6 +404,37 @@ export default function Projects() {
                     rows={3}
                   />
                 </div>
+
+                {/* Client Selection - Only for new projects in agency view */}
+                {isAgencyView && !editingProject && clients.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4" />
+                      לקוח
+                    </Label>
+                    <Select 
+                      value={newProjectClientId || effectiveClient?.id || ""} 
+                      onValueChange={(v) => setNewProjectClientId(v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="בחר לקוח" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.filter(c => c.is_master_account).map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            <div className="flex items-center gap-2">
+                              <Building2 className="w-3 h-3 text-primary" />
+                              {c.name} (סוכנות)
+                            </div>
+                          </SelectItem>
+                        ))}
+                        {clients.filter(c => !c.is_master_account).map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
