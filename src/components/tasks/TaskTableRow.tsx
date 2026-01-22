@@ -10,18 +10,17 @@ import {
   Edit2, 
   Trash2, 
   RotateCcw,
-  Calendar,
   FolderKanban
 } from "lucide-react";
-import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TaskQuickActions } from "./TaskQuickActions";
 import { TaskAttachmentsBadge } from "./TaskAttachmentsBadge";
 import { TaskSubtaskProgress } from "./TaskSubtaskProgress";
 import { PriorityCategoryBadge } from "./PriorityCategoryBadge";
+import { TaskQuickAssign } from "./TaskQuickAssign";
+import { TaskQuickDate } from "./TaskQuickDate";
 
 interface Task {
   id: string;
@@ -102,11 +101,6 @@ export function TaskTableRow({
   const StatusIcon = status.icon;
   const hasChildren = childTasks.length > 0;
 
-  const formatTime = (time: string | null) => {
-    if (!time) return null;
-    return time.slice(0, 5);
-  };
-
   return (
     <div key={task.id}>
       <div className={cn(
@@ -176,13 +170,6 @@ export function TaskTableRow({
             </div>
 
             <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-              {task.due_date && (
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {format(new Date(task.due_date), "dd/MM")}
-                  {task.scheduled_time && ` ${formatTime(task.scheduled_time)}`}
-                </span>
-              )}
               {task.clients && (
                 <span className="flex items-center gap-1 text-muted-foreground">
                   {task.clients.is_master_account ? (
@@ -198,15 +185,23 @@ export function TaskTableRow({
             </div>
           </div>
 
-          {assigneeInfo && (
-            <div 
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium text-white flex-shrink-0"
-              style={{ backgroundColor: assigneeInfo.color }}
-              title={assigneeInfo.name}
-            >
-              {assigneeInfo.initials}
-            </div>
-          )}
+          {/* Quick Date/Time Picker - separate from status */}
+          <div className="flex-shrink-0">
+            <TaskQuickDate
+              taskId={task.id}
+              currentDate={task.due_date}
+              currentTime={task.scheduled_time}
+              compact
+            />
+          </div>
+
+          {/* Quick Assign - replaces static avatar */}
+          <TaskQuickAssign
+            taskId={task.id}
+            currentAssignee={task.assignee}
+            assigneeInfo={assigneeInfo}
+            compact
+          />
 
           <div className="flex items-center gap-1 flex-shrink-0 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
             {showArchive ? (
@@ -229,15 +224,6 @@ export function TaskTableRow({
             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => onDelete(task)}>
               <Trash2 className="w-4 h-4" />
             </Button>
-          </div>
-
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <TaskQuickActions
-              taskId={task.id}
-              currentStatus={task.status}
-              currentTime={task.scheduled_time}
-              compact
-            />
           </div>
         </div>
       </div>
