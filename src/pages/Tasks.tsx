@@ -117,8 +117,10 @@ const timeOptions = Array.from({ length: 24 }, (_, h) =>
 ).flat();
 
 export default function Tasks() {
-  const { selectedClient } = useClient();
+  const { selectedClient, effectiveClient, isAgencyView, clients, masterAccount } = useClient();
   const { user } = useAuth();
+  // For new tasks when in agency view, allow selecting a client
+  const [newTaskClientId, setNewTaskClientId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const projectFilterId = searchParams.get("project");
@@ -201,17 +203,27 @@ export default function Tasks() {
     queryFn: async () => {
       let query = supabase
         .from("tasks")
-        .select("*, clients!tasks_client_id_fkey(name, is_master_account), projects:projects!tasks_project_id_fkey(id, name, color)")
+        .select("*, clients!tasks_client_id_fkey(name, is_master_account, deleted_at), projects:projects!tasks_project_id_fkey(id, name, color)")
         .order("due_date", { ascending: true, nullsFirst: false })
         .order("scheduled_time", { ascending: true, nullsFirst: false });
 
       if (selectedClient) {
+        // When specific client is selected, show only that client's tasks
         query = query.eq("client_id", selectedClient.id);
       }
+      // When no client selected (agency view), show all tasks but filter out deleted clients below
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []).map(task => ({
+      
+      // Filter out tasks from deleted clients when in agency view
+      const filteredData = (data || []).filter(task => {
+        const taskClients = (task as any).clients;
+        // If no client data or client is not deleted, include the task
+        return !taskClients?.deleted_at;
+      });
+      
+      return filteredData.map(task => ({
         ...task,
         scheduled_time: (task as any).scheduled_time || null,
         clients: (task as any).clients || null,
@@ -278,9 +290,13 @@ export default function Tasks() {
 
   // Mutations
   const saveMutation = useMutation({
-    mutationFn: async (task: Partial<Task> & { id?: string }) => {
-      // Validate client is selected for new tasks
-      if (!task.id && !selectedClient) {
+    mutationFn: async (task: Partial<Task> & { id?: string; client_id?: string }) => {
+      // For new tasks, determine which client to use
+      const targetClientId = task.id 
+        ? undefined // Don't change client_id on updates
+        : (task.client_id || newTaskClientId || effectiveClient?.id);
+      
+      if (!task.id && !targetClientId) {
         throw new Error("יש לבחור לקוח לפני יצירת משימה");
       }
 
@@ -311,7 +327,7 @@ export default function Tasks() {
       } else {
         const { data, error } = await supabase.from("tasks").insert({
           ...taskData,
-          client_id: selectedClient!.id, // Always require client for new tasks
+          client_id: targetClientId,
         }).select('id').single();
         if (error) throw error;
         return data.id;
@@ -351,6 +367,10 @@ export default function Tasks() {
 
   const bulkImportMutation = useMutation({
     mutationFn: async (tasksToCreate: Array<{ title: string; description?: string; due_date?: string; scheduled_time?: string; duration_minutes?: number; assignee?: string; priority?: string; category?: string }>) => {
+      const targetClientId = effectiveClient?.id;
+      if (!targetClientId) {
+        throw new Error("יש לבחור לקוח לפני ייבוא משימות");
+      }
       const tasksData = tasksToCreate.map((task) => ({
         title: task.title,
         description: task.description || null,
@@ -361,7 +381,7 @@ export default function Tasks() {
         priority: task.priority || "medium",
         category: task.category || null,
         status: "pending",
-        client_id: selectedClient?.id || null,
+        client_id: targetClientId,
       }));
       const { error } = await supabase.from("tasks").insert(tasksData);
       if (error) throw error;
@@ -480,6 +500,7 @@ export default function Tasks() {
     setSelectedTask(null);
     taskForm.resetForm();
     setPendingAttachments([]);
+    setNewTaskClientId(null); // Reset selected client for new tasks
   };
 
   const handleSave = () => {
@@ -873,6 +894,11 @@ export default function Tasks() {
           }}
           pendingAttachments={pendingAttachments}
           setPendingAttachments={setPendingAttachments}
+          // Client selection for agency view
+          showClientSelector={isAgencyView}
+          clients={clients}
+          selectedClientId={newTaskClientId || effectiveClient?.id}
+          onClientChange={setNewTaskClientId}
         />
 
         {/* Bulk Import Dialog */}

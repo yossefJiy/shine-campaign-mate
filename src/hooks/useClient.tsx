@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, usePermissions } from "@/hooks/useAuth";
@@ -18,6 +18,11 @@ interface ClientContextType {
   setSelectedClient: (client: Client | null) => void;
   clients: Client[];
   isLoading: boolean;
+  masterAccount: Client | null;
+  /** Returns selectedClient if set, otherwise masterAccount */
+  effectiveClient: Client | null;
+  /** True if user is viewing agency/master context (no specific client selected) */
+  isAgencyView: boolean;
 }
 
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
@@ -72,6 +77,19 @@ export function ClientProvider({ children }: { children: ReactNode }) {
     enabled: !authLoading && !!user,
   });
 
+  // Get master account from clients list
+  const masterAccount = useMemo(() => {
+    return clients.find(c => c.is_master_account) || null;
+  }, [clients]);
+
+  // Effective client: selectedClient or masterAccount as fallback
+  const effectiveClient = useMemo(() => {
+    return selectedClient || masterAccount;
+  }, [selectedClient, masterAccount]);
+
+  // Is user viewing agency context (no specific client selected)
+  const isAgencyView = !selectedClient || selectedClient.is_master_account === true;
+
   // Load from localStorage on mount and validate
   // For client users, auto-select their client if they only have one
   useEffect(() => {
@@ -119,7 +137,15 @@ export function ClientProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ClientContext.Provider value={{ selectedClient, setSelectedClient, clients, isLoading: isLoading || authLoading }}>
+    <ClientContext.Provider value={{ 
+      selectedClient, 
+      setSelectedClient, 
+      clients, 
+      isLoading: isLoading || authLoading,
+      masterAccount,
+      effectiveClient,
+      isAgencyView,
+    }}>
       {children}
     </ClientContext.Provider>
   );
