@@ -200,8 +200,8 @@ export function TaskEditDialog({
             </div>
           </CollapsibleField>
 
-          {/* Client Selection - Only for new tasks in agency view */}
-          {showClientSelector && !selectedTaskId && clients.length > 0 && (
+          {/* Client Selection - For agency view (both new and edit) */}
+          {showClientSelector && clients.length > 0 && (
             <CollapsibleField
               label="לקוח"
               icon={<Building2 className="w-4 h-4" />}

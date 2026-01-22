@@ -291,14 +291,14 @@ export default function Tasks() {
     mutationFn: async (task: Partial<Task> & { id?: string; client_id?: string }) => {
       // For new tasks, determine which client to use
       const targetClientId = task.id 
-        ? undefined // Don't change client_id on updates
+        ? (newTaskClientId || undefined) // Allow changing client_id on updates if newTaskClientId is set
         : (task.client_id || newTaskClientId || effectiveClient?.id);
       
       if (!task.id && !targetClientId) {
         throw new Error("יש לבחור לקוח לפני יצירת משימה");
       }
 
-      const taskData = {
+      const taskData: Record<string, unknown> = {
         title: task.title,
         description: task.description,
         status: task.status,
@@ -319,14 +319,17 @@ export default function Tasks() {
       };
 
       if (task.id) {
+        // If client is being changed on update, include it
+        if (targetClientId) {
+          taskData.client_id = targetClientId;
+        }
         const { error } = await supabase.from("tasks").update(taskData).eq("id", task.id);
         if (error) throw error;
         return task.id;
       } else {
-        const { data, error } = await supabase.from("tasks").insert({
-          ...taskData,
-          client_id: targetClientId,
-        }).select('id').single();
+        taskData.client_id = targetClientId;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, error } = await supabase.from("tasks").insert(taskData as any).select('id').single();
         if (error) throw error;
         return data.id;
       }
@@ -473,6 +476,12 @@ export default function Tasks() {
   // Handlers
   const openDialog = (task?: Task) => {
     setSelectedTask(task || null);
+    // Set the client for the dialog (for both new and existing tasks)
+    if (task?.client_id) {
+      setNewTaskClientId(task.client_id);
+    } else {
+      setNewTaskClientId(null);
+    }
     if (task) {
       taskForm.initFromTask({
         title: task.title,
