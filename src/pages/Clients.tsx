@@ -138,6 +138,7 @@ export default function Clients() {
       toast.success("הלקוח נמחק");
       queryClient.invalidateQueries({ queryKey: ["clients-page"] });
       queryClient.invalidateQueries({ queryKey: ["all-clients"] });
+      queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
   });
 
