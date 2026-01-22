@@ -24,19 +24,19 @@ interface Task {
   scheduled_time: string | null;
   assignee: string | null;
   department: string | null;
-  client_id?: string | null;
-  project_id?: string | null;
-  category?: string | null;
-  reminder_at?: string | null;
-  notification_email?: boolean;
-  notification_sms?: boolean;
-  notification_phone?: string | null;
-  notification_email_address?: string | null;
-  reminder_sent?: boolean;
-  duration_minutes?: number;
-  credits_cost?: number | null;
-  recurrence_type?: string | null;
-  recurrence_end_date?: string | null;
+  client_id: string | null;
+  project_id: string | null;
+  category: string | null;
+  reminder_at: string | null;
+  notification_email: boolean;
+  notification_sms: boolean;
+  notification_phone: string | null;
+  notification_email_address: string | null;
+  reminder_sent: boolean;
+  duration_minutes: number;
+  credits_cost: number | null;
+  recurrence_type: string | null;
+  recurrence_end_date: string | null;
 }
 
 interface TaskGridCardProps {
