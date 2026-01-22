@@ -362,7 +362,15 @@ export default function Tasks() {
       toast.success("המשימה נשמרה");
       closeDialog();
     },
-    onError: () => toast.error("שגיאה בשמירת משימה"),
+    onError: (error: Error) => {
+      if (error.message.includes("יש לבחור לקוח")) {
+        toast.error("יש לבחור לקוח לפני יצירת משימה", {
+          description: "בחר לקוח מהתפריט או צור משימה מתוך דף לקוח ספציפי"
+        });
+      } else {
+        toast.error("שגיאה בשמירת משימה");
+      }
+    },
   });
 
   const bulkImportMutation = useMutation({
