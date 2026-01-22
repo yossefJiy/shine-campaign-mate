@@ -156,7 +156,10 @@ export default function Tasks() {
   const { data: allClients = [] } = useQuery({
     queryKey: ["all-clients-tasks"],
     queryFn: async () => {
-      const { data } = await supabase.from("clients").select("id, name, is_master_account");
+      const { data } = await supabase
+        .from("clients")
+        .select("id, name, is_master_account")
+        .is("deleted_at", null);
       return data || [];
     },
   });
@@ -164,12 +167,30 @@ export default function Tasks() {
   const { data: projects = [] } = useQuery({
     queryKey: ["projects-for-tasks", selectedClient?.id],
     queryFn: async () => {
-      let query = supabase.from("projects").select("id, name, color").order("name");
-      if (selectedClient) {
-        query = query.or(`client_id.eq.${selectedClient.id},client_id.is.null`);
-      }
-      const { data } = await query;
-      return (data || []) as Project[];
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id, name, color, client_id, clients:clients!projects_client_id_fkey(is_master_account)")
+        .order("name");
+
+      if (error) throw error;
+
+      const rows = (data || []) as Array<{
+        id: string;
+        name: string;
+        color: string | null;
+        client_id: string | null;
+        clients?: { is_master_account?: boolean } | null;
+      }>;
+
+      const filtered = selectedClient
+        ? rows.filter((p) =>
+            p.client_id === selectedClient.id ||
+            p.client_id === null ||
+            p.clients?.is_master_account === true
+          )
+        : rows;
+
+      return filtered.map((p) => ({ id: p.id, name: p.name, color: p.color })) as Project[];
     },
   });
 
