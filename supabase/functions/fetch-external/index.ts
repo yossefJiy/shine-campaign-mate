@@ -130,22 +130,31 @@ Deno.serve(async (req) => {
       let syncResult;
       switch(type) {
         case 'clients':
-          // Map external client data to local schema, use external_id for upsert
+          // Map external client data to local schema - only include columns that exist in this project
           const clientsToSync = data.data.map((c: Record<string, unknown>) => ({
-            id: c.id, // Keep same ID for sync
+            id: c.id,
             name: c.name,
             industry: c.industry || null,
             website: c.website || null,
-            phone: c.phone || null,
-            email: c.email || null,
-            address: c.address || null,
-            notes: c.notes || null,
-            status: c.status || 'active',
-            modules_enabled: c.modules_enabled || [],
+            is_active: c.is_active !== false,
             is_master_account: c.is_master_account || false,
+            is_agency_brand: c.is_agency_brand || false,
+            is_favorite: c.is_favorite || false,
+            modules_enabled: c.modules_enabled || {},
+            modules_order: c.modules_order || {},
             logo_url: c.logo_url || null,
-            primary_color: c.primary_color || null,
-            secondary_color: c.secondary_color || null,
+            description: c.description || null,
+            account_type: c.account_type || 'basic_client',
+            facebook_url: c.facebook_url || null,
+            instagram_url: c.instagram_url || null,
+            linkedin_url: c.linkedin_url || null,
+            twitter_url: c.twitter_url || null,
+            tiktok_url: c.tiktok_url || null,
+            google_ads_manager_url: c.google_ads_manager_url || null,
+            facebook_ads_manager_url: c.facebook_ads_manager_url || null,
+            shopify_email: c.shopify_email || null,
+            avg_profit_margin: c.avg_profit_margin || 0,
+            jiy_commission_percent: c.jiy_commission_percent || 0,
           }));
           syncResult = await supabase.from('clients').upsert(clientsToSync, { onConflict: 'id' }).select();
           break;
