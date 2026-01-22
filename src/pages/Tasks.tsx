@@ -146,6 +146,7 @@ export default function Tasks() {
   const [taskToDuplicate, setTaskToDuplicate] = useState<Task | null>(null);
   const [duplicateDate, setDuplicateDate] = useState<Date | undefined>(undefined);
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+  const [showCheckboxes, setShowCheckboxes] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [notificationHistoryOpen, setNotificationHistoryOpen] = useState(false);
   const [notificationHistoryTaskId, setNotificationHistoryTaskId] = useState<string | undefined>();
@@ -571,9 +572,8 @@ export default function Tasks() {
     });
   };
 
-  const toggleStatus = (taskId: string, currentStatus: string) => {
-    const nextStatus = currentStatus === "pending" ? "in-progress" : currentStatus === "in-progress" ? "completed" : "pending";
-    updateStatusMutation.mutate({ id: taskId, status: nextStatus });
+  const updateStatus = (taskId: string, newStatus: string) => {
+    updateStatusMutation.mutate({ id: taskId, status: newStatus });
   };
 
   const openDuplicateDialog = (task: Task) => {
@@ -817,13 +817,32 @@ export default function Tasks() {
           ) : viewMode === "list" ? (
             <div className="glass rounded-xl overflow-hidden">
               <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-muted/30">
-                <Checkbox
-                  checked={filteredTasks.length > 0 && selectedTaskIds.size === filteredTasks.length}
-                  onCheckedChange={toggleSelectAll}
-                />
-                <span className="text-sm text-muted-foreground">
-                  {selectedTaskIds.size > 0 ? `${selectedTaskIds.size} נבחרו` : "בחר הכל"}
-                </span>
+                <button
+                  onClick={() => {
+                    setShowCheckboxes(!showCheckboxes);
+                    if (showCheckboxes) {
+                      setSelectedTaskIds(new Set()); // Clear selection when hiding
+                    }
+                  }}
+                  className={cn(
+                    "text-sm font-medium transition-colors px-3 py-1 rounded-md",
+                    showCheckboxes 
+                      ? "bg-primary text-primary-foreground" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                >
+                  {showCheckboxes ? `${selectedTaskIds.size > 0 ? `${selectedTaskIds.size} נבחרו` : "בחירה מרובה"}` : "בחירה מרובה"}
+                </button>
+                {showCheckboxes && (
+                  <>
+                    <button
+                      onClick={toggleSelectAll}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {filteredTasks.length > 0 && selectedTaskIds.size === filteredTasks.length ? "בטל הכל" : "בחר הכל"}
+                    </button>
+                  </>
+                )}
               </div>
               {filteredTasks.map((task) => (
                 <TaskTableRow
@@ -833,10 +852,11 @@ export default function Tasks() {
                   isExpanded={expandedTasks.has(task.id)}
                   childTasks={childTasksMap.get(task.id) || []}
                   showArchive={showArchive}
+                  showCheckboxes={showCheckboxes}
                   assigneeInfo={getAssigneeInfo(task.assignee)}
                   onToggleSelect={toggleTaskSelection}
                   onToggleExpand={toggleExpanded}
-                  onToggleStatus={toggleStatus}
+                  onStatusChange={updateStatus}
                   onEdit={openDialog}
                   onDelete={(t) => { setTaskToDelete(t); setDeleteDialogOpen(true); }}
                   onDuplicate={openDuplicateDialog}
@@ -856,7 +876,7 @@ export default function Tasks() {
                   childCount={childTasksMap.get(task.id)?.length || 0}
                   assigneeInfo={getAssigneeInfo(task.assignee)}
                   onToggleSelect={toggleTaskSelection}
-                  onToggleStatus={toggleStatus}
+                  onToggleStatus={(id, current) => updateStatus(id, current === "pending" ? "in-progress" : current === "in-progress" ? "completed" : "pending")}
                   onEdit={openDialog}
                   onDelete={(t) => { setTaskToDelete(t); setDeleteDialogOpen(true); }}
                   onNewTask={() => openDialog()}
