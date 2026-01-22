@@ -25,12 +25,12 @@ interface ClientSwitcherProps {
 }
 
 export function ClientSwitcher({ collapsed = false }: ClientSwitcherProps) {
-  const { selectedClient, setSelectedClient, clients, isLoading } = useClient();
+  const { selectedClient, setSelectedClient, clients, isLoading, isSingleClientMode } = useClient();
   const { isSimulating, simulatedClientName, simulatedContactName } = useRoleSimulation();
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
 
-  // Check if selected client is the master account (JIY)
+  // Check if selected client is the master account (JIY) - must be before early returns
   const { data: masterClient } = useQuery({
     queryKey: ["master-client-switcher"],
     queryFn: async () => {
@@ -43,7 +43,7 @@ export function ClientSwitcher({ collapsed = false }: ClientSwitcherProps) {
     },
   });
 
-  // Toggle favorite mutation
+  // Toggle favorite mutation - must be before early returns
   const toggleFavoriteMutation = useMutation({
     mutationFn: async ({ clientId, isFavorite }: { clientId: string; isFavorite: boolean }) => {
       const { error } = await supabase
@@ -68,7 +68,7 @@ export function ClientSwitcher({ collapsed = false }: ClientSwitcherProps) {
     return client.is_agency_brand === true;
   };
 
-  // Separate favorites, regular clients, agency brands, and master accounts
+  // Separate favorites, regular clients, agency brands, and master accounts - must be before early returns
   const { favoriteClients, regularClients, agencyBrands, masterAccounts } = useMemo(() => {
     const favorites: typeof clients = [];
     const regular: typeof clients = [];
@@ -107,6 +107,35 @@ export function ClientSwitcher({ collapsed = false }: ClientSwitcherProps) {
     e.preventDefault();
     toggleFavoriteMutation.mutate({ clientId, isFavorite: !currentFavorite });
   };
+  
+  // Hide switcher for single-client contacts - just show their client name (after all hooks)
+  if (isSingleClientMode && selectedClient && !isSimulating) {
+    return (
+      <div className={cn(
+        "w-full h-12 px-3 bg-muted/30 border border-border/50 rounded-md flex items-center gap-3",
+        collapsed && "px-2 justify-center"
+      )}>
+        {selectedClient.logo_url ? (
+          <div className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+            <img src={selectedClient.logo_url} alt={selectedClient.name} className="w-full h-full object-contain p-0.5" />
+          </div>
+        ) : (
+          <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center font-bold text-sm shrink-0 text-primary">
+            {selectedClient.name.charAt(0)}
+          </div>
+        )}
+        {!collapsed && (
+          <div className="flex flex-col items-start">
+            <span className="text-sm font-medium truncate">{selectedClient.name}</span>
+            {selectedClient.industry && (
+              <span className="text-xs text-muted-foreground truncate">{selectedClient.industry}</span>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
 
   // Render client item
   const renderClientItem = (client: typeof clients[0], showFavoriteStar = true) => (
