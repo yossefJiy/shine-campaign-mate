@@ -191,17 +191,16 @@ Deno.serve(async (req) => {
           break;
           
         case 'team':
+          // Only include columns that exist in this project's team table
           const teamToSync = data.data.map((t: Record<string, unknown>) => ({
             id: t.id,
             name: t.name,
-            role: t.role || null,
             email: t.email || null,
-            phone: t.phone || null,
             emails: t.emails || [],
             phones: t.phones || [],
             departments: t.departments || [],
             avatar_url: t.avatar_url || null,
-            status: t.status || 'active',
+            avatar_color: t.avatar_color || null,
             is_active: t.is_active !== false,
           }));
           syncResult = await supabase.from('team').upsert(teamToSync, { onConflict: 'id' }).select();
