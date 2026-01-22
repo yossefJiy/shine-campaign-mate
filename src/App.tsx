@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ClientProvider } from "@/hooks/useClient";
+import { RoleSimulationProvider } from "@/hooks/useRoleSimulation";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Core pages
@@ -22,36 +23,38 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <ClientProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              {/* Redirect root to dashboard (auth required) */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/auth" element={<Auth />} />
-              
-              {/* Protected routes */}
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-              <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
-              <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-              <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-              <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              
-              {/* Legacy redirects */}
-              <Route path="/analytics" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/campaigns" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/privacy-policy" element={<Navigate to="/dashboard" replace />} />
-              <Route path="/terms-of-service" element={<Navigate to="/dashboard" replace />} />
-              
-              {/* 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ClientProvider>
+      <RoleSimulationProvider>
+        <ClientProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                {/* Redirect root to dashboard (auth required) */}
+                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/auth" element={<Auth />} />
+                
+                {/* Protected routes */}
+                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
+                <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+                <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+                <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                
+                {/* Legacy redirects */}
+                <Route path="/analytics" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/campaigns" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/privacy-policy" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/terms-of-service" element={<Navigate to="/dashboard" replace />} />
+                
+                {/* 404 */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ClientProvider>
+      </RoleSimulationProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
