@@ -12,6 +12,9 @@ import {
   Shield,
   Users,
   UserCircle,
+  Plug,
+  Check,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,11 +24,12 @@ import { toast } from "sonner";
 import { AuthorizedUsersManager } from "@/components/admin/AuthorizedUsersManager";
 import { ClientContactsManager } from "@/components/client/ClientContactsManager";
 import { ClientTeamManager } from "@/components/client/ClientTeamManager";
+import { Badge } from "@/components/ui/badge";
 
 const settingsSections = [
   { id: "profile", icon: User, title: "פרופיל", description: "ניהול פרטים אישיים" },
   { id: "notifications", icon: Bell, title: "התראות", description: "הגדרת התראות ועדכונים" },
-  { id: "appearance", icon: Palette, title: "מראה", description: "התאמה אישית של הממשק" },
+  { id: "integrations", icon: Plug, title: "אינטגרציות", description: "חיבורים למערכות חיצוניות" },
   { id: "users", icon: Shield, title: "משתמשים מורשים", description: "ניהול גישה למערכת", adminOnly: true },
   { id: "team", icon: Users, title: "צוות עובדים", description: "צוות משויך ללקוח", requiresClient: true },
   { id: "contacts", icon: UserCircle, title: "אנשי קשר", description: "אנשי קשר של הלקוח", requiresClient: true },
@@ -141,24 +145,85 @@ export default function Settings() {
               </div>
             )}
 
-            {activeSection === "appearance" && (
+            {activeSection === "integrations" && (
               <div className="card-clean p-6 animate-slide-up">
-                <h2 className="text-xl font-semibold mb-6">מראה</h2>
-                <div className="space-y-6 max-w-md">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">מצב כהה</p>
-                      <p className="text-sm text-muted-foreground">הפעל מצב כהה</p>
+                <h2 className="text-xl font-semibold mb-2">אינטגרציות</h2>
+                <p className="text-muted-foreground text-sm mb-6">חיבורים למערכות AI עבור משימות ותזכורות</p>
+                
+                <div className="space-y-4">
+                  {/* Gemini - Active */}
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                        <span className="text-lg">✨</span>
+                      </div>
+                      <div>
+                        <p className="font-medium">Gemini AI</p>
+                        <p className="text-sm text-muted-foreground">ניתוח משימות והצעות חכמות</p>
+                      </div>
                     </div>
-                    <Switch />
+                    <Badge className="bg-success/20 text-success border-0">
+                      <Check className="w-3 h-3 ml-1" />
+                      מחובר
+                    </Badge>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">אנימציות</p>
-                      <p className="text-sm text-muted-foreground">הפעל אנימציות בממשק</p>
+
+                  {/* OpenRouter - Active */}
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                        <span className="text-lg">🤖</span>
+                      </div>
+                      <div>
+                        <p className="font-medium">OpenRouter</p>
+                        <p className="text-sm text-muted-foreground">גישה למודלי AI מתקדמים</p>
+                      </div>
                     </div>
-                    <Switch defaultChecked />
+                    <Badge className="bg-success/20 text-success border-0">
+                      <Check className="w-3 h-3 ml-1" />
+                      מחובר
+                    </Badge>
                   </div>
+
+                  {/* Resend - Active */}
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                        <span className="text-lg">📧</span>
+                      </div>
+                      <div>
+                        <p className="font-medium">Resend</p>
+                        <p className="text-sm text-muted-foreground">שליחת תזכורות באימייל</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-success/20 text-success border-0">
+                      <Check className="w-3 h-3 ml-1" />
+                      מחובר
+                    </Badge>
+                  </div>
+
+                  {/* Private API - Active */}
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                        <span className="text-lg">🔗</span>
+                      </div>
+                      <div>
+                        <p className="font-medium">Private API</p>
+                        <p className="text-sm text-muted-foreground">חיבור לפרויקטים חיצוניים</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-success/20 text-success border-0">
+                      <Check className="w-3 h-3 ml-1" />
+                      מחובר
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="mt-6 p-4 rounded-lg bg-muted/50 border border-border">
+                  <p className="text-sm text-muted-foreground">
+                    כל האינטגרציות מוגדרות ופעילות. לשינוי הגדרות או הוספת אינטגרציות נוספות, פנה למנהל המערכת.
+                  </p>
                 </div>
               </div>
             )}

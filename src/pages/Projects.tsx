@@ -85,17 +85,23 @@ export default function Projects() {
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ["projects", selectedClient?.id],
     queryFn: async () => {
-      let query = supabase
+      // Always fetch all projects - filter by client OR show agency projects
+      const { data, error } = await supabase
         .from("projects")
-        .select("*, clients:clients!projects_client_id_fkey(name)")
+        .select("*, clients:clients!projects_client_id_fkey(name, is_master_account)")
         .order("created_at", { ascending: false });
       
-      if (selectedClient) {
-        // When a client is selected, still include internal (agency) projects
-        query = query.or(`client_id.eq.${selectedClient.id},client_id.is.null`);
-      }
-      const { data, error } = await query;
       if (error) throw error;
+      
+      // Filter: show selected client's projects + agency (master account) projects
+      if (selectedClient) {
+        return data.filter((p: any) => 
+          p.client_id === selectedClient.id || 
+          p.client_id === null ||
+          p.clients?.is_master_account === true
+        );
+      }
+      
       return data;
     },
   });
