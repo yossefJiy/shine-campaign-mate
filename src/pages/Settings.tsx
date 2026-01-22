@@ -202,10 +202,27 @@ export default function Settings() {
                     </Badge>
                   </div>
 
+                  {/* Extra API - Active */}
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                        <span className="text-lg">⚡</span>
+                      </div>
+                      <div>
+                        <p className="font-medium">Extra API</p>
+                        <p className="text-sm text-muted-foreground">שירותי API נוספים</p>
+                      </div>
+                    </div>
+                    <Badge className="bg-success/20 text-success border-0">
+                      <Check className="w-3 h-3 ml-1" />
+                      מחובר
+                    </Badge>
+                  </div>
+
                   {/* Private API - Active */}
                   <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
                         <span className="text-lg">🔗</span>
                       </div>
                       <div>
