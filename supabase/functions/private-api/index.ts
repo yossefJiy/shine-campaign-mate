@@ -34,10 +34,10 @@ Deno.serve(async (req) => {
   );
 
   const url = new URL(req.url);
-  const type = url.searchParams.get('type'); // clients, leads, tasks
+  const type = url.searchParams.get('type');
 
-  // Validate type parameter
-  const validTypes = ['clients', 'leads', 'tasks'];
+  // Validate type parameter - expanded to include contacts, team, projects
+  const validTypes = ['clients', 'leads', 'tasks', 'contacts', 'team', 'projects'];
   if (!type || !validTypes.includes(type)) {
     return new Response(
       JSON.stringify({ 
@@ -75,6 +75,24 @@ Deno.serve(async (req) => {
           query = supabase
             .from('tasks')
             .select('*')
+            .order('created_at', { ascending: false });
+          break;
+        case 'contacts':
+          query = supabase
+            .from('client_contacts')
+            .select('*, clients(id, name)')
+            .order('created_at', { ascending: false });
+          break;
+        case 'team':
+          query = supabase
+            .from('team')
+            .select('*')
+            .order('name');
+          break;
+        case 'projects':
+          query = supabase
+            .from('projects')
+            .select('*, clients(id, name)')
             .order('created_at', { ascending: false });
           break;
       }
@@ -128,6 +146,15 @@ Deno.serve(async (req) => {
           break;
         case 'tasks':
           result = await supabase.from('tasks').insert(body.data).select();
+          break;
+        case 'contacts':
+          result = await supabase.from('client_contacts').insert(body.data).select();
+          break;
+        case 'team':
+          result = await supabase.from('team').insert(body.data).select();
+          break;
+        case 'projects':
+          result = await supabase.from('projects').insert(body.data).select();
           break;
       }
       
