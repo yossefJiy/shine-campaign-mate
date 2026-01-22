@@ -14,7 +14,9 @@ import {
   Trash2,
   Star,
   Crown,
-  ExternalLink
+  ExternalLink,
+  CheckSquare,
+  FolderKanban
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -89,6 +91,52 @@ export default function Clients() {
         .order("name");
       if (error) throw error;
       return data as ClientRow[];
+    },
+  });
+
+  // Fetch task counts per client
+  const { data: taskCounts = {} } = useQuery({
+    queryKey: ["client-task-counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("client_id, status");
+      if (error) throw error;
+      
+      const counts: Record<string, { total: number; completed: number; pending: number }> = {};
+      (data || []).forEach(task => {
+        if (task.client_id) {
+          if (!counts[task.client_id]) {
+            counts[task.client_id] = { total: 0, completed: 0, pending: 0 };
+          }
+          counts[task.client_id].total++;
+          if (task.status === "completed") {
+            counts[task.client_id].completed++;
+          } else {
+            counts[task.client_id].pending++;
+          }
+        }
+      });
+      return counts;
+    },
+  });
+
+  // Fetch project counts per client
+  const { data: projectCounts = {} } = useQuery({
+    queryKey: ["client-project-counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("client_id");
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      (data || []).forEach(project => {
+        if (project.client_id) {
+          counts[project.client_id] = (counts[project.client_id] || 0) + 1;
+        }
+      });
+      return counts;
     },
   });
 
@@ -322,8 +370,27 @@ export default function Clients() {
                     </div>
                   </CardHeader>
                   <CardContent>
+                    {/* Statistics */}
+                    <div className="flex items-center gap-4 mb-3">
+                      <div className="flex items-center gap-1.5 text-sm">
+                        <CheckSquare className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium">{taskCounts[client.id]?.total || 0}</span>
+                        <span className="text-muted-foreground">משימות</span>
+                        {(taskCounts[client.id]?.pending || 0) > 0 && (
+                          <Badge variant="secondary" className="text-xs h-5">
+                            {taskCounts[client.id]?.pending} פתוחות
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-sm">
+                        <FolderKanban className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium">{projectCounts[client.id] || 0}</span>
+                        <span className="text-muted-foreground">פרויקטים</span>
+                      </div>
+                    </div>
+                    
                     {client.description && (
-                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                         {client.description}
                       </p>
                     )}

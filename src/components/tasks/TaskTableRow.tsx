@@ -123,24 +123,28 @@ export function TaskTableRow({
               className="mt-2"
             />
           )}
+
+          {/* Status toggle button - always shown */}
+          <button
+            onClick={() => onToggleStatus(task.id, task.status)}
+            className={cn("p-2 rounded-lg transition-colors hover:opacity-80 flex-shrink-0", status.bg)}
+            title={`לחץ לשינוי סטטוס (${status.label})`}
+          >
+            <StatusIcon className={cn("w-5 h-5", status.color)} />
+          </button>
           
-          {!isSubtask && hasChildren ? (
+          {/* Expand button for tasks with children */}
+          {!isSubtask && hasChildren && (
             <button
               onClick={() => onToggleExpand(task.id)}
-              className="p-2 rounded-lg transition-colors hover:bg-muted flex-shrink-0"
+              className="p-1 rounded-lg transition-colors hover:bg-muted flex-shrink-0"
+              title="הרחב/כווץ תתי-משימות"
             >
               {isExpanded ? (
-                <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                <ChevronDown className="w-4 h-4 text-muted-foreground" />
               ) : (
-                <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+                <ChevronLeft className="w-4 h-4 text-muted-foreground" />
               )}
-            </button>
-          ) : (
-            <button
-              onClick={() => onToggleStatus(task.id, task.status)}
-              className={cn("p-2 rounded-lg transition-colors hover:opacity-80 flex-shrink-0", status.bg)}
-            >
-              <StatusIcon className={cn("w-5 h-5", status.color)} />
             </button>
           )}
 
