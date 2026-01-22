@@ -14,6 +14,10 @@ import {
   Palette,
   Trophy,
   Flame,
+  UserPlus,
+  CreditCard,
+  Bot,
+  Archive,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,6 +33,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useGamification } from "@/hooks/useGamification";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MenuItem {
   icon: React.ComponentType<{ className?: string }>;
@@ -42,6 +52,13 @@ const menuItems: MenuItem[] = [
   { icon: CheckSquare, label: "משימות", path: "/tasks" },
   { icon: Building2, label: "לקוחות", path: "/clients" },
   { icon: Users, label: "צוות", path: "/team" },
+];
+
+// Legacy modules - preserved but inactive
+const legacyModules: MenuItem[] = [
+  { icon: UserPlus, label: "לידים", path: "/leads" },
+  { icon: CreditCard, label: "חיובים", path: "/billing" },
+  { icon: Bot, label: "סוכני AI", path: "/ai-agents" },
 ];
 
 const settingsItems = [
@@ -183,6 +200,41 @@ export function Sidebar() {
             </Link>
           );
         })}
+
+        {/* Legacy Modules - Preserved but inactive */}
+        {legacyModules.length > 0 && (
+          <>
+            <div className="my-3 mx-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground/50">
+                <div className="h-px flex-1 bg-border/50" />
+                {!isCollapsed && <span className="flex items-center gap-1"><Archive className="w-3 h-3" /> ארכיון</span>}
+                <div className="h-px flex-1 bg-border/50" />
+              </div>
+            </div>
+            {legacyModules.map((item) => (
+              <TooltipProvider key={item.path}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200",
+                        "text-muted-foreground/40 cursor-not-allowed opacity-60"
+                      )}
+                    >
+                      <item.icon className="w-4 h-4 shrink-0" />
+                      {!isCollapsed && (
+                        <span className="font-medium text-xs">{item.label}</span>
+                      )}
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="left">
+                    <p className="text-xs">{item.label} - מודול לא פעיל</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ))}
+          </>
+        )}
       </nav>
 
       {/* Bottom Section */}
