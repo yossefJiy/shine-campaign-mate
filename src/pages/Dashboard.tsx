@@ -24,7 +24,7 @@ import { useGamification } from "@/hooks/useGamification";
 import { StreakCounter, ProgressRing } from "@/components/gamification";
 
 export default function Dashboard() {
-  const { selectedClient } = useClient();
+  const { selectedClient, isAgencyView } = useClient();
   const { points, streak, levelInfo } = useGamification();
 
   // Get current user's team member name
@@ -44,18 +44,19 @@ export default function Dashboard() {
   });
 
   const { data: stats, isLoading } = useQuery({
-    queryKey: ["dashboard-stats", selectedClient?.id],
+    queryKey: ["dashboard-stats", selectedClient?.id, isAgencyView],
     queryFn: async () => {
-      // Get tasks
+      // Get tasks - when in agency view (master account), show ALL tasks
       let tasksQuery = supabase.from("tasks").select("status, client_id, due_date");
-      if (selectedClient) {
+      if (selectedClient && !isAgencyView) {
+        // Only filter by client if NOT in agency view
         tasksQuery = tasksQuery.eq("client_id", selectedClient.id);
       }
       const { data: tasks } = await tasksQuery;
 
-      // Get projects  
+      // Get projects - when in agency view, show ALL projects
       let projectsQuery = supabase.from("projects").select("status, client_id");
-      if (selectedClient) {
+      if (selectedClient && !isAgencyView) {
         projectsQuery = projectsQuery.eq("client_id", selectedClient.id);
       }
       const { data: projects } = await projectsQuery;
@@ -72,18 +73,19 @@ export default function Dashboard() {
     },
   });
 
-  // Get recent tasks
+  // Get recent tasks - when in agency view, show ALL tasks
   const { data: recentTasks = [] } = useQuery({
-    queryKey: ["recent-tasks", selectedClient?.id],
+    queryKey: ["recent-tasks", selectedClient?.id, isAgencyView],
     queryFn: async () => {
       let query = supabase
         .from("tasks")
-        .select("id, title, status, priority, due_date, projects(name, color)")
+        .select("id, title, status, priority, due_date, projects(name, color), clients(name)")
         .neq("status", "completed")
         .order("due_date", { ascending: true, nullsFirst: false })
         .limit(5);
       
-      if (selectedClient) {
+      // Only filter by client if NOT in agency view
+      if (selectedClient && !isAgencyView) {
         query = query.eq("client_id", selectedClient.id);
       }
       

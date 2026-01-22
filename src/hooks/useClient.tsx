@@ -21,8 +21,10 @@ interface ClientContextType {
   masterAccount: Client | null;
   /** Returns selectedClient if set, otherwise masterAccount */
   effectiveClient: Client | null;
-  /** True if user is viewing agency/master context (no specific client selected) */
+  /** True if user is viewing agency/master context (no specific client selected or master selected) */
   isAgencyView: boolean;
+  /** True if user is a contact with single-client access (no switcher) */
+  isSingleClientMode: boolean;
 }
 
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
@@ -30,7 +32,7 @@ const ClientContext = createContext<ClientContextType | undefined>(undefined);
 export function ClientProvider({ children }: { children: ReactNode }) {
   const [selectedClient, setSelectedClientState] = useState<Client | null>(null);
   const { user, loading: authLoading } = useAuth();
-  const { isClient } = usePermissions();
+  const { isClient, isEmployee, isTeamManager, isAgencyManager, isAdmin } = usePermissions();
   const queryClient = useQueryClient();
 
   // Refetch clients when user changes
@@ -40,11 +42,11 @@ export function ClientProvider({ children }: { children: ReactNode }) {
     }
   }, [user, queryClient]);
 
-  // Fetch clients that the user has access to
+  // Fetch clients that the user has access to based on their role
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["all-clients", user?.id],
     queryFn: async () => {
-      // For client users, only fetch their assigned clients
+      // For client users (contacts) - only fetch their assigned clients via client_users
       if (isClient && user) {
         const { data: clientUsers } = await supabase
           .from("client_users")
@@ -65,7 +67,51 @@ export function ClientProvider({ children }: { children: ReactNode }) {
         return [];
       }
       
-      // For agency users, fetch all active (non-deleted) clients
+      // For team members (employees, team managers) - fetch clients they're assigned to via client_team
+      if ((isEmployee || isTeamManager) && !isAgencyManager && !isAdmin && user) {
+        // Get team member ID from user email
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (!authUser?.email) return [];
+        
+        const { data: teamMember } = await supabase
+          .from("team")
+          .select("id")
+          .eq("email", authUser.email)
+          .eq("is_active", true)
+          .single();
+        
+        if (!teamMember) return [];
+        
+        // Get clients assigned to this team member
+        const { data: clientAssignments } = await supabase
+          .from("client_team")
+          .select("client_id")
+          .eq("team_member_id", teamMember.id);
+        
+        if (clientAssignments && clientAssignments.length > 0) {
+          const clientIds = clientAssignments.map(ca => ca.client_id);
+          
+          // Also include master account for agency context
+          const { data, error } = await supabase
+            .from("clients")
+            .select("*")
+            .or(`id.in.(${clientIds.join(',')}),is_master_account.eq.true`)
+            .is("deleted_at", null)
+            .order("name", { ascending: true });
+          if (error) throw error;
+          return data as Client[];
+        }
+        
+        // If no assignments, still show master account
+        const { data: masterOnly } = await supabase
+          .from("clients")
+          .select("*")
+          .eq("is_master_account", true)
+          .is("deleted_at", null);
+        return (masterOnly || []) as Client[];
+      }
+      
+      // For agency managers and admins - fetch all active (non-deleted) clients
       const { data, error } = await supabase
         .from("clients")
         .select("*")
@@ -87,8 +133,11 @@ export function ClientProvider({ children }: { children: ReactNode }) {
     return selectedClient || masterAccount;
   }, [selectedClient, masterAccount]);
 
-  // Is user viewing agency context (no specific client selected)
+  // Is user viewing agency context (no specific client selected or master selected)
   const isAgencyView = !selectedClient || selectedClient.is_master_account === true;
+  
+  // Is user a contact with single-client access (should not see switcher)
+  const isSingleClientMode = isClient && clients.length === 1;
 
   // Load from localStorage on mount and validate
   // For client users, auto-select their client if they only have one
@@ -97,7 +146,7 @@ export function ClientProvider({ children }: { children: ReactNode }) {
     
     const saved = localStorage.getItem("selectedClientId");
     
-    // For client users with only one client, auto-select it
+    // For client users with only one client, auto-select it (no switcher needed)
     if (isClient && clients.length === 1 && !selectedClient) {
       setSelectedClientState(clients[0]);
       localStorage.setItem("selectedClientId", clients[0].id);
@@ -145,6 +194,7 @@ export function ClientProvider({ children }: { children: ReactNode }) {
       masterAccount,
       effectiveClient,
       isAgencyView,
+      isSingleClientMode,
     }}>
       {children}
     </ClientContext.Provider>
