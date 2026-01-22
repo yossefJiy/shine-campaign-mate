@@ -206,6 +206,38 @@ Deno.serve(async (req) => {
           syncResult = await supabase.from('team').upsert(teamToSync, { onConflict: 'id' }).select();
           break;
           
+        case 'tasks':
+          // Sync tasks - need to match project_id to local projects
+          const tasksToSync = data.data.map((t: Record<string, unknown>) => ({
+            id: t.id,
+            client_id: t.client_id,
+            project_id: t.project_id || null,
+            campaign_id: t.campaign_id || null,
+            title: t.title,
+            description: t.description || null,
+            status: t.status || 'pending',
+            priority: t.priority || 'medium',
+            department: t.department || null,
+            assignee: t.assignee || null,
+            due_date: t.due_date || null,
+            reminder_at: t.reminder_at || null,
+            notification_email: t.notification_email || false,
+            notification_sms: t.notification_sms || false,
+            notification_phone: t.notification_phone || null,
+            notification_email_address: t.notification_email_address || null,
+            reminder_sent: t.reminder_sent || false,
+            category: t.category || null,
+            scheduled_time: t.scheduled_time || null,
+            duration_minutes: t.duration_minutes || 60,
+            credits_cost: t.credits_cost || null,
+            recurrence_type: t.recurrence_type || null,
+            recurrence_end_date: t.recurrence_end_date || null,
+            priority_category: t.priority_category || null,
+            credit_weight: t.credit_weight || 1.00,
+          }));
+          syncResult = await supabase.from('tasks').upsert(tasksToSync, { onConflict: 'id' }).select();
+          break;
+          
         default:
           syncResult = { data: [], error: 'Sync not supported for this type' };
       }
