@@ -59,10 +59,11 @@ export function ClientProvider({ children }: { children: ReactNode }) {
         return [];
       }
       
-      // For agency users, fetch all clients
+      // For agency users, fetch all active (non-deleted) clients
       const { data, error } = await supabase
         .from("clients")
         .select("*")
+        .is("deleted_at", null)
         .order("name", { ascending: true });
       if (error) throw error;
       return data as Client[];
