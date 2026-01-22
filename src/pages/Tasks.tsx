@@ -184,12 +184,10 @@ export default function Tasks() {
         clients?: { is_master_account?: boolean } | null;
       }>;
 
-      const filtered = selectedClient
-        ? rows.filter((p) =>
-            p.client_id === selectedClient.id ||
-            p.client_id === null ||
-            p.clients?.is_master_account === true
-          )
+      // When specific client selected (not master), show only that client's projects
+      // When in agency view, show all projects
+      const filtered = (selectedClient && !selectedClient.is_master_account)
+        ? rows.filter((p) => p.client_id === selectedClient.id)
         : rows;
 
       return filtered.map((p) => ({ id: p.id, name: p.name, color: p.color })) as Project[];
@@ -207,11 +205,11 @@ export default function Tasks() {
         .order("due_date", { ascending: true, nullsFirst: false })
         .order("scheduled_time", { ascending: true, nullsFirst: false });
 
-      if (selectedClient) {
-        // When specific client is selected, show only that client's tasks
+      if (selectedClient && !selectedClient.is_master_account) {
+        // When specific client is selected (not master/agency), show only that client's tasks
         query = query.eq("client_id", selectedClient.id);
       }
-      // When no client selected (agency view), show all tasks but filter out deleted clients below
+      // When master/agency is selected or no selection, show all tasks (filtered below for deleted clients)
 
       const { data, error } = await query;
       if (error) throw error;

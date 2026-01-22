@@ -98,12 +98,11 @@ export default function Projects() {
       // Filter out projects from deleted clients
       const activeProjects = data.filter((p: any) => !p.clients?.deleted_at);
       
-      // Filter: show selected client's projects + agency (master account) projects
-      if (selectedClient) {
+      // Filter: when a specific client is selected (not master/agency), show ONLY that client's projects
+      // When in agency view (no selection or master selected), show all projects
+      if (selectedClient && !selectedClient.is_master_account) {
         return activeProjects.filter((p: any) => 
-          p.client_id === selectedClient.id || 
-          p.client_id === null ||
-          p.clients?.is_master_account === true
+          p.client_id === selectedClient.id
         );
       }
       
