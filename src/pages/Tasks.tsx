@@ -392,6 +392,7 @@ export default function Tasks() {
         category: task.category || null,
         status: "pending",
         client_id: targetClientId,
+        project_id: projectFilterId || null, // Auto-assign project when viewing under project context
       }));
       const { error } = await supabase.from("tasks").insert(tasksData);
       if (error) throw error;
@@ -674,17 +675,9 @@ export default function Tasks() {
                   <LayoutDashboard className="w-4 h-4 ml-2" />
                   הדשבורד שלי
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => setBulkImportDialogOpen(true)}>
-                  <Upload className="w-4 h-4 ml-2" />
-                  ייבוא בכמות
-                </Button>
                 <Button variant={showArchive ? "default" : "outline"} size="sm" onClick={() => setShowArchive(!showArchive)}>
                   <Archive className="w-4 h-4 ml-2" />
                   ארכיון ({archivedTasks.length})
-                </Button>
-                <Button className="glow" size="sm" onClick={() => openDialog()}>
-                  <Plus className="w-4 h-4 ml-2" />
-                  משימה חדשה
                 </Button>
               </div>
             }
@@ -816,33 +809,53 @@ export default function Tasks() {
             </div>
           ) : viewMode === "list" ? (
             <div className="glass rounded-xl overflow-hidden">
-              <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-muted/30">
-                <button
-                  onClick={() => {
-                    setShowCheckboxes(!showCheckboxes);
-                    if (showCheckboxes) {
-                      setSelectedTaskIds(new Set()); // Clear selection when hiding
-                    }
-                  }}
-                  className={cn(
-                    "text-sm font-medium transition-colors px-3 py-1 rounded-md",
-                    showCheckboxes 
-                      ? "bg-primary text-primary-foreground" 
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
-                >
-                  {showCheckboxes ? `${selectedTaskIds.size > 0 ? `${selectedTaskIds.size} נבחרו` : "בחירה מרובה"}` : "בחירה מרובה"}
-                </button>
-                {showCheckboxes && (
-                  <>
+              <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted/30">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      setShowCheckboxes(!showCheckboxes);
+                      if (showCheckboxes) {
+                        setSelectedTaskIds(new Set()); // Clear selection when hiding
+                      }
+                    }}
+                    className={cn(
+                      "text-sm font-medium transition-colors px-3 py-1 rounded-md",
+                      showCheckboxes 
+                        ? "bg-primary text-primary-foreground" 
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    )}
+                  >
+                    {showCheckboxes ? `${selectedTaskIds.size > 0 ? `${selectedTaskIds.size} נבחרו` : "בחירה מרובה"}` : "בחירה מרובה"}
+                  </button>
+                  {showCheckboxes && (
                     <button
                       onClick={toggleSelectAll}
                       className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                     >
                       {filteredTasks.length > 0 && selectedTaskIds.size === filteredTasks.length ? "בטל הכל" : "בחר הכל"}
                     </button>
-                  </>
-                )}
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setBulkImportDialogOpen(true)}
+                    title="ייבוא בכמות"
+                  >
+                    <Upload className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-primary hover:text-primary"
+                    onClick={() => openDialog()}
+                    title="משימה חדשה"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
               {filteredTasks.map((task) => (
                 <TaskTableRow
