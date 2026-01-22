@@ -65,3 +65,21 @@ export interface UpdateTaskDTO {
   actual_hours?: number;
   tags?: string[];
 }
+
+// TeamMember type for tasks components
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string | null;
+  emails: string[];
+  phones: string[];
+  departments: string[];
+  avatar_color?: string | null;
+}
+
+// Project type for tasks components
+export interface Project {
+  id: string;
+  name: string;
+  color: string | null;
+}
