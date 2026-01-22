@@ -138,6 +138,11 @@ export default function Projects() {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      // Validate that client is selected
+      if (!selectedClient) {
+        throw new Error("יש לבחור לקוח לפני יצירת פרויקט");
+      }
+
       const payload = {
         name: formData.name,
         description: formData.description || null,
@@ -147,7 +152,7 @@ export default function Projects() {
         target_date: formData.target_date || null,
         budget_hours: formData.budget_hours ? parseFloat(formData.budget_hours) : null,
         color: formData.color,
-        client_id: selectedClient?.id || null,
+        client_id: selectedClient.id, // Always require client
       };
 
       if (editingProject) {

@@ -279,6 +279,11 @@ export default function Tasks() {
   // Mutations
   const saveMutation = useMutation({
     mutationFn: async (task: Partial<Task> & { id?: string }) => {
+      // Validate client is selected for new tasks
+      if (!task.id && !selectedClient) {
+        throw new Error("יש לבחור לקוח לפני יצירת משימה");
+      }
+
       const taskData = {
         title: task.title,
         description: task.description,
@@ -306,7 +311,7 @@ export default function Tasks() {
       } else {
         const { data, error } = await supabase.from("tasks").insert({
           ...taskData,
-          client_id: selectedClient?.id || null,
+          client_id: selectedClient!.id, // Always require client for new tasks
         }).select('id').single();
         if (error) throw error;
         return data.id;
