@@ -92,6 +92,7 @@ export function GlobalSearch() {
       const { data } = await supabase
         .from("team")
         .select("id, name, departments")
+        .eq("is_active", true)
         .ilike("name", `%${query}%`)
         .limit(3);
       return (data || []).map((m): SearchResult => ({
