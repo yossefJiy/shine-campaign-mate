@@ -180,8 +180,14 @@ export default function Projects() {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       closeDialog();
     },
-    onError: () => {
-      toast.error("שגיאה בשמירת הפרויקט");
+    onError: (error: Error) => {
+      if (error.message.includes("יש לבחור לקוח")) {
+        toast.error("יש לבחור לקוח לפני יצירת פרויקט", {
+          description: "בחר לקוח מהתפריט או צור פרויקט מתוך דף לקוח ספציפי"
+        });
+      } else {
+        toast.error("שגיאה בשמירת הפרויקט");
+      }
     },
   });
 
