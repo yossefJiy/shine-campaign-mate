@@ -79,9 +79,10 @@ export default function Settings() {
           description="ניהול מערכת והגדרות כלליות"
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8">
-          {/* Settings Menu */}
-          <div className="lg:col-span-1">
+        {/* RTL Layout: Menu on right (first in DOM for RTL), Content on left */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8" dir="rtl">
+          {/* Settings Menu - visually on right in RTL */}
+          <div className="lg:col-span-1 order-1">
             <div className="card-clean p-2 animate-fade-in">
               {visibleSections.map((section) => (
                 <button
@@ -104,8 +105,8 @@ export default function Settings() {
             </div>
           </div>
 
-          {/* Content Panel */}
-          <div className="lg:col-span-3">
+          {/* Content Panel - visually on left in RTL */}
+          <div className="lg:col-span-3 order-2">
             {/* Profile Section */}
             {activeSection === "profile" && (
               <div className="animate-slide-up">
