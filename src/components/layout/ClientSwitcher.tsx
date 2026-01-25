@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CreateClientDialog } from "@/components/client/CreateClientDialog";
+import { AgencySettingsQuickAccess } from "@/components/settings/AgencySettingsQuickAccess";
 import logoIcon from "@/assets/logo-icon.svg";
 import logoText from "@/assets/logo-text.svg";
 import { toast } from "sonner";
@@ -240,44 +241,47 @@ export function ClientSwitcher({ collapsed = false }: ClientSwitcherProps) {
     );
   }
 
-  // All clients shown with same style - master account at top, then gold separator
+  // Check if current selection is master account (agency view)
+  const isAgencyView = selectedClient && isClientMasterAccount(selectedClient);
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className={cn(
-            "w-full justify-between gap-2 h-12 px-3 bg-muted/30 hover:bg-muted/50 border border-border/50",
-            collapsed && "px-2 justify-center"
-          )}
-        >
-          <div className="flex items-center gap-2 min-w-0">
-            <div className={cn(
-              "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
-              selectedClient ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
-            )}>
-              {selectedClient ? (
-                <span className="font-bold text-sm">{selectedClient.name.charAt(0)}</span>
-              ) : (
-                <Building2 className="w-4 h-4" />
-              )}
-            </div>
-            {!collapsed && (
-              <div className="flex flex-col items-start text-right truncate">
-                <span className="text-sm font-medium truncate max-w-[140px]">
-                  {selectedClient?.name || "בחר לקוח"}
-                </span>
-                {selectedClient?.industry && (
-                  <span className="text-xs text-muted-foreground truncate max-w-[140px]">
-                    {selectedClient.industry}
-                  </span>
+    <div className="flex items-center gap-1">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className={cn(
+              "flex-1 justify-between gap-2 h-12 px-3 bg-muted/30 hover:bg-muted/50 border border-border/50",
+              collapsed && "px-2 justify-center"
+            )}
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <div className={cn(
+                "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
+                selectedClient ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"
+              )}>
+                {selectedClient ? (
+                  <span className="font-bold text-sm">{selectedClient.name.charAt(0)}</span>
+                ) : (
+                  <Building2 className="w-4 h-4" />
                 )}
               </div>
-            )}
-          </div>
-          {!collapsed && <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />}
-        </Button>
-      </DropdownMenuTrigger>
+              {!collapsed && (
+                <div className="flex flex-col items-start text-right truncate">
+                  <span className="text-sm font-medium truncate max-w-[140px]">
+                    {selectedClient?.name || "בחר לקוח"}
+                  </span>
+                  {selectedClient?.industry && (
+                    <span className="text-xs text-muted-foreground truncate max-w-[140px]">
+                      {selectedClient.industry}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+            {!collapsed && <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />}
+          </Button>
+        </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64 max-h-[calc(100vh-200px)] overflow-hidden flex flex-col">
         <DropdownMenuLabel className="flex items-center justify-between">
           <span>לקוחות</span>
@@ -411,5 +415,8 @@ export function ClientSwitcher({ collapsed = false }: ClientSwitcherProps) {
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
+    {/* Show agency settings icon only when master account is selected */}
+    {isAgencyView && !collapsed && <AgencySettingsQuickAccess />}
+    </div>
   );
 }
