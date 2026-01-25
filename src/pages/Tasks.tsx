@@ -25,12 +25,17 @@ import {
   LayoutDashboard,
   Settings2,
   X,
-  FolderKanban
+  FolderKanban,
+  Inbox,
+  DollarSign,
+  AlertTriangle
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -70,8 +75,11 @@ import { NotificationHistoryDialog } from "@/components/tasks/NotificationHistor
 import { TaskEditDialog } from "@/components/tasks/TaskEditDialog";
 import { TaskTableRow } from "@/components/tasks/TaskTableRow";
 import { TaskGridCard } from "@/components/tasks/TaskGridCard";
+import { TaskInbox } from "@/components/tasks/TaskInbox";
+import { TaskSmartFilters, SmartFilter } from "@/components/tasks/TaskSmartFilters";
 import { PendingAttachment } from "@/components/tasks/NewTaskAttachments";
 import { TeamMember, Project } from "@/types/domains/tasks";
+import { microcopy } from "@/lib/microcopy";
 
 interface Task {
   id: string;
@@ -99,6 +107,8 @@ interface Task {
   stage_id: string | null;
   task_tag: string | null;
   income_value: number | null;
+  waiting_since: string | null;
+  is_blocking: boolean | null;
   clients?: { name: string; is_master_account?: boolean } | null;
   projects?: Project | null;
 }
@@ -132,7 +142,8 @@ export default function Tasks() {
   const [showDashboard, setShowDashboard] = useState(false);
   const [showTimeBoard, setShowTimeBoard] = useState(false);
   const [showArchive, setShowArchive] = useState(false);
-  const [filter, setFilter] = useState<"all" | "assignee" | "department" | "date" | "client" | "project">(projectFilterId ? "project" : "all");
+  const [showInbox, setShowInbox] = useState(false);
+  const [filter, setFilter] = useState<SmartFilter>(projectFilterId ? "project" : "all");
   const [selectedValue, setSelectedValue] = useState(projectFilterId || "");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
@@ -230,6 +241,8 @@ export default function Tasks() {
         scheduled_time: (task as any).scheduled_time || null,
         clients: (task as any).clients || null,
         projects: (task as any).projects || null,
+        waiting_since: (task as any).waiting_since || null,
+        is_blocking: (task as any).is_blocking || false,
       })) as Task[];
     },
   });
@@ -254,8 +267,47 @@ export default function Tasks() {
   const clientsForFilter = allClients.filter(c => tasks.some(t => t.client_id === c.id));
   const childTasksMap = new Map<string, Task[]>();
 
+  // Inbox: tasks without project_id (need to be assigned within 24h)
+  const inboxTasks = activeTasks.filter(task => !task.project_id);
+
+  // Smart filter counts
+  const today = new Date().toISOString().split('T')[0];
+  const currentUserId = user?.id;
+  const currentUserTeamMember = teamMembers.find(m => 
+    m.emails?.includes(user?.email || '') || m.email === user?.email
+  );
+  
+  const filterCounts = useMemo(() => {
+    return {
+      mine: activeTasks.filter(t => 
+        t.assignee === currentUserTeamMember?.name || 
+        t.assignee === currentUserTeamMember?.id
+      ).length,
+      income: activeTasks.filter(t => t.task_tag === 'income_generating').length,
+      waiting: activeTasks.filter(t => t.status === 'waiting' || t.task_tag === 'client_dependent').length,
+      overdue: activeTasks.filter(t => t.due_date && t.due_date < today).length,
+    };
+  }, [activeTasks, currentUserTeamMember, today]);
+
   const filteredTasks = useMemo(() => {
-    return (showArchive ? archivedTasks : activeTasks).filter(task => {
+    let baseTasks = showArchive ? archivedTasks : activeTasks;
+    
+    // Apply smart filters first
+    if (filter === "mine" && currentUserTeamMember) {
+      baseTasks = baseTasks.filter(t => 
+        t.assignee === currentUserTeamMember.name || 
+        t.assignee === currentUserTeamMember.id
+      );
+    } else if (filter === "income") {
+      baseTasks = baseTasks.filter(t => t.task_tag === 'income_generating');
+    } else if (filter === "waiting") {
+      baseTasks = baseTasks.filter(t => t.status === 'waiting' || t.task_tag === 'client_dependent');
+    } else if (filter === "overdue") {
+      baseTasks = baseTasks.filter(t => t.due_date && t.due_date < today && t.status !== 'completed');
+    }
+    
+    // Apply secondary filters
+    return baseTasks.filter(task => {
       if (filter === "date" && selectedDate) {
         if (!task.due_date) return false;
         const taskDate = new Date(task.due_date).toDateString();
@@ -270,7 +322,7 @@ export default function Tasks() {
       if (filter === "project" && selectedValue && task.project_id !== selectedValue) return false;
       return true;
     });
-  }, [showArchive, archivedTasks, activeTasks, filter, selectedDate, selectedValue]);
+  }, [showArchive, archivedTasks, activeTasks, filter, selectedDate, selectedValue, currentUserTeamMember, today]);
 
   // Assignee helpers
   const assigneeIdToName: Record<string, string> = {};
@@ -411,13 +463,36 @@ export default function Tasks() {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("tasks").update({ status }).eq("id", id);
+      const updateData: Record<string, unknown> = { status };
+      
+      // Waiting Logic: Set waiting_since when status changes to waiting
+      if (status === 'waiting') {
+        updateData.waiting_since = new Date().toISOString().split('T')[0];
+      } else {
+        // Clear waiting_since when not waiting
+        updateData.waiting_since = null;
+      }
+      
+      const { error } = await supabase.from("tasks").update(updateData).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast.success("הסטטוס עודכן");
     },
+  });
+
+  // Assign task to project (for Inbox tasks)
+  const assignToProjectMutation = useMutation({
+    mutationFn: async ({ taskId, projectId }: { taskId: string; projectId: string }) => {
+      const { error } = await supabase.from("tasks").update({ project_id: projectId }).eq("id", taskId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("המשימה שויכה לפרויקט");
+    },
+    onError: () => toast.error("שגיאה בשיוך משימה"),
   });
 
   const deleteMutation = useMutation({
@@ -711,76 +786,64 @@ export default function Tasks() {
             </div>
           )}
 
-          {/* Filters & View Toggle */}
+          {/* Smart Filters & View Toggle */}
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-1 bg-secondary rounded-lg p-1">
-                {[
-                  { id: "all", label: "הכל" },
-                  { id: "assignee", label: "עובד", icon: User },
-                  { id: "department", label: "מחלקה", icon: Building2 },
-                  { id: "date", label: "תאריך", icon: Calendar },
-                  { id: "client", label: "לקוח", icon: Building2 },
-                  { id: "project", label: "פרויקט", icon: FolderKanban },
-                ].map(({ id, label, icon: Icon }) => (
-                  <button
-                    key={id}
-                    onClick={() => { setFilter(id as any); if (id === "all") { setSelectedValue(""); setSearchParams({}); } }}
-                    className={cn(
-                      "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1",
-                      filter === id ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                    )}
-                  >
-                    {Icon && <Icon className="w-3 h-3" />}
-                    {label}
-                  </button>
-                ))}
-              </div>
+            <TaskSmartFilters
+              currentFilter={filter}
+              onFilterChange={(f) => { 
+                setFilter(f); 
+                if (f === "all" || f === "mine" || f === "income" || f === "waiting" || f === "overdue") { 
+                  setSelectedValue(""); 
+                  setSearchParams({}); 
+                } 
+              }}
+              counts={filterCounts}
+            />
 
-              {(filter === "assignee" || filter === "department" || filter === "client" || filter === "project") && (
-                <Select value={selectedValue} onValueChange={(v) => {
-                  setSelectedValue(v);
-                  if (filter === "project") {
-                    if (v) setSearchParams({ project: v });
-                    else setSearchParams({});
-                  }
-                }}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder={
-                      filter === "assignee" ? "בחר עובד" :
-                        filter === "department" ? "בחר מחלקה" :
-                          filter === "client" ? "בחר לקוח" : "בחר פרויקט"
-                    } />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filter === "assignee" && assignees.map(a => <SelectItem key={a} value={a!}>{a}</SelectItem>)}
-                    {filter === "department" && departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                    {filter === "client" && clientsForFilter.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                    {filter === "project" && projects.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              )}
+            {/* Secondary filter dropdowns */}
+            {(filter === "assignee" || filter === "department" || filter === "client" || filter === "project") && (
+              <Select value={selectedValue} onValueChange={(v) => {
+                setSelectedValue(v);
+                if (filter === "project") {
+                  if (v) setSearchParams({ project: v });
+                  else setSearchParams({});
+                }
+              }}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder={
+                    filter === "assignee" ? "בחר עובד" :
+                      filter === "department" ? "בחר מחלקה" :
+                        filter === "client" ? "בחר לקוח" : "בחר פרויקט"
+                  } />
+                </SelectTrigger>
+                <SelectContent>
+                  {filter === "assignee" && assignees.map(a => <SelectItem key={a} value={a!}>{a}</SelectItem>)}
+                  {filter === "department" && departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                  {filter === "client" && clientsForFilter.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                  {filter === "project" && projects.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
 
-              {filter === "date" && (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-40 justify-start text-right">
-                      <Calendar className="w-4 h-4 ml-2" />
-                      {selectedDate ? format(selectedDate, "dd/MM/yyyy") : "בחר תאריך"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              )}
-            </div>
+            {filter === "date" && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-40 justify-start text-right">
+                    <Calendar className="w-4 h-4 ml-2" />
+                    {selectedDate ? format(selectedDate, "dd/MM/yyyy") : "בחר תאריך"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
 
             <div className="flex items-center gap-1 bg-secondary rounded-lg p-1">
               <button

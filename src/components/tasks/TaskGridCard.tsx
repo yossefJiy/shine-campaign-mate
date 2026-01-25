@@ -44,6 +44,8 @@ interface Task {
   stage_id: string | null;
   task_tag: string | null;
   income_value: number | null;
+  waiting_since: string | null;
+  is_blocking: boolean | null;
 }
 
 interface TaskGridCardProps {
