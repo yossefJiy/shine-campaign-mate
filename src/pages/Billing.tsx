@@ -54,6 +54,7 @@ import { BillingOverview } from "@/components/billing/BillingOverview";
 import { AgreementsManager } from "@/components/billing/AgreementsManager";
 import { CollectionTracker } from "@/components/billing/CollectionTracker";
 import { ICountSync } from "@/components/billing/ICountSync";
+import { MonthlyBillingDashboard } from "@/components/billing/MonthlyBillingDashboard";
 
 const statusConfig: Record<string, { label: string; icon: React.ComponentType<any>; color: string }> = {
   draft: { label: "טיוטה", icon: FileText, color: "bg-muted text-muted-foreground" },
@@ -145,6 +146,10 @@ export default function Billing() {
                 <LayoutDashboard className="w-4 h-4" />
                 סקירה
               </TabsTrigger>
+              <TabsTrigger value="monthly" className="gap-2">
+                <Wallet className="w-4 h-4" />
+                חיוב חודשי
+              </TabsTrigger>
               <TabsTrigger value="agreements" className="gap-2">
                 <Handshake className="w-4 h-4" />
                 הסכמים
@@ -154,7 +159,7 @@ export default function Billing() {
                 חשבוניות ({invoices.length})
               </TabsTrigger>
               <TabsTrigger value="collection" className="gap-2">
-                <Wallet className="w-4 h-4" />
+                <FileCheck className="w-4 h-4" />
                 גבייה
               </TabsTrigger>
               <TabsTrigger value="icount" className="gap-2">
@@ -166,6 +171,11 @@ export default function Billing() {
             {/* Overview Tab */}
             <TabsContent value="overview">
               <BillingOverview year={2026} />
+            </TabsContent>
+
+            {/* Monthly Billing Dashboard Tab */}
+            <TabsContent value="monthly">
+              <MonthlyBillingDashboard />
             </TabsContent>
 
             {/* Agreements Tab */}

@@ -7,3 +7,4 @@ export { AgreementDialog } from "./AgreementDialog";
 export { CollectionTracker } from "./CollectionTracker";
 export { BillingRecordDialog } from "./BillingRecordDialog";
 export { ICountSync } from "./ICountSync";
+export { MonthlyBillingDashboard } from "./MonthlyBillingDashboard";

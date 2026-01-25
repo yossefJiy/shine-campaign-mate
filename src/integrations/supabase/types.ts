@@ -1292,6 +1292,50 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_goals: {
+        Row: {
+          client_id: string | null
+          commission_target: number | null
+          created_at: string | null
+          id: string
+          month: number | null
+          notes: string | null
+          revenue_target: number | null
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          client_id?: string | null
+          commission_target?: number | null
+          created_at?: string | null
+          id?: string
+          month?: number | null
+          notes?: string | null
+          revenue_target?: number | null
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          client_id?: string | null
+          commission_target?: number | null
+          created_at?: string | null
+          id?: string
+          month?: number | null
+          notes?: string | null
+          revenue_target?: number | null
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_goals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       billing_records: {
         Row: {
           additional_amount: number | null
@@ -2640,6 +2684,112 @@ export type Database = {
           warning_count?: number
         }
         Relationships: []
+      }
+      commission_collections: {
+        Row: {
+          ad_spend: number | null
+          client_id: string
+          collected_amount: number | null
+          collected_at: string | null
+          commission_percent: number | null
+          created_at: string | null
+          expected_amount: number | null
+          icount_doc_id: string | null
+          icount_doc_url: string | null
+          id: string
+          month: number
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          ad_spend?: number | null
+          client_id: string
+          collected_amount?: number | null
+          collected_at?: string | null
+          commission_percent?: number | null
+          created_at?: string | null
+          expected_amount?: number | null
+          icount_doc_id?: string | null
+          icount_doc_url?: string | null
+          id?: string
+          month: number
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          ad_spend?: number | null
+          client_id?: string
+          collected_amount?: number | null
+          collected_at?: string | null
+          commission_percent?: number | null
+          created_at?: string | null
+          expected_amount?: number | null
+          icount_doc_id?: string | null
+          icount_doc_url?: string | null
+          id?: string
+          month?: number
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_collections_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_update_requests: {
+        Row: {
+          ad_spend_reported: number | null
+          client_id: string
+          created_at: string | null
+          id: string
+          month: number
+          requested_at: string | null
+          responded_at: string | null
+          status: string | null
+          year: number
+        }
+        Insert: {
+          ad_spend_reported?: number | null
+          client_id: string
+          created_at?: string | null
+          id?: string
+          month: number
+          requested_at?: string | null
+          responded_at?: string | null
+          status?: string | null
+          year: number
+        }
+        Update: {
+          ad_spend_reported?: number | null
+          client_id?: string
+          created_at?: string | null
+          id?: string
+          month?: number
+          requested_at?: string | null
+          responded_at?: string | null
+          status?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_update_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       competitor_metrics: {
         Row: {
@@ -5418,6 +5568,48 @@ export type Database = {
           message?: string | null
           service_name?: string
           status?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          base_price: number
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          pricing_type: string
+          sort_order: number | null
+          unit: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_price?: number
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          pricing_type?: string
+          sort_order?: number | null
+          unit?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_price?: number
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          pricing_type?: string
+          sort_order?: number | null
+          unit?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
