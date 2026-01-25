@@ -11,12 +11,16 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useGamification } from "@/hooks/useGamification";
+import { usePermissions } from "@/hooks/useAuth";
 import { StreakCounter, ProgressRing } from "@/components/gamification";
 import { FocusDashboard } from "@/components/dashboard/FocusDashboard";
+import { ClientDashboard } from "@/components/dashboard/ClientDashboard";
+import { EmployeeDashboard } from "@/components/dashboard/EmployeeDashboard";
 
 export default function Dashboard() {
   const { selectedClient, isAgencyView } = useClient();
   const { points, streak, levelInfo } = useGamification();
+  const { isClient, isEmployee, isAgencyManager, isAdmin } = usePermissions();
 
   // Get current user's team member name
   const { data: currentTeamMember } = useQuery({
@@ -54,6 +58,30 @@ export default function Dashboard() {
     ? Math.round((stats.completedTasks / stats.totalTasks) * 100) 
     : 0;
 
+  // Role-based dashboard routing
+  // Clients see ClientDashboard
+  if (isClient) {
+    return (
+      <MainLayout>
+        <div className="p-6 md:p-8 max-w-4xl mx-auto">
+          <ClientDashboard />
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Regular employees see EmployeeDashboard
+  if (isEmployee && !isAgencyManager && !isAdmin) {
+    return (
+      <MainLayout>
+        <div className="p-6 md:p-8 max-w-4xl mx-auto">
+          <EmployeeDashboard />
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Admins and Agency Managers see FocusDashboard
   return (
     <MainLayout>
       <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
