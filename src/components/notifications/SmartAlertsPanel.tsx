@@ -8,7 +8,10 @@ import {
   AlertTriangle,
   Flame,
   FileText,
-  UserCheck
+  UserCheck,
+  Send,
+  Ban,
+  Hourglass
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +37,11 @@ const alertIcons: Record<AlertType, React.ReactNode> = {
   proposal_approved: <FileText className="h-4 w-4 text-green-500" />,
   proposal_expired: <FileText className="h-4 w-4 text-red-500" />,
   task_assigned: <UserCheck className="h-4 w-4 text-blue-500" />,
+  proposal_sent: <Send className="h-4 w-4 text-blue-500" />,
+  retainer_paid: <DollarSign className="h-4 w-4 text-green-500" />,
+  stage_approval_request: <Hourglass className="h-4 w-4 text-orange-500" />,
+  task_waiting: <Clock className="h-4 w-4 text-yellow-500" />,
+  work_blocked: <Ban className="h-4 w-4 text-red-500" />,
 };
 
 const priorityColors: Record<AlertPriority, string> = {
