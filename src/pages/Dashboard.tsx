@@ -5,21 +5,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { 
   Loader2,
-  Trophy,
   Plus,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useGamification } from "@/hooks/useGamification";
 import { usePermissions } from "@/hooks/useAuth";
-import { StreakCounter, ProgressRing } from "@/components/gamification";
 import { FocusDashboard } from "@/components/dashboard/FocusDashboard";
 import { ClientDashboard } from "@/components/dashboard/ClientDashboard";
 import { EmployeeDashboard } from "@/components/dashboard/EmployeeDashboard";
 
 export default function Dashboard() {
   const { selectedClient, isAgencyView } = useClient();
-  const { points, streak, levelInfo } = useGamification();
   const { isClient, isEmployee, isAgencyManager, isAdmin } = usePermissions();
 
   // Get current user's team member name
@@ -109,42 +105,6 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            {/* Gamification Row - Compact */}
-            <div className="grid grid-cols-3 gap-4">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="pt-4 pb-4 flex items-center justify-center gap-3">
-                  <ProgressRing progress={completionPercent} size={60}>
-                    <span className="text-sm font-bold">{completionPercent}%</span>
-                  </ProgressRing>
-                  <span className="text-sm text-muted-foreground">השלמה</span>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-sm">
-                <CardContent className="pt-4 pb-4 flex items-center justify-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Trophy className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <span className="text-lg font-bold">{points?.total_points || 0}</span>
-                    <p className="text-xs text-muted-foreground">רמה {levelInfo.level}</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-sm">
-                <CardContent className="pt-4 pb-4 flex items-center justify-center gap-3">
-                  <StreakCounter 
-                    streak={streak?.current_streak || 0} 
-                    longestStreak={streak?.longest_streak}
-                    size="sm"
-                    showLabel={false}
-                  />
-                  <span className="text-sm text-muted-foreground">רצף ימים</span>
-                </CardContent>
-              </Card>
-            </div>
-
             {/* Focus Dashboard - Main Content */}
             <FocusDashboard clientId={isAgencyView ? undefined : selectedClient?.id} />
           </>
