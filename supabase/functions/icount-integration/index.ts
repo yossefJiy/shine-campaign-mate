@@ -191,7 +191,16 @@ serve(async (req) => {
       );
     }
 
-    const body = req.method === "POST" ? await req.json() : {};
+    // deno-lint-ignore no-explicit-any
+    let body: any = {};
+    if (req.method === "POST") {
+      try {
+        const text = await req.text();
+        body = text ? JSON.parse(text) : {};
+      } catch {
+        body = {};
+      }
+    }
 
     switch (action) {
       case "create": {
@@ -201,12 +210,12 @@ serve(async (req) => {
         // Update the local invoice/quote with iCount ID if provided
         if (body.local_id && body.table) {
           const { error: updateError } = await supabase
-            .from(body.table)
+            .from(body.table as string)
             .update({
               icount_doc_id: result.doc_id,
               icount_synced_at: new Date().toISOString(),
             })
-            .eq("id", body.local_id);
+            .eq("id", body.local_id as string);
           
           if (updateError) {
             console.error("Failed to update local record:", updateError);
@@ -220,7 +229,8 @@ serve(async (req) => {
       }
 
       case "get": {
-        const { doctype, docnum } = body as DocGetRequest;
+        const doctype = body.doctype as string;
+        const docnum = body.docnum as string;
         const result = await getDocument(config, doctype, docnum);
         
         return new Response(
@@ -230,7 +240,8 @@ serve(async (req) => {
       }
 
       case "pdf": {
-        const { doctype, docnum } = body as DocGetRequest;
+        const doctype = body.doctype as string;
+        const docnum = body.docnum as string;
         const result = await getDocumentPDF(config, doctype, docnum);
         
         return new Response(
