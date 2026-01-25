@@ -20,20 +20,17 @@ import {
   FilePlus,
   Printer,
   Download,
-  Filter,
   Search,
+  LayoutDashboard,
+  Handshake,
+  Wallet,
+  Cloud,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,9 +48,12 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { he } from "date-fns/locale";
 import { InvoiceDialog } from "@/components/billing/InvoiceDialog";
 import { QuoteDialog } from "@/components/billing/QuoteDialog";
+import { BillingOverview } from "@/components/billing/BillingOverview";
+import { AgreementsManager } from "@/components/billing/AgreementsManager";
+import { CollectionTracker } from "@/components/billing/CollectionTracker";
+import { ICountSync } from "@/components/billing/ICountSync";
 
 const statusConfig: Record<string, { label: string; icon: React.ComponentType<any>; color: string }> = {
   draft: { label: "טיוטה", icon: FileText, color: "bg-muted text-muted-foreground" },
@@ -77,9 +77,9 @@ const typeLabels: Record<string, string> = {
 export default function Billing() {
   const { selectedClient, isAgencyView } = useClient();
   const clientId = isAgencyView ? undefined : selectedClient?.id;
-  const { invoices, quotes, stats, isLoading, updateInvoiceStatus, updateQuoteStatus } = useBilling(clientId);
+  const { invoices, quotes, isLoading, updateInvoiceStatus, updateQuoteStatus } = useBilling(clientId);
   
-  const [activeTab, setActiveTab] = useState("invoices");
+  const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
@@ -124,7 +124,7 @@ export default function Billing() {
           <div className="flex items-center justify-between mb-6">
             <PageHeader 
               title="חיובים"
-              description={isAgencyView ? "ניהול חשבוניות והצעות מחיר" : `חיובים עבור ${selectedClient?.name || ''}`}
+              description={isAgencyView ? "ניהול הסכמים, חשבוניות וגבייה" : `חיובים עבור ${selectedClient?.name || ''}`}
             />
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => { setEditingQuote(null); setShowQuoteDialog(true); }}>
@@ -138,307 +138,185 @@ export default function Billing() {
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">שולם</p>
-                    <p className="text-2xl font-bold text-green-600">{formatCurrency(stats.totalPaid)}</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">ממתין לתשלום</p>
-                    <p className="text-2xl font-bold text-blue-600">{formatCurrency(stats.totalPending)}</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-blue-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">באיחור</p>
-                    <p className="text-2xl font-bold text-red-600">{formatCurrency(stats.totalOverdue)}</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                    <AlertTriangle className="w-5 h-5 text-red-600" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">הצעות מחיר</p>
-                    <p className="text-2xl font-bold">{stats.quotesAccepted} / {stats.quotesPending + stats.quotesAccepted}</p>
-                    <p className="text-xs text-muted-foreground">התקבלו / סה"כ</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <FileCheck className="w-5 h-5 text-primary" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Tabs */}
+          {/* Enhanced Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <div className="flex items-center justify-between mb-4">
-              <TabsList>
-                <TabsTrigger value="invoices" className="gap-2">
-                  <Receipt className="w-4 h-4" />
-                  חשבוניות ({invoices.length})
-                </TabsTrigger>
-                <TabsTrigger value="quotes" className="gap-2">
-                  <FileText className="w-4 h-4" />
-                  הצעות מחיר ({quotes.length})
-                </TabsTrigger>
-              </TabsList>
-              
-              <div className="relative">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="חיפוש..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pr-9 w-64"
-                />
-              </div>
-            </div>
+            <TabsList className="mb-6">
+              <TabsTrigger value="overview" className="gap-2">
+                <LayoutDashboard className="w-4 h-4" />
+                סקירה
+              </TabsTrigger>
+              <TabsTrigger value="agreements" className="gap-2">
+                <Handshake className="w-4 h-4" />
+                הסכמים
+              </TabsTrigger>
+              <TabsTrigger value="invoices" className="gap-2">
+                <Receipt className="w-4 h-4" />
+                חשבוניות ({invoices.length})
+              </TabsTrigger>
+              <TabsTrigger value="collection" className="gap-2">
+                <Wallet className="w-4 h-4" />
+                גבייה
+              </TabsTrigger>
+              <TabsTrigger value="icount" className="gap-2">
+                <Cloud className="w-4 h-4" />
+                iCount
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Overview Tab */}
+            <TabsContent value="overview">
+              <BillingOverview year={2026} />
+            </TabsContent>
+
+            {/* Agreements Tab */}
+            <TabsContent value="agreements">
+              <AgreementsManager />
+            </TabsContent>
 
             {/* Invoices Tab */}
             <TabsContent value="invoices">
-              <Card>
-                {filteredInvoices.length === 0 ? (
-                  <CardContent className="py-12 text-center">
-                    <Receipt className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                    <h3 className="text-lg font-medium mb-2">אין חשבוניות עדיין</h3>
-                    <p className="text-muted-foreground mb-4">צור חשבונית חדשה כדי להתחיל</p>
-                    <Button onClick={() => { setEditingInvoice(null); setShowInvoiceDialog(true); }}>
-                      <Plus className="w-4 h-4 ml-2" />
-                      חשבונית ראשונה
-                    </Button>
-                  </CardContent>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">מספר</TableHead>
-                        <TableHead className="text-right">לקוח</TableHead>
-                        <TableHead className="text-right">סוג</TableHead>
-                        <TableHead className="text-right">תאריך</TableHead>
-                        <TableHead className="text-right">סכום</TableHead>
-                        <TableHead className="text-right">סטטוס</TableHead>
-                        <TableHead className="text-right w-10"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredInvoices.map((invoice) => {
-                        const status = statusConfig[invoice.status] || statusConfig.draft;
-                        const StatusIcon = status.icon;
-                        
-                        return (
-                          <TableRow 
-                            key={invoice.id}
-                            className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => { setEditingInvoice(invoice); setShowInvoiceDialog(true); }}
-                          >
-                            <TableCell className="font-mono font-medium">{invoice.invoice_number}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                {invoice.clients?.logo_url && (
-                                  <img 
-                                    src={invoice.clients.logo_url} 
-                                    alt="" 
-                                    className="w-6 h-6 rounded object-contain bg-white border"
-                                  />
-                                )}
-                                {invoice.clients?.name || "—"}
-                              </div>
-                            </TableCell>
-                            <TableCell>{typeLabels[invoice.type] || invoice.type}</TableCell>
-                            <TableCell>
-                              {format(new Date(invoice.issue_date), "dd/MM/yyyy")}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {formatCurrency(invoice.total_amount)}
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={cn("gap-1", status.color)}>
-                                <StatusIcon className="w-3 h-3" />
-                                {status.label}
-                              </Badge>
-                            </TableCell>
-                            <TableCell onClick={(e) => e.stopPropagation()}>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <MoreVertical className="w-4 h-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => { setEditingInvoice(invoice); setShowInvoiceDialog(true); }}>
-                                    <Eye className="w-4 h-4 ml-2" />
-                                    צפייה
-                                  </DropdownMenuItem>
-                                  {invoice.status === "draft" && (
-                                    <DropdownMenuItem onClick={() => updateInvoiceStatus({ id: invoice.id, status: "sent" })}>
-                                      <Send className="w-4 h-4 ml-2" />
-                                      שלח ללקוח
-                                    </DropdownMenuItem>
+              <div className="space-y-4">
+                <div className="flex justify-end">
+                  <div className="relative">
+                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      placeholder="חיפוש..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pr-9 w-64"
+                    />
+                  </div>
+                </div>
+                <Card>
+                  {filteredInvoices.length === 0 ? (
+                    <CardContent className="py-12 text-center">
+                      <Receipt className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                      <h3 className="text-lg font-medium mb-2">אין חשבוניות עדיין</h3>
+                      <p className="text-muted-foreground mb-4">צור חשבונית חדשה כדי להתחיל</p>
+                      <Button onClick={() => { setEditingInvoice(null); setShowInvoiceDialog(true); }}>
+                        <Plus className="w-4 h-4 ml-2" />
+                        חשבונית ראשונה
+                      </Button>
+                    </CardContent>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-right">מספר</TableHead>
+                          <TableHead className="text-right">לקוח</TableHead>
+                          <TableHead className="text-right">סוג</TableHead>
+                          <TableHead className="text-right">תאריך</TableHead>
+                          <TableHead className="text-right">סכום</TableHead>
+                          <TableHead className="text-right">סטטוס</TableHead>
+                          <TableHead className="text-right w-10"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredInvoices.map((invoice) => {
+                          const status = statusConfig[invoice.status] || statusConfig.draft;
+                          const StatusIcon = status.icon;
+                          
+                          return (
+                            <TableRow 
+                              key={invoice.id}
+                              className="cursor-pointer hover:bg-muted/50"
+                              onClick={() => { setEditingInvoice(invoice); setShowInvoiceDialog(true); }}
+                            >
+                              <TableCell className="font-mono font-medium">{invoice.invoice_number}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  {invoice.clients?.logo_url && (
+                                    <img 
+                                      src={invoice.clients.logo_url} 
+                                      alt="" 
+                                      className="w-6 h-6 rounded object-contain bg-white border"
+                                    />
                                   )}
-                                  {["sent", "viewed", "overdue"].includes(invoice.status) && (
-                                    <DropdownMenuItem onClick={() => updateInvoiceStatus({ id: invoice.id, status: "paid" })}>
-                                      <CheckCircle className="w-4 h-4 ml-2" />
-                                      סמן כשולם
+                                  {invoice.clients?.name || "—"}
+                                </div>
+                              </TableCell>
+                              <TableCell>{typeLabels[invoice.type] || invoice.type}</TableCell>
+                              <TableCell>
+                                {format(new Date(invoice.issue_date), "dd/MM/yyyy")}
+                              </TableCell>
+                              <TableCell className="font-medium">
+                                {formatCurrency(invoice.total_amount)}
+                              </TableCell>
+                              <TableCell>
+                                <Badge className={cn("gap-1", status.color)}>
+                                  <StatusIcon className="w-3 h-3" />
+                                  {status.label}
+                                </Badge>
+                              </TableCell>
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <MoreVertical className="w-4 h-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => { setEditingInvoice(invoice); setShowInvoiceDialog(true); }}>
+                                      <Eye className="w-4 h-4 ml-2" />
+                                      צפייה
                                     </DropdownMenuItem>
-                                  )}
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem>
-                                    <Printer className="w-4 h-4 ml-2" />
-                                    הדפסה
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    <Download className="w-4 h-4 ml-2" />
-                                    הורדה כ-PDF
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                )}
-              </Card>
+                                    {invoice.status === "draft" && (
+                                      <DropdownMenuItem onClick={() => updateInvoiceStatus({ id: invoice.id, status: "sent" })}>
+                                        <Send className="w-4 h-4 ml-2" />
+                                        שלח ללקוח
+                                      </DropdownMenuItem>
+                                    )}
+                                    {["sent", "viewed", "overdue"].includes(invoice.status) && (
+                                      <DropdownMenuItem onClick={() => updateInvoiceStatus({ id: invoice.id, status: "paid" })}>
+                                        <CheckCircle className="w-4 h-4 ml-2" />
+                                        סמן כשולם
+                                      </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem>
+                                      <Printer className="w-4 h-4 ml-2" />
+                                      הדפסה
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                      <Download className="w-4 h-4 ml-2" />
+                                      הורדה כ-PDF
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  )}
+                </Card>
+              </div>
             </TabsContent>
 
-            {/* Quotes Tab */}
-            <TabsContent value="quotes">
-              <Card>
-                {filteredQuotes.length === 0 ? (
-                  <CardContent className="py-12 text-center">
-                    <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                    <h3 className="text-lg font-medium mb-2">אין הצעות מחיר עדיין</h3>
-                    <p className="text-muted-foreground mb-4">צור הצעת מחיר חדשה כדי להתחיל</p>
-                    <Button onClick={() => { setEditingQuote(null); setShowQuoteDialog(true); }}>
-                      <Plus className="w-4 h-4 ml-2" />
-                      הצעת מחיר ראשונה
-                    </Button>
-                  </CardContent>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-right">מספר</TableHead>
-                        <TableHead className="text-right">כותרת</TableHead>
-                        <TableHead className="text-right">לקוח / ליד</TableHead>
-                        <TableHead className="text-right">תוקף עד</TableHead>
-                        <TableHead className="text-right">סכום</TableHead>
-                        <TableHead className="text-right">סטטוס</TableHead>
-                        <TableHead className="text-right w-10"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredQuotes.map((quote) => {
-                        const status = statusConfig[quote.status] || statusConfig.draft;
-                        const StatusIcon = status.icon;
-                        
-                        return (
-                          <TableRow 
-                            key={quote.id}
-                            className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => { setEditingQuote(quote); setShowQuoteDialog(true); }}
-                          >
-                            <TableCell className="font-mono font-medium">{quote.quote_number}</TableCell>
-                            <TableCell className="max-w-[200px] truncate">{quote.title}</TableCell>
-                            <TableCell>
-                              {quote.clients?.name || quote.leads?.name || "—"}
-                            </TableCell>
-                            <TableCell>
-                              {quote.valid_until 
-                                ? format(new Date(quote.valid_until), "dd/MM/yyyy")
-                                : "—"
-                              }
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {formatCurrency(quote.total_amount)}
-                            </TableCell>
-                            <TableCell>
-                              <Badge className={cn("gap-1", status.color)}>
-                                <StatusIcon className="w-3 h-3" />
-                                {status.label}
-                              </Badge>
-                            </TableCell>
-                            <TableCell onClick={(e) => e.stopPropagation()}>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <MoreVertical className="w-4 h-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => { setEditingQuote(quote); setShowQuoteDialog(true); }}>
-                                    <Eye className="w-4 h-4 ml-2" />
-                                    צפייה
-                                  </DropdownMenuItem>
-                                  {quote.status === "draft" && (
-                                    <DropdownMenuItem onClick={() => updateQuoteStatus({ id: quote.id, status: "sent" })}>
-                                      <Send className="w-4 h-4 ml-2" />
-                                      שלח ללקוח
-                                    </DropdownMenuItem>
-                                  )}
-                                  {quote.status === "accepted" && (
-                                    <DropdownMenuItem>
-                                      <Receipt className="w-4 h-4 ml-2" />
-                                      המר לחשבונית
-                                    </DropdownMenuItem>
-                                  )}
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem>
-                                    <Download className="w-4 h-4 ml-2" />
-                                    הורדה כ-PDF
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                )}
-              </Card>
+            {/* Collection Tab */}
+            <TabsContent value="collection">
+              <CollectionTracker clientId={clientId} />
+            </TabsContent>
+
+            {/* iCount Tab */}
+            <TabsContent value="icount">
+              <ICountSync />
             </TabsContent>
           </Tabs>
-        </div>
 
-        {/* Dialogs */}
-        <InvoiceDialog 
-          open={showInvoiceDialog} 
-          onOpenChange={setShowInvoiceDialog}
-          invoice={editingInvoice}
-        />
-        <QuoteDialog 
-          open={showQuoteDialog} 
-          onOpenChange={setShowQuoteDialog}
-          quote={editingQuote}
-        />
+          {/* Dialogs */}
+          <InvoiceDialog 
+            open={showInvoiceDialog} 
+            onOpenChange={setShowInvoiceDialog}
+            invoice={editingInvoice}
+          />
+          <QuoteDialog 
+            open={showQuoteDialog} 
+            onOpenChange={setShowQuoteDialog}
+            quote={editingQuote}
+          />
+        </div>
       </DomainErrorBoundary>
     </MainLayout>
   );

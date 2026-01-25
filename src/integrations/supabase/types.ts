@@ -1292,6 +1292,106 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_records: {
+        Row: {
+          additional_amount: number | null
+          agreement_id: string | null
+          amount_billed: number | null
+          amount_paid: number | null
+          base_amount: number | null
+          client_id: string
+          commission_amount: number | null
+          created_at: string | null
+          due_date: string | null
+          icount_doc_id: string | null
+          icount_doc_type: string | null
+          icount_doc_url: string | null
+          id: string
+          invoice_id: string | null
+          month: number | null
+          notes: string | null
+          paid_at: string | null
+          period_end: string
+          period_start: string
+          status: string | null
+          total_amount: number | null
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          additional_amount?: number | null
+          agreement_id?: string | null
+          amount_billed?: number | null
+          amount_paid?: number | null
+          base_amount?: number | null
+          client_id: string
+          commission_amount?: number | null
+          created_at?: string | null
+          due_date?: string | null
+          icount_doc_id?: string | null
+          icount_doc_type?: string | null
+          icount_doc_url?: string | null
+          id?: string
+          invoice_id?: string | null
+          month?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          period_end: string
+          period_start: string
+          status?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+          year?: number
+        }
+        Update: {
+          additional_amount?: number | null
+          agreement_id?: string | null
+          amount_billed?: number | null
+          amount_paid?: number | null
+          base_amount?: number | null
+          client_id?: string
+          commission_amount?: number | null
+          created_at?: string | null
+          due_date?: string | null
+          icount_doc_id?: string | null
+          icount_doc_type?: string | null
+          icount_doc_url?: string | null
+          id?: string
+          invoice_id?: string | null
+          month?: number | null
+          notes?: string | null
+          paid_at?: string | null
+          period_end?: string
+          period_start?: string
+          status?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_records_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "client_agreements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_records_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_records_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brand_assets: {
         Row: {
           asset_type: string
@@ -1756,6 +1856,71 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_client_agent_tokens_client"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_agreements: {
+        Row: {
+          base_price: number
+          billing_cycle: string | null
+          category: string | null
+          client_id: string
+          commission_base: string | null
+          commission_percent: number | null
+          created_at: string | null
+          currency: string | null
+          end_date: string | null
+          id: string
+          notes: string | null
+          service_description: string | null
+          service_name: string
+          start_date: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_price?: number
+          billing_cycle?: string | null
+          category?: string | null
+          client_id: string
+          commission_base?: string | null
+          commission_percent?: number | null
+          created_at?: string | null
+          currency?: string | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          service_description?: string | null
+          service_name: string
+          start_date?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_price?: number
+          billing_cycle?: string | null
+          category?: string | null
+          client_id?: string
+          commission_base?: string | null
+          commission_percent?: number | null
+          created_at?: string | null
+          currency?: string | null
+          end_date?: string | null
+          id?: string
+          notes?: string | null
+          service_description?: string | null
+          service_name?: string
+          start_date?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_agreements_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"

@@ -1,3 +1,9 @@
 export { InvoiceDialog } from "./InvoiceDialog";
 export { QuoteDialog } from "./QuoteDialog";
 export { ClientBillingTab } from "./ClientBillingTab";
+export { BillingOverview } from "./BillingOverview";
+export { AgreementsManager } from "./AgreementsManager";
+export { AgreementDialog } from "./AgreementDialog";
+export { CollectionTracker } from "./CollectionTracker";
+export { BillingRecordDialog } from "./BillingRecordDialog";
+export { ICountSync } from "./ICountSync";
