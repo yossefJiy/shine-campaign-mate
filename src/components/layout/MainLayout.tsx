@@ -4,7 +4,7 @@ import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { SessionTimeoutDialog } from "@/components/SessionTimeoutDialog";
 import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 import { GlobalSearch } from "@/components/ai/GlobalSearch";
-import { AIChatAssistant } from "@/components/ai/AIChatAssistant";
+// AI Chat removed - not in current flow
 import { ClientSwitcher } from "./ClientSwitcher";
 import { SmartAlertsPanel } from "@/components/notifications/SmartAlertsPanel";
 import { cn } from "@/lib/utils";
@@ -42,10 +42,7 @@ function MainLayoutContent({ children }: MainLayoutProps) {
         {children}
       </main>
       
-      {/* AI Chat Assistant FAB */}
-      <AIChatAssistant />
-      
-      <SessionTimeoutDialog 
+      <SessionTimeoutDialog
         open={showWarning} 
         remainingTime={remainingTime} 
         onExtendSession={extendSession} 
