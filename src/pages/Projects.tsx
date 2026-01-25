@@ -44,7 +44,7 @@ const platformConfig: Record<string, { label: string; color: string }> = {
   tiktok: { label: "TikTok", color: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400" },
 };
 
-type FilterStatus = "all" | "active" | "waiting_client" | "at_risk" | "completed";
+type FilterStatus = "all" | "active" | "waiting_client" | "waiting_payment" | "at_risk" | "completed";
 
 export default function Projects() {
   const { selectedClient, effectiveClient, isAgencyView, clients } = useClient();
@@ -161,6 +161,7 @@ export default function Projects() {
     all: projects.length,
     active: projects.filter((p: any) => p.status === "active").length,
     waiting_client: projects.filter((p: any) => p.status === "waiting_client").length,
+    waiting_payment: projects.filter((p: any) => p.status === "waiting_payment").length,
     at_risk: projects.filter((p: any) => {
       const stats = getProjectStats(p);
       return stats.isAtRisk || p.status === "at_risk";
@@ -199,6 +200,7 @@ export default function Projects() {
               { value: "all", label: "הכל" },
               { value: "active", label: "פעיל" },
               { value: "waiting_client", label: "ממתין ללקוח" },
+              { value: "waiting_payment", label: "ממתין לתשלום" },
               { value: "at_risk", label: "בסיכון" },
               { value: "completed", label: "הושלם" },
             ].map((filter) => (

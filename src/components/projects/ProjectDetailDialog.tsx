@@ -156,12 +156,71 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
     queryFn: async () => {
       const { data, error } = await supabase
         .from("project_notes")
-        .select("*")
+        .select(`
+          *,
+          profiles:user_id(display_name)
+        `)
         .eq("project_id", projectId)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
       return data || [];
+    },
+    enabled: open && !!projectId,
+  });
+
+  // Fetch activity history (stage changes, task updates)
+  const { data: activityHistory = [] } = useQuery({
+    queryKey: ["project-activity", projectId],
+    queryFn: async () => {
+      // Get stage approvals
+      const { data: approvals } = await supabase
+        .from("stage_approvals")
+        .select(`
+          id, created_at, decision, notes,
+          project_stages!inner(name, project_id)
+        `)
+        .eq("project_stages.project_id", projectId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      
+      // Get recent task status changes
+      const { data: recentTasks } = await supabase
+        .from("tasks")
+        .select("id, title, status, updated_at")
+        .eq("project_id", projectId)
+        .order("updated_at", { ascending: false })
+        .limit(10);
+      
+      const activities: Array<{
+        id: string;
+        type: "approval" | "task_update" | "note";
+        content: string;
+        timestamp: string;
+        actor?: string;
+      }> = [];
+      
+      (approvals || []).forEach((a: any) => {
+        activities.push({
+          id: a.id,
+          type: "approval",
+          content: `שלב "${a.project_stages?.name}" ${a.decision === "approved" ? "אושר" : "נדחה"}`,
+          timestamp: a.created_at,
+        });
+      });
+      
+      (recentTasks || []).forEach((t: any) => {
+        activities.push({
+          id: t.id,
+          type: "task_update",
+          content: `משימה "${t.title}" עודכנה ל${microcopy.status[t.status as keyof typeof microcopy.status] || t.status}`,
+          timestamp: t.updated_at,
+        });
+      });
+      
+      return activities.sort((a, b) => 
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      ).slice(0, 20);
     },
     enabled: open && !!projectId,
   });
@@ -569,7 +628,8 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
           <TabsContent value="activity">
             <ScrollArea className="h-[500px] pr-4">
               <div className="space-y-4">
-                <div className="space-y-2">
+                {/* Add Note */}
+                <div className="space-y-2 pb-4 border-b">
                   <Textarea
                     value={newNote}
                     onChange={(e) => setNewNote(e.target.value)}
@@ -586,22 +646,61 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
                   </Button>
                 </div>
 
-                <div className="space-y-2">
-                  {notes.length === 0 ? (
+                {/* Activity Timeline */}
+                <div>
+                  <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                    <History className="h-4 w-4" />
+                    מי שינה מה ומתי
+                  </h4>
+                  
+                  {activityHistory.length === 0 && notes.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-8">
                       אין פעילות להצגה
                     </p>
                   ) : (
-                    notes.map((note: any) => (
-                      <Card key={note.id}>
-                        <CardContent className="py-3">
-                          <p className="text-sm">{note.content}</p>
-                          <p className="text-xs text-muted-foreground mt-2">
-                            {format(new Date(note.created_at), "dd/MM/yyyy HH:mm", { locale: he })}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    ))
+                    <div className="space-y-2">
+                      {/* Notes */}
+                      {notes.map((note: any) => (
+                        <Card key={`note-${note.id}`} className="border-r-4 border-r-primary">
+                          <CardContent className="py-3">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="text-sm">{note.content}</p>
+                                {note.profiles?.display_name && (
+                                  <p className="text-xs text-primary mt-1">
+                                    {note.profiles.display_name}
+                                  </p>
+                                )}
+                              </div>
+                              <Badge variant="outline" className="text-xs">הערה</Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              {format(new Date(note.created_at), "dd/MM/yyyy HH:mm", { locale: he })}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                      
+                      {/* Activity History */}
+                      {activityHistory.map((activity: any) => (
+                        <Card key={`activity-${activity.id}`} className={cn(
+                          "border-r-4",
+                          activity.type === "approval" ? "border-r-success" : "border-r-muted"
+                        )}>
+                          <CardContent className="py-3">
+                            <div className="flex items-start justify-between">
+                              <p className="text-sm">{activity.content}</p>
+                              <Badge variant="secondary" className="text-xs">
+                                {activity.type === "approval" ? "אישור" : "עדכון"}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              {format(new Date(activity.timestamp), "dd/MM/yyyy HH:mm", { locale: he })}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
