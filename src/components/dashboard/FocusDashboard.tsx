@@ -94,12 +94,12 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
       <div className="grid gap-4 md:grid-cols-2">
         {/* Income Tasks Today */}
         <Card className={cn(
-          "border-2",
-          hasIncomeTasksToday ? "border-amber-500/50 bg-amber-50/30 dark:bg-amber-950/20" : "border-muted"
+          "focus-block",
+          hasIncomeTasksToday ? "focus-block-primary" : "focus-block-muted"
         )}>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Flame className="h-5 w-5 text-amber-500" />
+            <CardTitle className="flex items-center gap-2 text-section-title">
+              <Flame className="h-5 w-5 text-primary" />
               {microcopy.sections.incomeToday}
             </CardTitle>
           </CardHeader>
@@ -109,22 +109,21 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
                 {data.incomeGeneratingTasks.slice(0, 3).map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-background border"
+                    className="flex items-center justify-between p-3 rounded-lg bg-card border"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{task.title}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {task.client_name}
+                      <p className="font-medium truncate text-body">{task.title}</p>
+                      <div className="flex items-center gap-2 text-meta text-muted-foreground">
+                        <span>{task.client_name}</span>
                         {task.income_value && (
-                          <span className="mr-2 text-amber-600">
+                          <span className="tag-income">
                             ₪{task.income_value.toLocaleString()}
                           </span>
                         )}
-                      </p>
+                      </div>
                     </div>
                     <Button
                       size="sm"
-                      variant="default"
                       className="gap-1 shrink-0"
                       onClick={() => handleStartTask(task.id)}
                     >
@@ -136,8 +135,8 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
               </div>
             ) : (
               <div className="text-center py-6 text-muted-foreground">
-                <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                <p>{microcopy.dashboard.noIncomeTasksToday}</p>
+                <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-success" />
+                <p className="text-body">{microcopy.dashboard.noIncomeTasksToday}</p>
               </div>
             )}
           </CardContent>
@@ -145,12 +144,12 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
 
         {/* Waiting for Client */}
         <Card className={cn(
-          "border-2",
-          hasClientDelays ? "border-orange-500/50" : "border-muted"
+          "focus-block",
+          hasClientDelays ? "focus-block-warning" : "focus-block-muted"
         )}>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Clock className="h-5 w-5 text-orange-500" />
+            <CardTitle className="flex items-center gap-2 text-section-title">
+              <Clock className="h-5 w-5 text-warning" />
               {microcopy.sections.waitingForClient}
             </CardTitle>
           </CardHeader>
@@ -160,11 +159,11 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
                 {data.clientDependentTasks.slice(0, 5).map((task) => (
                   <div
                     key={task.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-background border"
+                    className="flex items-center justify-between p-3 rounded-lg bg-card border"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{task.title}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="font-medium truncate text-body">{task.title}</p>
+                      <p className="text-meta text-muted-foreground">
                         {task.client_name}
                       </p>
                     </div>
@@ -182,8 +181,8 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
               </div>
             ) : (
               <div className="text-center py-6 text-muted-foreground">
-                <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                <p>אין משימות ממתינות ללקוח</p>
+                <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-success" />
+                <p className="text-body">אין משימות ממתינות ללקוח</p>
               </div>
             )}
           </CardContent>
@@ -191,12 +190,12 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
 
         {/* Overdue Payments */}
         <Card className={cn(
-          "border-2",
-          hasOverduePayments ? "border-red-500/50" : "border-muted"
+          "focus-block",
+          hasOverduePayments ? "focus-block-danger" : "focus-block-muted"
         )}>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <DollarSign className="h-5 w-5 text-red-500" />
+            <CardTitle className="flex items-center gap-2 text-section-title">
+              <DollarSign className="h-5 w-5 text-destructive" />
               {microcopy.sections.openPayments}
             </CardTitle>
           </CardHeader>
@@ -206,12 +205,12 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
                 {data.overduePayments.slice(0, 5).map((payment) => (
                   <div
                     key={payment.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-background border"
+                    className="flex items-center justify-between p-3 rounded-lg bg-card border"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium">{payment.client_name}</p>
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="font-semibold text-red-600">
+                      <p className="font-medium text-body">{payment.client_name}</p>
+                      <div className="flex items-center gap-2 text-meta">
+                        <span className="font-semibold text-destructive">
                           ₪{payment.amount.toLocaleString()}
                         </span>
                         <Badge variant="destructive" className="text-xs">
@@ -233,8 +232,8 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
               </div>
             ) : (
               <div className="text-center py-6 text-muted-foreground">
-                <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                <p>אין תשלומים פתוחים</p>
+                <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-success" />
+                <p className="text-body">אין תשלומים פתוחים</p>
               </div>
             )}
           </CardContent>
@@ -242,12 +241,12 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
 
         {/* Stalled Projects */}
         <Card className={cn(
-          "border-2",
-          hasStalledProjects ? "border-yellow-500/50" : "border-muted"
+          "focus-block",
+          hasStalledProjects ? "focus-block-warning" : "focus-block-muted"
         )}>
           <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+            <CardTitle className="flex items-center gap-2 text-section-title">
+              <AlertTriangle className="h-5 w-5 text-warning" />
               {microcopy.sections.projectsAtRisk}
             </CardTitle>
           </CardHeader>
@@ -257,13 +256,13 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
                 {data.stalledProjects.slice(0, 5).map((project) => (
                   <div
                     key={project.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-background border"
+                    className="flex items-center justify-between p-3 rounded-lg bg-card border"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{project.name}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="font-medium truncate text-body">{project.name}</p>
+                      <p className="text-meta text-muted-foreground">
                         {project.client_name} • 
-                        <span className="text-yellow-600 mr-1">
+                        <span className="text-warning mr-1">
                           {formatMessage(microcopy.messages.noProgressWarning, { days: project.days_since_activity })}
                         </span>
                       </p>
@@ -282,8 +281,8 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
               </div>
             ) : (
               <div className="text-center py-6 text-muted-foreground">
-                <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
-                <p>כל הפרויקטים בתנועה</p>
+                <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-success" />
+                <p className="text-body">כל הפרויקטים בתנועה</p>
               </div>
             )}
           </CardContent>
@@ -292,24 +291,24 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
 
       {/* Today Stats Summary */}
       {data?.todayStats && (
-        <Card className="bg-muted/30">
+        <Card className="bg-card border">
           <CardContent className="pt-4">
             <div className="flex items-center justify-around text-center">
               <div>
-                <p className="text-2xl font-bold">{data.todayStats.completedTasks}</p>
-                <p className="text-sm text-muted-foreground">משימות הושלמו</p>
+                <p className="text-page-title">{data.todayStats.completedTasks}</p>
+                <p className="text-meta text-muted-foreground">משימות הושלמו</p>
               </div>
               <div className="h-10 w-px bg-border" />
               <div>
-                <p className="text-2xl font-bold">{data.todayStats.totalTasks}</p>
-                <p className="text-sm text-muted-foreground">משימות היום</p>
+                <p className="text-page-title">{data.todayStats.totalTasks}</p>
+                <p className="text-meta text-muted-foreground">משימות היום</p>
               </div>
               <div className="h-10 w-px bg-border" />
               <div>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-page-title text-success">
                   ₪{data.todayStats.incomeValue.toLocaleString()}
                 </p>
-                <p className="text-sm text-muted-foreground">ערך הכנסה</p>
+                <p className="text-meta text-muted-foreground">ערך הכנסה</p>
               </div>
             </div>
           </CardContent>
@@ -317,7 +316,7 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
       )}
 
       {/* Mindset Quote */}
-      <p className="text-center text-sm text-muted-foreground italic">
+      <p className="text-center text-meta text-muted-foreground italic">
         {microcopy.mindset.smallProgressMatters}
       </p>
     </div>

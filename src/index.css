@@ -2,46 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    /* Minimalist Light Theme - Linear/Notion inspired */
-    --background: 0 0% 100%;
-    --foreground: 240 10% 4%;
+    /* UI Foundation - Brand with Subtle Hints */
+    /* "המערכת שקטה. המותג לוחש." */
+    
+    /* Base colors - Clean & Neutral */
+    --background: 220 14% 97%;       /* #F7F7F8 */
+    --foreground: 222 47% 11%;       /* #0F172A */
 
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 4%;
+    --card: 0 0% 100%;               /* #FFFFFF */
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 4%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 250 100% 60%;
+    /* Brand Accent - Deep Olive/Sage */
+    --primary: 150 20% 31%;          /* #3F5E4E */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 6% 10%;
+    --secondary: 220 13% 91%;        /* #E5E7EB - borders/muted */
+    --secondary-foreground: 220 9% 46%; /* #6B7280 */
 
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;  /* #6B7280 */
 
-    --accent: 250 100% 60%;
+    --accent: 150 20% 31%;           /* Same as primary for consistency */
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    /* Status colors - Functional, not brand */
+    --destructive: 0 72% 51%;        /* #DC2626 */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 250 100% 60%;
+    --success: 142 71% 45%;          /* #16A34A */
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;           /* #F59E0B */
+    --warning-foreground: 0 0% 0%;
+
+    --info: 217 91% 60%;             /* #2563EB */
+    --info-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;           /* #E5E7EB */
+    --input: 220 13% 91%;
+    --ring: 150 20% 31%;
 
     --radius: 0.5rem;
 
-    /* Gamification colors */
+    /* Task tags - Subtle, informative */
+    --tag-income: 142 71% 95%;
+    --tag-income-foreground: 142 71% 30%;
+    
+    --tag-waiting: 38 92% 95%;
+    --tag-waiting-foreground: 38 92% 35%;
+    
+    --tag-client: 217 91% 95%;
+    --tag-client-foreground: 217 91% 40%;
+    
+    --tag-operational: 220 14% 95%;
+    --tag-operational-foreground: 220 9% 46%;
+
+    /* Gamification - Muted */
     --streak: 38 92% 50%;
     --streak-foreground: 0 0% 100%;
     
-    --points: 250 100% 60%;
+    --points: 150 20% 31%;
     --points-foreground: 0 0% 100%;
     
     --achievement: 45 93% 47%;
@@ -50,67 +77,81 @@
     --level: 142 71% 45%;
     --level-foreground: 0 0% 100%;
 
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
+    /* Shadows - Very subtle */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.06), 0 4px 6px -4px rgb(0 0 0 / 0.06);
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 0%;
-
-    --info: 217 91% 60%;
-    --info-foreground: 0 0% 100%;
-
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
-
-    --sidebar-background: 0 0% 99%;
-    --sidebar-foreground: 240 6% 10%;
-    --sidebar-primary: 250 100% 60%;
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 150 20% 31%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 5% 96%;
-    --sidebar-accent-foreground: 240 6% 10%;
-    --sidebar-border: 240 6% 94%;
-    --sidebar-ring: 250 100% 60%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 150 20% 31%;
   }
 
   .dark {
-    --background: 240 10% 4%;
+    --background: 222 47% 6%;
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 6%;
+    --card: 222 47% 8%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 10% 6%;
+    --popover: 222 47% 8%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 250 100% 65%;
-    --primary-foreground: 0 0% 0%;
+    --primary: 150 25% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 4% 16%;
+    --secondary: 222 30% 15%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 222 30% 15%;
+    --muted-foreground: 220 9% 65%;
 
-    --accent: 250 100% 65%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 150 25% 45%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62% 30%;
+    --destructive: 0 62% 40%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 250 100% 65%;
+    --success: 142 60% 40%;
+    --success-foreground: 0 0% 100%;
 
-    --sidebar-background: 240 10% 5%;
+    --warning: 38 80% 45%;
+    --warning-foreground: 0 0% 0%;
+
+    --info: 217 80% 55%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 222 30% 15%;
+    --input: 222 30% 15%;
+    --ring: 150 25% 45%;
+
+    /* Task tags - Dark mode */
+    --tag-income: 142 60% 15%;
+    --tag-income-foreground: 142 60% 70%;
+    
+    --tag-waiting: 38 80% 15%;
+    --tag-waiting-foreground: 38 80% 70%;
+    
+    --tag-client: 217 80% 15%;
+    --tag-client-foreground: 217 80% 70%;
+    
+    --tag-operational: 222 30% 15%;
+    --tag-operational-foreground: 220 9% 65%;
+
+    --sidebar-background: 222 47% 5%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 250 100% 65%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 240 4% 16%;
+    --sidebar-primary: 150 25% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 30% 15%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 4% 16%;
-    --sidebar-ring: 250 100% 65%;
+    --sidebar-border: 222 30% 15%;
+    --sidebar-ring: 150 25% 45%;
   }
 }
 
@@ -125,13 +166,26 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Typography hierarchy */
+  h1 {
+    @apply text-xl font-semibold tracking-tight;
+  }
+
+  h2 {
+    @apply text-lg font-semibold tracking-tight;
+  }
+
+  h3 {
+    @apply text-base font-medium;
   }
 
   /* Minimal scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
@@ -147,7 +201,7 @@
   }
 }
 
-@layer utilities {
+@layer components {
   /* Clean card style */
   .card-clean {
     @apply bg-card border border-border rounded-lg;
@@ -158,56 +212,109 @@
     box-shadow: var(--shadow-md);
   }
 
+  /* Focus block - for dashboard priority items */
+  .focus-block {
+    @apply border-2 rounded-lg p-4;
+  }
+
+  .focus-block-primary {
+    @apply focus-block border-primary/30 bg-primary/5;
+  }
+
+  .focus-block-warning {
+    @apply focus-block border-warning/30 bg-warning/5;
+  }
+
+  .focus-block-danger {
+    @apply focus-block border-destructive/30 bg-destructive/5;
+  }
+
+  .focus-block-muted {
+    @apply focus-block border-muted;
+  }
+
+  /* Task tags */
+  .tag-income {
+    @apply text-xs px-2 py-0.5 rounded-full;
+    background: hsl(var(--tag-income));
+    color: hsl(var(--tag-income-foreground));
+  }
+
+  .tag-waiting {
+    @apply text-xs px-2 py-0.5 rounded-full;
+    background: hsl(var(--tag-waiting));
+    color: hsl(var(--tag-waiting-foreground));
+  }
+
+  .tag-client {
+    @apply text-xs px-2 py-0.5 rounded-full;
+    background: hsl(var(--tag-client));
+    color: hsl(var(--tag-client-foreground));
+  }
+
+  .tag-operational {
+    @apply text-xs px-2 py-0.5 rounded-full;
+    background: hsl(var(--tag-operational));
+    color: hsl(var(--tag-operational-foreground));
+  }
+
+  /* Status badges */
+  .status-completed {
+    @apply bg-success/10 text-success border-success/20;
+  }
+
+  .status-in-progress {
+    @apply bg-primary/10 text-primary border-primary/20;
+  }
+
+  .status-waiting {
+    @apply bg-warning/10 text-warning border-warning/20;
+  }
+
+  .status-overdue {
+    @apply bg-destructive/10 text-destructive border-destructive/20;
+  }
+}
+
+@layer utilities {
   /* Subtle hover effect */
   .hover-lift {
     @apply transition-all duration-200;
   }
   
   .hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
   }
 
-  /* Gamification glow effects */
+  /* Gamification glow effects - muted */
   .streak-glow {
-    box-shadow: 0 0 20px hsl(var(--streak) / 0.3);
+    box-shadow: 0 0 15px hsl(var(--streak) / 0.2);
   }
 
   .points-glow {
-    box-shadow: 0 0 20px hsl(var(--points) / 0.3);
+    box-shadow: 0 0 15px hsl(var(--points) / 0.2);
   }
 
   .achievement-glow {
-    box-shadow: 0 0 25px hsl(var(--achievement) / 0.4);
+    box-shadow: 0 0 20px hsl(var(--achievement) / 0.3);
   }
 
   .level-glow {
-    box-shadow: 0 0 20px hsl(var(--level) / 0.3);
+    box-shadow: 0 0 15px hsl(var(--level) / 0.2);
   }
 
-  /* Animations */
+  /* Animations - Subtle only */
   .animate-fade-in {
-    animation: fadeIn 0.3s ease-out forwards;
+    animation: fadeIn 0.2s ease-out forwards;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.3s ease-out forwards;
+    animation: slideUp 0.2s ease-out forwards;
   }
 
   .animate-scale-in {
-    animation: scaleIn 0.2s ease-out forwards;
-  }
-
-  .animate-bounce-in {
-    animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
-  }
-
-  .animate-pulse-soft {
-    animation: pulseSoft 2s ease-in-out infinite;
-  }
-
-  .animate-confetti {
-    animation: confetti 1s ease-out forwards;
+    animation: scaleIn 0.15s ease-out forwards;
   }
 
   @keyframes fadeIn {
@@ -218,7 +325,7 @@
   @keyframes slideUp {
     from { 
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(8px);
     }
     to { 
       opacity: 1;
@@ -229,61 +336,12 @@
   @keyframes scaleIn {
     from { 
       opacity: 0;
-      transform: scale(0.95);
+      transform: scale(0.97);
     }
     to { 
       opacity: 1;
       transform: scale(1);
     }
-  }
-
-  @keyframes bounceIn {
-    0% { 
-      opacity: 0;
-      transform: scale(0.3);
-    }
-    50% {
-      transform: scale(1.05);
-    }
-    70% {
-      transform: scale(0.9);
-    }
-    100% { 
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes pulseSoft {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
-  }
-
-  @keyframes confetti {
-    0% { 
-      transform: translateY(0) rotate(0deg);
-      opacity: 1;
-    }
-    100% { 
-      transform: translateY(-100px) rotate(720deg);
-      opacity: 0;
-    }
-  }
-
-  /* Streak fire animation */
-  @keyframes fireFlicker {
-    0%, 100% { 
-      transform: scale(1);
-      filter: brightness(1);
-    }
-    50% { 
-      transform: scale(1.1);
-      filter: brightness(1.2);
-    }
-  }
-
-  .animate-fire {
-    animation: fireFlicker 0.5s ease-in-out infinite;
   }
 
   /* Progress ring */
@@ -293,13 +351,6 @@
   }
 
   .progress-ring-circle {
-    transition: stroke-dashoffset 0.5s ease-out;
+    transition: stroke-dashoffset 0.4s ease-out;
   }
-
-  /* Stagger delays */
-  .stagger-1 { animation-delay: 0.05s; }
-  .stagger-2 { animation-delay: 0.1s; }
-  .stagger-3 { animation-delay: 0.15s; }
-  .stagger-4 { animation-delay: 0.2s; }
-  .stagger-5 { animation-delay: 0.25s; }
 }
