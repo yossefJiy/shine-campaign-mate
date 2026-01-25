@@ -282,6 +282,17 @@ export function ProposalDetailDialog({ proposalId, open, onOpenChange }: Proposa
                       </CardContent>
                     </Card>
                   )}
+
+                  {/* Edit restriction notice */}
+                  {(proposal.status !== "draft") && (
+                    <Card className="border-info/50 bg-info/5">
+                      <CardContent className="p-4">
+                        <p className="text-sm text-info">
+                          {microcopy.proposals.cannotEditAfterSent}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
                 </TabsContent>
               </Tabs>
             </ScrollArea>

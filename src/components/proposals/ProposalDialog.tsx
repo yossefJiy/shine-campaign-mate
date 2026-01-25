@@ -543,6 +543,11 @@ export function ProposalDialog({ open, onOpenChange }: ProposalDialogProps) {
                 />
               </div>
             </div>
+            
+            {/* Microcopy hint */}
+            <p className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-lg">
+              💡 רק סעיפים מסומנים ״פותח שלב״ ייפתחו בפרויקט. שירותים משלימים תמיד משרתים את הקמפיין.
+            </p>
           </div>
         </ScrollArea>
 
