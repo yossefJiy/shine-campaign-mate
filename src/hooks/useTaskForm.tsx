@@ -12,6 +12,9 @@ export interface TaskFormData {
   department: string;
   category: string;
   projectId: string;
+  stageId: string;
+  taskTag: 'income_generating' | 'operational' | 'client_dependent';
+  incomeValue: string;
   reminderAt: string;
   notificationEmail: boolean;
   notificationSms: boolean;
@@ -49,6 +52,9 @@ const initialFormData: TaskFormData = {
   department: "",
   category: "",
   projectId: "",
+  stageId: "",
+  taskTag: "operational",
+  incomeValue: "",
   reminderAt: "",
   notificationEmail: false,
   notificationSms: false,
@@ -85,6 +91,9 @@ export function useTaskForm(): UseTaskFormReturn {
       department: task.department || "",
       category: task.category || "",
       projectId: task.projectId || projectFilterId || "",
+      stageId: task.stageId || "",
+      taskTag: task.taskTag || "operational",
+      incomeValue: task.incomeValue || "",
       reminderAt: task.reminderAt ? task.reminderAt.slice(0, 16) : "",
       notificationEmail: task.notificationEmail || false,
       notificationSms: task.notificationSms || false,

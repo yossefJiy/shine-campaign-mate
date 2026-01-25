@@ -5029,6 +5029,77 @@ export type Database = {
         }
         Relationships: []
       }
+      project_stages: {
+        Row: {
+          actual_hours: number | null
+          approved_at: string | null
+          approved_by: string | null
+          client_notes: string | null
+          completed_at: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          estimated_cost: number | null
+          estimated_hours: number | null
+          id: string
+          name: string
+          project_id: string
+          requires_client_approval: boolean | null
+          sort_order: number
+          start_date: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          actual_hours?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          client_notes?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          estimated_cost?: number | null
+          estimated_hours?: number | null
+          id?: string
+          name: string
+          project_id: string
+          requires_client_approval?: boolean | null
+          sort_order?: number
+          start_date?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          actual_hours?: number | null
+          approved_at?: string | null
+          approved_by?: string | null
+          client_notes?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          estimated_cost?: number | null
+          estimated_hours?: number | null
+          id?: string
+          name?: string
+          project_id?: string
+          requires_client_approval?: boolean | null
+          sort_order?: number
+          start_date?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_stages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           budget_credits: number | null
@@ -5160,9 +5231,12 @@ export type Database = {
       quotes: {
         Row: {
           accepted_at: string | null
+          approved_at: string | null
+          approved_by: string | null
           client_id: string | null
           created_at: string
           created_by: string | null
+          created_project_id: string | null
           discount_amount: number | null
           discount_percent: number | null
           icount_doc_id: string | null
@@ -5171,6 +5245,7 @@ export type Database = {
           lead_id: string | null
           metadata: Json | null
           notes: string | null
+          proposal_status: string | null
           public_token: string | null
           quote_number: string
           rejected_at: string | null
@@ -5188,9 +5263,12 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          created_project_id?: string | null
           discount_amount?: number | null
           discount_percent?: number | null
           icount_doc_id?: string | null
@@ -5199,6 +5277,7 @@ export type Database = {
           lead_id?: string | null
           metadata?: Json | null
           notes?: string | null
+          proposal_status?: string | null
           public_token?: string | null
           quote_number: string
           rejected_at?: string | null
@@ -5216,9 +5295,12 @@ export type Database = {
         }
         Update: {
           accepted_at?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           client_id?: string | null
           created_at?: string
           created_by?: string | null
+          created_project_id?: string | null
           discount_amount?: number | null
           discount_percent?: number | null
           icount_doc_id?: string | null
@@ -5227,6 +5309,7 @@ export type Database = {
           lead_id?: string | null
           metadata?: Json | null
           notes?: string | null
+          proposal_status?: string | null
           public_token?: string | null
           quote_number?: string
           rejected_at?: string | null
@@ -5248,6 +5331,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_created_project_id_fkey"
+            columns: ["created_project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
           {
@@ -5794,6 +5884,96 @@ export type Database = {
           },
         ]
       }
+      stage_approvals: {
+        Row: {
+          approved_by_contact: string | null
+          approved_by_user: string | null
+          created_at: string | null
+          decision: string
+          id: string
+          notes: string | null
+          stage_id: string
+        }
+        Insert: {
+          approved_by_contact?: string | null
+          approved_by_user?: string | null
+          created_at?: string | null
+          decision: string
+          id?: string
+          notes?: string | null
+          stage_id: string
+        }
+        Update: {
+          approved_by_contact?: string | null
+          approved_by_user?: string | null
+          created_at?: string | null
+          decision?: string
+          id?: string
+          notes?: string | null
+          stage_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_approvals_approved_by_contact_fkey"
+            columns: ["approved_by_contact"]
+            isOneToOne: false
+            referencedRelation: "client_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_approvals_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stage_comments: {
+        Row: {
+          contact_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_internal: boolean | null
+          stage_id: string
+          user_id: string | null
+        }
+        Insert: {
+          contact_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_internal?: boolean | null
+          stage_id: string
+          user_id?: string | null
+        }
+        Update: {
+          contact_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_internal?: boolean | null
+          stage_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_comments_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "client_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stage_comments_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sync_schedules: {
         Row: {
           client_id: string
@@ -6181,6 +6361,7 @@ export type Database = {
           due_date: string | null
           duration_minutes: number
           id: string
+          income_value: number | null
           notification_email: boolean | null
           notification_email_address: string | null
           notification_phone: string | null
@@ -6193,7 +6374,9 @@ export type Database = {
           reminder_at: string | null
           reminder_sent: boolean | null
           scheduled_time: string | null
+          stage_id: string | null
           status: string
+          task_tag: string | null
           title: string
           updated_at: string
         }
@@ -6210,6 +6393,7 @@ export type Database = {
           due_date?: string | null
           duration_minutes?: number
           id?: string
+          income_value?: number | null
           notification_email?: boolean | null
           notification_email_address?: string | null
           notification_phone?: string | null
@@ -6222,7 +6406,9 @@ export type Database = {
           reminder_at?: string | null
           reminder_sent?: boolean | null
           scheduled_time?: string | null
+          stage_id?: string | null
           status?: string
+          task_tag?: string | null
           title: string
           updated_at?: string
         }
@@ -6239,6 +6425,7 @@ export type Database = {
           due_date?: string | null
           duration_minutes?: number
           id?: string
+          income_value?: number | null
           notification_email?: boolean | null
           notification_email_address?: string | null
           notification_phone?: string | null
@@ -6251,7 +6438,9 @@ export type Database = {
           reminder_at?: string | null
           reminder_sent?: boolean | null
           scheduled_time?: string | null
+          stage_id?: string | null
           status?: string
+          task_tag?: string | null
           title?: string
           updated_at?: string
         }
@@ -6282,6 +6471,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "project_stages"
             referencedColumns: ["id"]
           },
         ]
