@@ -12,8 +12,6 @@ import {
   User,
   Bell,
   Palette,
-  Trophy,
-  Flame,
   UserPlus,
   CreditCard,
   Bot,
@@ -33,7 +31,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useGamification } from "@/hooks/useGamification";
 import {
   Tooltip,
   TooltipContent,
@@ -67,7 +64,6 @@ export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut, role } = useAuth();
-  const { points, streak } = useGamification();
 
   const handleSignOut = async () => {
     await signOut();
@@ -120,55 +116,6 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* Gamification Stats */}
-      {!isCollapsed && (
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full">
-              <Trophy className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">{points?.total_points || 0}</span>
-            </div>
-            <div className={cn(
-              "flex items-center gap-2 px-3 py-1.5 rounded-full",
-              streak?.current_streak && streak.current_streak > 0 
-                ? "bg-orange-500/10" 
-                : "bg-muted"
-            )}>
-              <Flame className={cn(
-                "w-4 h-4",
-                streak?.current_streak && streak.current_streak > 0 
-                  ? "text-orange-500 animate-pulse" 
-                  : "text-muted-foreground"
-              )} />
-              <span className="text-sm font-medium">{streak?.current_streak || 0}</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Collapsed Gamification */}
-      {isCollapsed && (
-        <div className="p-2 border-b border-border flex flex-col items-center gap-2">
-          <div className="flex flex-col items-center gap-1 bg-primary/10 p-2 rounded-lg">
-            <Trophy className="w-4 h-4 text-primary" />
-            <span className="text-xs font-medium">{points?.total_points || 0}</span>
-          </div>
-          <div className={cn(
-            "flex flex-col items-center gap-1 p-2 rounded-lg",
-            streak?.current_streak && streak.current_streak > 0 
-              ? "bg-orange-500/10" 
-              : "bg-muted"
-          )}>
-            <Flame className={cn(
-              "w-4 h-4",
-              streak?.current_streak && streak.current_streak > 0 
-                ? "text-orange-500 animate-pulse" 
-                : "text-muted-foreground"
-            )} />
-            <span className="text-xs font-medium">{streak?.current_streak || 0}</span>
-          </div>
-        </div>
-      )}
 
       {/* Navigation */}
       <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
