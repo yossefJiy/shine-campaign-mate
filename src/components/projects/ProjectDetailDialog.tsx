@@ -36,7 +36,8 @@ import {
   UserCheck,
   AlertTriangle,
   Share2,
-  History
+  History,
+  Pencil
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,7 @@ import { microcopy } from "@/lib/microcopy";
 import { format, differenceInDays } from "date-fns";
 import { he } from "date-fns/locale";
 import { AddStageDialog } from "./AddStageDialog";
+import { ProjectEditDetailsDialog } from "./ProjectEditDetailsDialog";
 
 interface ProjectDetailDialogProps {
   open: boolean;
@@ -79,6 +81,7 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
   const queryClient = useQueryClient();
   const [newNote, setNewNote] = useState("");
   const [showAddStageDialog, setShowAddStageDialog] = useState(false);
+  const [showEditDetailsDialog, setShowEditDetailsDialog] = useState(false);
 
   // Optimized: Fetch all project data in parallel
   const { data: projectData, isLoading: dataLoading } = useQuery({
@@ -322,6 +325,10 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setShowEditDetailsDialog(true)}>
+                <Pencil className="h-4 w-4 ml-1" />
+                ערוך פרטים
+              </Button>
               <Button variant="outline" size="sm" onClick={() => setShowAddStageDialog(true)}>
                 <Plus className="h-4 w-4 ml-1" />
                 הוסף שלב
@@ -786,6 +793,13 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
           open={showAddStageDialog}
           onOpenChange={setShowAddStageDialog}
           projectId={projectId}
+        />
+
+        {/* Edit Details Dialog - Only metadata, not state */}
+        <ProjectEditDetailsDialog
+          open={showEditDetailsDialog}
+          onOpenChange={setShowEditDetailsDialog}
+          project={project}
         />
       </DialogContent>
     </Dialog>

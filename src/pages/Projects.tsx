@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DomainErrorBoundary } from "@/components/shared/DomainErrorBoundary";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -19,7 +20,8 @@ import {
   MoreVertical,
   Copy,
   Trash2,
-  Archive
+  Archive,
+  FileText
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,7 +29,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { ProjectDetailDialog } from "@/components/projects/ProjectDetailDialog";
-import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
 import { microcopy, formatMessage } from "@/lib/microcopy";
 import { differenceInDays } from "date-fns";
 import { useProjectMutations } from "@/hooks/useProjects";
@@ -38,6 +39,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Status configuration with icons and colors
 const statusConfig: Record<string, { label: string; color: string; bgColor: string; icon: typeof Clock }> = {
@@ -59,10 +66,10 @@ const platformConfig: Record<string, { label: string; color: string }> = {
 type FilterStatus = "all" | "active" | "waiting_client" | "waiting_payment" | "at_risk" | "completed";
 
 export default function Projects() {
+  const navigate = useNavigate();
   const { selectedClient, effectiveClient, isAgencyView, clients } = useClient();
   const { duplicateProject, deleteProject, archiveProject } = useProjectMutations();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
 
   // Fetch projects with stages count
@@ -201,10 +208,19 @@ export default function Projects() {
               title="פרויקטים"
               description={selectedClient ? `פרויקטים של ${selectedClient.name}` : "כל הפרויקטים"}
             />
-            <Button onClick={() => setShowCreateDialog(true)}>
-              <Plus className="w-4 h-4 ml-2" />
-              פרויקט חדש
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={() => navigate("/proposals")}>
+                    <FileText className="w-4 h-4 ml-2" />
+                    צור הצעת מחיר
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>פרויקטים נוצרים מהצעות מחיר שאושרו</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           {/* Status Filter Chips */}
@@ -249,12 +265,12 @@ export default function Projects() {
                   {filterStatus === "all" ? "אין פרויקטים עדיין" : "אין פרויקטים בסטטוס זה"}
                 </h3>
                 <p className="text-muted-foreground mb-4">
-                  {filterStatus === "all" ? microcopy.dashboard.projectWaiting : "נסה לבחור פילטר אחר"}
+                  {filterStatus === "all" ? "פרויקטים נוצרים אוטומטית מהצעות מחיר שאושרו" : "נסה לבחור פילטר אחר"}
                 </p>
                 {filterStatus === "all" && (
-                  <Button onClick={() => setShowCreateDialog(true)}>
-                    <Plus className="w-4 h-4 ml-2" />
-                    צור פרויקט ראשון
+                  <Button onClick={() => navigate("/proposals")}>
+                    <FileText className="w-4 h-4 ml-2" />
+                    צור הצעת מחיר
                   </Button>
                 )}
               </CardContent>
@@ -401,14 +417,6 @@ export default function Projects() {
             />
           )}
 
-          {/* Create Project Dialog */}
-          <CreateProjectDialog
-            open={showCreateDialog}
-            onOpenChange={setShowCreateDialog}
-            clients={clients}
-            effectiveClient={effectiveClient}
-            isAgencyView={isAgencyView}
-          />
         </div>
       </DomainErrorBoundary>
     </MainLayout>
