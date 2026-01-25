@@ -1358,6 +1358,7 @@ export type Database = {
           payment_type: string | null
           period_end: string
           period_start: string
+          project_id: string | null
           status: string | null
           total_amount: number | null
           updated_at: string | null
@@ -1384,6 +1385,7 @@ export type Database = {
           payment_type?: string | null
           period_end: string
           period_start: string
+          project_id?: string | null
           status?: string | null
           total_amount?: number | null
           updated_at?: string | null
@@ -1410,6 +1412,7 @@ export type Database = {
           payment_type?: string | null
           period_end?: string
           period_start?: string
+          project_id?: string | null
           status?: string | null
           total_amount?: number | null
           updated_at?: string | null
@@ -1435,6 +1438,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_records_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -5314,15 +5324,18 @@ export type Database = {
           icon: string | null
           id: string
           last_activity_at: string | null
+          monthly_retainer_amount: number | null
           name: string
           payment_status: string | null
           priority_category: string | null
           priority_override_percent: number | null
           proposal_id: string | null
+          retainer_plan: string | null
           start_date: string | null
           status: string
           target_date: string | null
           updated_at: string
+          work_state: string | null
         }
         Insert: {
           budget_credits?: number | null
@@ -5335,15 +5348,18 @@ export type Database = {
           icon?: string | null
           id?: string
           last_activity_at?: string | null
+          monthly_retainer_amount?: number | null
           name: string
           payment_status?: string | null
           priority_category?: string | null
           priority_override_percent?: number | null
           proposal_id?: string | null
+          retainer_plan?: string | null
           start_date?: string | null
           status?: string
           target_date?: string | null
           updated_at?: string
+          work_state?: string | null
         }
         Update: {
           budget_credits?: number | null
@@ -5356,15 +5372,18 @@ export type Database = {
           icon?: string | null
           id?: string
           last_activity_at?: string | null
+          monthly_retainer_amount?: number | null
           name?: string
           payment_status?: string | null
           priority_category?: string | null
           priority_override_percent?: number | null
           proposal_id?: string | null
+          retainer_plan?: string | null
           start_date?: string | null
           status?: string
           target_date?: string | null
           updated_at?: string
+          work_state?: string | null
         }
         Relationships: [
           {
@@ -7419,6 +7438,7 @@ export type Database = {
         Returns: string
       }
       mark_overdue_payments: { Args: never; Returns: number }
+      mark_projects_blocked_by_payment: { Args: never; Returns: number }
     }
     Enums: {
       ai_capability_category:
