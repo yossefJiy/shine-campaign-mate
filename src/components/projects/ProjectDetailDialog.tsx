@@ -135,26 +135,50 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
     enabled: open && !!project?.client_id,
   });
 
-  // Notes stored locally for now (project_notes table to be created)
-  const [localNotes, setLocalNotes] = useState<Array<{ id: string; content: string; created_at: string }>>([]);
-  
-  const notes = localNotes;
+  // Fetch project notes
+  const { data: notes = [] } = useQuery({
+    queryKey: ["project-notes", projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("project_notes")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: open && !!projectId,
+  });
 
-  // Add note handler (local for now)
-  const addNoteMutation = {
-    mutate: () => {
+  // Add note mutation
+  const addNoteMutation = useMutation({
+    mutationFn: async () => {
       if (!newNote.trim()) return;
-      const note = {
-        id: crypto.randomUUID(),
-        content: newNote,
-        created_at: new Date().toISOString(),
-      };
-      setLocalNotes((prev) => [note, ...prev]);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const { error } = await supabase
+        .from("project_notes")
+        .insert({
+          project_id: projectId,
+          content: newNote,
+          user_id: user.id,
+          is_internal: true,
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
       setNewNote("");
+      queryClient.invalidateQueries({ queryKey: ["project-notes", projectId] });
       toast.success("ההערה נוספה");
     },
-    isPending: false,
-  };
+    onError: () => {
+      toast.error("שגיאה בהוספת ההערה");
+    },
+  });
 
   // Calculate stats
   const allTasks = stages.flatMap((s: any) => s.tasks || []);
