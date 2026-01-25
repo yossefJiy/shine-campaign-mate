@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useGamification } from "@/hooks/useGamification";
 import { StreakCounter, ProgressRing } from "@/components/gamification";
+import { SmartDashboardWidgets } from "@/components/dashboard/SmartDashboardWidgets";
 
 export default function Dashboard() {
   const { selectedClient, isAgencyView } = useClient();
@@ -224,6 +225,9 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Smart Dashboard Widgets */}
+            <SmartDashboardWidgets clientId={isAgencyView ? undefined : selectedClient?.id} />
 
             {/* Progress & Recent Tasks */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
