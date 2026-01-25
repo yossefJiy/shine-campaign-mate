@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DomainErrorBoundary } from "@/components/shared/DomainErrorBoundary";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useClient } from "@/hooks/useClient";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   FolderKanban, 
@@ -13,103 +12,70 @@ import {
   Calendar, 
   CheckSquare,
   Clock,
-  MoreVertical,
-  Pencil,
-  Trash2,
-  Play,
+  AlertTriangle,
+  UserCheck,
   Pause,
-  Check,
-  Building2,
-  Eye
+  Check
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { StyledDatePicker } from "@/components/ui/styled-date-picker";
 import { ProjectDetailDialog } from "@/components/projects/ProjectDetailDialog";
+import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
+import { microcopy, formatMessage } from "@/lib/microcopy";
+import { differenceInDays } from "date-fns";
 
-const statusConfig: Record<string, { label: string; color: string; icon: typeof Play }> = {
-  active: { label: "פעיל", color: "bg-success text-success-foreground", icon: Play },
-  paused: { label: "מושהה", color: "bg-warning text-warning-foreground", icon: Pause },
-  completed: { label: "הושלם", color: "bg-info text-info-foreground", icon: Check },
-  archived: { label: "בארכיון", color: "bg-muted text-muted-foreground", icon: FolderKanban },
+// Status configuration with icons and colors
+const statusConfig: Record<string, { label: string; color: string; bgColor: string; icon: typeof Clock }> = {
+  active: { label: "פעיל", color: "text-success", bgColor: "bg-success/10", icon: Clock },
+  waiting_client: { label: "ממתין ללקוח", color: "text-warning", bgColor: "bg-warning/10", icon: Pause },
+  waiting_payment: { label: "ממתין לתשלום", color: "text-destructive", bgColor: "bg-destructive/10", icon: AlertTriangle },
+  at_risk: { label: "בסיכון", color: "text-destructive", bgColor: "bg-destructive/10", icon: AlertTriangle },
+  completed: { label: "הושלם", color: "text-info", bgColor: "bg-info/10", icon: Check },
+  paused: { label: "מושהה", color: "text-muted-foreground", bgColor: "bg-muted", icon: Pause },
 };
 
-const priorityCategories = [
-  { value: "revenue", label: "הכנסה", color: "bg-success/20 text-success" },
-  { value: "growth", label: "צמיחה", color: "bg-info/20 text-info" },
-  { value: "innovation", label: "חדשנות", color: "bg-warning/20 text-warning" },
-  { value: "maintenance", label: "תחזוקה", color: "bg-muted text-muted-foreground" },
-];
+// Platform badges
+const platformConfig: Record<string, { label: string; color: string }> = {
+  google: { label: "Google", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" },
+  meta: { label: "Meta", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400" },
+  tiktok: { label: "TikTok", color: "bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400" },
+};
+
+type FilterStatus = "all" | "active" | "waiting_client" | "at_risk" | "completed";
 
 export default function Projects() {
   const { selectedClient, effectiveClient, isAgencyView, clients } = useClient();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [editingProject, setEditingProject] = useState<any>(null);
-  const [newProjectClientId, setNewProjectClientId] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    status: "active",
-    priority_category: "",
-    start_date: "",
-    target_date: "",
-    budget_hours: "",
-    color: "#3B82F6",
-  });
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
 
-  // Fetch projects
+  // Fetch projects with stages count
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ["projects", selectedClient?.id],
     queryFn: async () => {
-      // Always fetch all projects - filter by client OR show agency projects
       const { data, error } = await supabase
         .from("projects")
-        .select("*, clients:clients!projects_client_id_fkey(name, is_master_account, deleted_at)")
+        .select(`
+          *,
+          clients:clients!projects_client_id_fkey(name, is_master_account, deleted_at),
+          project_stages(id, status)
+        `)
         .order("created_at", { ascending: false });
       
       if (error) throw error;
       
       // Filter out projects from deleted clients
-      const activeProjects = data.filter((p: any) => !p.clients?.deleted_at);
+      let filteredProjects = data.filter((p: any) => !p.clients?.deleted_at);
       
-      // Filter: when a specific client is selected (not master/agency), show ONLY that client's projects
-      // When in agency view (no selection or master selected), show all projects
+      // Filter by client when not in agency view
       if (selectedClient && !selectedClient.is_master_account) {
-        return activeProjects.filter((p: any) => 
-          p.client_id === selectedClient.id
-        );
+        filteredProjects = filteredProjects.filter((p: any) => p.client_id === selectedClient.id);
       }
       
-      return activeProjects;
+      return filteredProjects;
     },
   });
 
@@ -119,7 +85,7 @@ export default function Projects() {
     queryFn: async () => {
       let query = supabase
         .from("tasks")
-        .select("id, status, project_id")
+        .select("id, status, project_id, task_tag")
         .not("project_id", "is", null);
       
       if (selectedClient) {
@@ -131,108 +97,75 @@ export default function Projects() {
     },
   });
 
-  const getProjectProgress = (projectId: string) => {
-    const projectTasks = allTasks.filter((t: any) => t.project_id === projectId);
-    if (projectTasks.length === 0) return { total: 0, completed: 0, percent: 0 };
-    
+  // Calculate project progress and stats
+  const getProjectStats = (project: any) => {
+    const projectTasks = allTasks.filter((t: any) => t.project_id === project.id);
     const completed = projectTasks.filter((t: any) => t.status === "completed").length;
+    const total = projectTasks.length;
+    const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+    
+    const stages = project.project_stages || [];
+    const completedStages = stages.filter((s: any) => s.status === "completed").length;
+    
+    // Check for stalled projects (no activity in X days)
+    const daysSinceActivity = project.last_activity_at 
+      ? differenceInDays(new Date(), new Date(project.last_activity_at))
+      : null;
+    
     return {
-      total: projectTasks.length,
-      completed,
-      percent: Math.round((completed / projectTasks.length) * 100),
+      tasksTotal: total,
+      tasksCompleted: completed,
+      progressPercent: percent,
+      stagesTotal: stages.length,
+      stagesCompleted: completedStages,
+      daysSinceActivity,
+      isAtRisk: daysSinceActivity !== null && daysSinceActivity >= 4 && project.status !== "completed",
     };
   };
 
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      // Determine target client: for new projects, use selected in dialog or effectiveClient
-      const targetClientId = editingProject
-        ? editingProject.client_id // Don't change client on edit
-        : (newProjectClientId || effectiveClient?.id);
-      
-      if (!targetClientId) {
-        throw new Error("יש לבחור לקוח לפני יצירת פרויקט");
-      }
-
-      const payload = {
-        name: formData.name,
-        description: formData.description || null,
-        status: formData.status,
-        priority_category: formData.priority_category || null,
-        start_date: formData.start_date || null,
-        target_date: formData.target_date || null,
-        budget_hours: formData.budget_hours ? parseFloat(formData.budget_hours) : null,
-        color: formData.color,
-        client_id: targetClientId,
-      };
-
-      if (editingProject) {
-        const { error } = await supabase
-          .from("projects")
-          .update(payload)
-          .eq("id", editingProject.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("projects").insert(payload);
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      toast.success(editingProject ? "הפרויקט עודכן" : "הפרויקט נוצר");
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      closeDialog();
-    },
-    onError: (error: Error) => {
-      if (error.message.includes("יש לבחור לקוח")) {
-        toast.error("יש לבחור לקוח לפני יצירת פרויקט", {
-          description: "בחר לקוח מהתפריט או צור פרויקט מתוך דף לקוח ספציפי"
-        });
-      } else {
-        toast.error("שגיאה בשמירת הפרויקט");
-      }
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("projects").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("הפרויקט נמחק");
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-    },
-  });
-
-  const closeDialog = () => {
-    setShowCreateDialog(false);
-    setEditingProject(null);
-    setNewProjectClientId(null); // Reset selected client
-    setFormData({
-      name: "",
-      description: "",
-      status: "active",
-      priority_category: "",
-      start_date: "",
-      target_date: "",
-      budget_hours: "",
-      color: "#3B82F6",
-    });
+  // Get platforms from project metadata or template_type
+  const getProjectPlatforms = (project: any): string[] => {
+    const platforms: string[] = [];
+    const templateType = project.template_type?.toLowerCase() || "";
+    
+    if (templateType.includes("google")) platforms.push("google");
+    if (templateType.includes("meta")) platforms.push("meta");
+    if (templateType.includes("tiktok")) platforms.push("tiktok");
+    
+    // Also check project name for platforms
+    const name = project.name?.toLowerCase() || "";
+    if (name.includes("google") && !platforms.includes("google")) platforms.push("google");
+    if (name.includes("meta") || name.includes("facebook") || name.includes("instagram")) {
+      if (!platforms.includes("meta")) platforms.push("meta");
+    }
+    if (name.includes("tiktok") && !platforms.includes("tiktok")) platforms.push("tiktok");
+    
+    return platforms;
   };
 
-  const openEdit = (project: any) => {
-    setEditingProject(project);
-    setFormData({
-      name: project.name,
-      description: project.description || "",
-      status: project.status,
-      priority_category: project.priority_category || "",
-      start_date: project.start_date || "",
-      target_date: project.target_date || "",
-      budget_hours: project.budget_hours?.toString() || "",
-      color: project.color || "#3B82F6",
-    });
-    setShowCreateDialog(true);
+  // Filter projects
+  const filteredProjects = projects.filter((project: any) => {
+    if (filterStatus === "all") return true;
+    
+    const stats = getProjectStats(project);
+    
+    if (filterStatus === "at_risk") {
+      return stats.isAtRisk || project.status === "at_risk";
+    }
+    
+    return project.status === filterStatus;
+  });
+
+  // Count projects by status
+  const statusCounts = {
+    all: projects.length,
+    active: projects.filter((p: any) => p.status === "active").length,
+    waiting_client: projects.filter((p: any) => p.status === "waiting_client").length,
+    at_risk: projects.filter((p: any) => {
+      const stats = getProjectStats(p);
+      return stats.isAtRisk || p.status === "at_risk";
+    }).length,
+    completed: projects.filter((p: any) => p.status === "completed").length,
   };
 
   if (isLoading) {
@@ -260,280 +193,162 @@ export default function Projects() {
             </Button>
           </div>
 
-          {projects.length === 0 ? (
+          {/* Status Filter Chips */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {[
+              { value: "all", label: "הכל" },
+              { value: "active", label: "פעיל" },
+              { value: "waiting_client", label: "ממתין ללקוח" },
+              { value: "at_risk", label: "בסיכון" },
+              { value: "completed", label: "הושלם" },
+            ].map((filter) => (
+              <Button
+                key={filter.value}
+                variant={filterStatus === filter.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterStatus(filter.value as FilterStatus)}
+                className={cn(
+                  "gap-2",
+                  filter.value === "at_risk" && statusCounts.at_risk > 0 && filterStatus !== "at_risk" && "border-destructive text-destructive"
+                )}
+              >
+                {filter.label}
+                <Badge 
+                  variant="secondary" 
+                  className={cn(
+                    "text-xs px-1.5",
+                    filterStatus === filter.value && "bg-primary-foreground text-primary"
+                  )}
+                >
+                  {statusCounts[filter.value as keyof typeof statusCounts]}
+                </Badge>
+              </Button>
+            ))}
+          </div>
+
+          {filteredProjects.length === 0 ? (
             <Card className="py-12">
               <CardContent className="text-center">
                 <FolderKanban className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <h3 className="text-lg font-medium mb-2">אין פרויקטים עדיין</h3>
-                <p className="text-muted-foreground mb-4">צור פרויקט חדש כדי לארגן משימות</p>
-                <Button onClick={() => setShowCreateDialog(true)}>
-                  <Plus className="w-4 h-4 ml-2" />
-                  צור פרויקט ראשון
-                </Button>
+                <h3 className="text-lg font-medium mb-2">
+                  {filterStatus === "all" ? "אין פרויקטים עדיין" : "אין פרויקטים בסטטוס זה"}
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  {filterStatus === "all" ? microcopy.dashboard.projectWaiting : "נסה לבחור פילטר אחר"}
+                </p>
+                {filterStatus === "all" && (
+                  <Button onClick={() => setShowCreateDialog(true)}>
+                    <Plus className="w-4 h-4 ml-2" />
+                    צור פרויקט ראשון
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {projects.map((project: any) => {
-                const progress = getProjectProgress(project.id);
-                const status = statusConfig[project.status] || statusConfig.active;
-                const category = priorityCategories.find(c => c.value === project.priority_category);
+              {filteredProjects.map((project: any) => {
+                const stats = getProjectStats(project);
+                const status = statusConfig[stats.isAtRisk ? "at_risk" : project.status] || statusConfig.active;
+                const StatusIcon = status.icon;
+                const platforms = getProjectPlatforms(project);
                 
                 return (
                   <Card 
                     key={project.id} 
-                    className="hover:shadow-lg transition-shadow group cursor-pointer"
-                    style={{ borderTopColor: project.color, borderTopWidth: 3 }}
+                    className={cn(
+                      "hover:shadow-lg transition-all group cursor-pointer border-t-4",
+                      stats.isAtRisk && "border-t-destructive",
+                      !stats.isAtRisk && "border-t-primary"
+                    )}
                     onClick={() => setSelectedProjectId(project.id)}
                   >
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          <FolderKanban 
-                            className="w-5 h-5" 
-                            style={{ color: project.color }}
-                          />
-                          <CardTitle className="text-base">{project.name}</CardTitle>
+                        <div className="flex-1">
+                          <CardTitle className="text-base flex items-center gap-2">
+                            <FolderKanban className="w-4 h-4 text-primary" />
+                            {project.name}
+                          </CardTitle>
+                          {project.clients?.name && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {project.clients.name}
+                            </p>
+                          )}
                         </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/tasks?project=${project.id}`); }}>
-                              <CheckSquare className="w-4 h-4 ml-2" />
-                              צפה במשימות ({progress.total})
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openEdit(project); }}>
-                              <Pencil className="w-4 h-4 ml-2" />
-                              עריכה
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(project.id); }}
-                              className="text-destructive"
-                            >
-                              <Trash2 className="w-4 h-4 ml-2" />
-                              מחיקה
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <StatusIcon className={cn("w-4 h-4", status.color)} />
                       </div>
-                      <div className="flex items-center gap-2 mt-2 flex-wrap">
-                        <Badge className={status.color}>{status.label}</Badge>
-                        {category && (
-                          <Badge variant="outline" className={category.color}>
-                            {category.label}
+
+                      {/* Status & Platform Badges */}
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        <Badge className={cn("text-xs", status.bgColor, status.color)}>
+                          {status.label}
+                        </Badge>
+                        {platforms.map((platform) => (
+                          <Badge 
+                            key={platform} 
+                            variant="outline"
+                            className={cn("text-xs", platformConfig[platform]?.color)}
+                          >
+                            {platformConfig[platform]?.label}
                           </Badge>
-                        )}
-                        {project.clients?.name && (
-                          <Badge variant="outline" className="text-xs">
-                            {project.clients.name}
-                          </Badge>
-                        )}
+                        ))}
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      {project.description && (
-                        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                          {project.description}
-                        </p>
+
+                    <CardContent className="space-y-4">
+                      {/* Risk Warning */}
+                      {stats.isAtRisk && stats.daysSinceActivity !== null && (
+                        <div className="flex items-center gap-2 p-2 rounded-lg bg-destructive/10 text-destructive text-sm">
+                          <AlertTriangle className="w-4 h-4" />
+                          <span>{formatMessage(microcopy.messages.noProgressWarning, { days: stats.daysSinceActivity })}</span>
+                        </div>
                       )}
 
                       {/* Progress */}
-                      <div className="mb-4">
+                      <div>
                         <div className="flex items-center justify-between text-sm mb-1">
                           <span className="text-muted-foreground">התקדמות</span>
-                          <span className="font-medium">{progress.percent}%</span>
+                          <span className="font-medium">{stats.progressPercent}%</span>
                         </div>
-                        <Progress value={progress.percent} className="h-2" />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {progress.completed} מתוך {progress.total} משימות
-                        </p>
+                        <Progress value={stats.progressPercent} className="h-2" />
                       </div>
 
-                      {/* Meta */}
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      {/* Stats */}
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <UserCheck className="w-3 h-3" />
+                          <span>{stats.stagesCompleted}/{stats.stagesTotal} שלבים</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <CheckSquare className="w-3 h-3" />
+                          <span>{stats.tasksCompleted}/{stats.tasksTotal} משימות</span>
+                        </div>
                         {project.target_date && (
                           <div className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             <span>{new Date(project.target_date).toLocaleDateString("he-IL")}</span>
                           </div>
                         )}
-                        {project.budget_hours && (
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            <span>{project.budget_hours} שעות</span>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1">
-                          <CheckSquare className="w-3 h-3" />
-                          <span>{progress.total} משימות</span>
-                        </div>
                       </div>
+
+                      {/* Action Button */}
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedProjectId(project.id);
+                        }}
+                      >
+                        {microcopy.buttons.goToProject}
+                      </Button>
                     </CardContent>
                   </Card>
                 );
               })}
             </div>
           )}
-
-          {/* Create/Edit Dialog */}
-          <Dialog open={showCreateDialog} onOpenChange={(open) => !open && closeDialog()}>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingProject ? "עריכת פרויקט" : "פרויקט חדש"}
-                </DialogTitle>
-              </DialogHeader>
-              
-              <form onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(); }} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>שם הפרויקט *</Label>
-                  <Input
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="לדוגמה: השקת אתר חדש"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>תיאור</Label>
-                  <Textarea
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="תיאור קצר של הפרויקט"
-                    rows={3}
-                  />
-                </div>
-
-                {/* Client Selection - Only for new projects in agency view */}
-                {isAgencyView && !editingProject && clients.length > 0 && (
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4" />
-                      לקוח
-                    </Label>
-                    <Select 
-                      value={newProjectClientId || effectiveClient?.id || ""} 
-                      onValueChange={(v) => setNewProjectClientId(v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="בחר לקוח" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clients.filter(c => c.is_master_account).map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            <div className="flex items-center gap-2">
-                              <Building2 className="w-3 h-3 text-primary" />
-                              {c.name} (סוכנות)
-                            </div>
-                          </SelectItem>
-                        ))}
-                        {clients.filter(c => !c.is_master_account).map((c) => (
-                          <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>סטטוס</Label>
-                    <Select 
-                      value={formData.status} 
-                      onValueChange={(v) => setFormData({ ...formData, status: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(statusConfig).map(([value, config]) => (
-                          <SelectItem key={value} value={value}>{config.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>קטגוריית עדיפות</Label>
-                    <Select 
-                      value={formData.priority_category} 
-                      onValueChange={(v) => setFormData({ ...formData, priority_category: v })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="בחר קטגוריה" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {priorityCategories.map((cat) => (
-                          <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>תאריך התחלה</Label>
-                    <StyledDatePicker
-                      value={formData.start_date ? new Date(formData.start_date) : undefined}
-                      onChange={(date) => setFormData({ ...formData, start_date: date ? date.toISOString().split('T')[0] : "" })}
-                      placeholder="בחר תאריך"
-                      showQuickOptions={false}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>תאריך יעד</Label>
-                    <StyledDatePicker
-                      value={formData.target_date ? new Date(formData.target_date) : undefined}
-                      onChange={(date) => setFormData({ ...formData, target_date: date ? date.toISOString().split('T')[0] : "" })}
-                      placeholder="בחר תאריך"
-                      showQuickOptions={false}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>תקציב שעות</Label>
-                    <Input
-                      type="number"
-                      value={formData.budget_hours}
-                      onChange={(e) => setFormData({ ...formData, budget_hours: e.target.value })}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>צבע</Label>
-                    <Input
-                      type="color"
-                      value={formData.color}
-                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                      className="h-10 p-1"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-3 pt-4">
-                  <Button type="button" variant="outline" onClick={closeDialog}>
-                    ביטול
-                  </Button>
-                  <Button type="submit" disabled={saveMutation.isPending}>
-                    {saveMutation.isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-                    {editingProject ? "שמור שינויים" : "צור פרויקט"}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
 
           {/* Project Detail Dialog */}
           {selectedProjectId && (
@@ -543,6 +358,15 @@ export default function Projects() {
               projectId={selectedProjectId}
             />
           )}
+
+          {/* Create Project Dialog */}
+          <CreateProjectDialog
+            open={showCreateDialog}
+            onOpenChange={setShowCreateDialog}
+            clients={clients}
+            effectiveClient={effectiveClient}
+            isAgencyView={isAgencyView}
+          />
         </div>
       </DomainErrorBoundary>
     </MainLayout>
