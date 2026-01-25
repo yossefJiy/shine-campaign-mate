@@ -109,7 +109,12 @@ export const microcopy = {
     inboxDescription: "משימות בלי פרויקט — שייכי אותן תוך 24 שעות",
     noProjectWarning: "משימה בלי פרויקט = בלאגן עתידי",
     assignToProjectCTA: "שייך לפרויקט",
-    // Smart filters
+    // Status Tabs
+    tabInbox: "Inbox",
+    tabActive: "פעילות",
+    tabWaiting: "ממתינות",
+    tabDone: "הושלמו",
+    // Smart filters (legacy - kept for reference)
     filterMine: "שלי",
     filterIncome: "💸 מכניס כסף",
     filterWaiting: "⏳ ממתין",
