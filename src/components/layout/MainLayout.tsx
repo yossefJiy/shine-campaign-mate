@@ -21,15 +21,17 @@ function MainLayoutContent({ children }: MainLayoutProps) {
     <div className="min-h-screen bg-background" dir="rtl">
       <Sidebar />
       
-      {/* Top Bar with Client Switcher, Global Search, and Alerts */}
+      {/* Top Bar - Order (RTL): ClientSwitcher | Settings | Search | Alerts */}
       <header className={cn(
         "fixed top-0 left-0 h-16 bg-background/80 backdrop-blur-sm border-b border-border z-40 flex items-center justify-between px-6 transition-all duration-300",
         isCollapsed ? "right-[72px]" : "right-64"
       )}>
+        {/* Left side (visually) - Alerts then Search */}
         <div className="flex items-center gap-4">
-          <GlobalSearch />
           <SmartAlertsPanel />
+          <GlobalSearch />
         </div>
+        {/* Right side (visually) - ClientSwitcher */}
         <div className="w-64">
           <ClientSwitcher />
         </div>
