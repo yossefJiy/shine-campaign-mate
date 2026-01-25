@@ -44,12 +44,6 @@ const App = () => (
                 <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 
-                {/* Legacy redirects */}
-                <Route path="/analytics" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/campaigns" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/privacy-policy" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/terms-of-service" element={<Navigate to="/dashboard" replace />} />
-                
                 {/* 404 */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
