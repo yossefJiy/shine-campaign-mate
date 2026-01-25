@@ -18,12 +18,14 @@ import {
   UserCheck,
   MoreHorizontal,
   Trash2,
-  Edit
+  Edit,
+  Send
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -41,7 +43,17 @@ interface Props {
 }
 
 export function ProjectStagesManager({ projectId, projectName }: Props) {
-  const { stages, isLoading, createStage, updateStage, deleteStage, progressPercent, completedCount, totalCount } = useProjectStages(projectId);
+  const { 
+    stages, 
+    isLoading, 
+    createStage, 
+    updateStage, 
+    deleteStage, 
+    requestClientApproval,
+    progressPercent, 
+    completedCount, 
+    totalCount 
+  } = useProjectStages(projectId);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingStage, setEditingStage] = useState<ProjectStage | null>(null);
   
@@ -227,6 +239,16 @@ export function ProjectStagesManager({ projectId, projectName }: Props) {
                     <Edit className="h-4 w-4 ml-2" />
                     ערוך
                   </DropdownMenuItem>
+                  {/* Request Client Approval - only show if not already approved/waiting */}
+                  {!stage.approved_by_client && stage.status !== 'waiting_client' && (
+                    <DropdownMenuItem 
+                      onClick={() => requestClientApproval.mutate(stage.id)}
+                    >
+                      <Send className="h-4 w-4 ml-2" />
+                      בקש אישור לקוח
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={() => deleteStage.mutate(stage.id)}
                     className="text-destructive"
