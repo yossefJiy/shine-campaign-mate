@@ -19,6 +19,8 @@ export interface ProjectStage {
   completed_at: string | null;
   approved_at: string | null;
   approved_by: string | null;
+  approved_by_client: boolean;
+  client_approved_at: string | null;
   requires_client_approval: boolean;
   client_notes: string | null;
   created_at: string;
@@ -114,6 +116,52 @@ export function useProjectStages(projectId: string | null) {
     onError: () => toast.error("שגיאה בעדכון שלב"),
   });
 
+  // Client approval for stage
+  const approveStageByClient = useMutation({
+    mutationFn: async ({ stageId, notes }: { stageId: string; notes?: string }) => {
+      const { error } = await supabase
+        .from("project_stages")
+        .update({
+          approved_by_client: true,
+          client_approved_at: new Date().toISOString(),
+          client_notes: notes || null,
+          status: "approved",
+          approved_at: new Date().toISOString(),
+        })
+        .eq("id", stageId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["project-stages", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["project-stages-with-tasks", projectId] });
+      toast.success("שלב אושר על ידי הלקוח");
+    },
+    onError: () => toast.error("שגיאה באישור השלב"),
+  });
+
+  // Request client approval
+  const requestClientApproval = useMutation({
+    mutationFn: async (stageId: string) => {
+      const { error } = await supabase
+        .from("project_stages")
+        .update({
+          requires_client_approval: true,
+          status: "waiting_client",
+        })
+        .eq("id", stageId);
+      
+      if (error) throw error;
+      
+      // TODO: Send notification to client
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["project-stages", projectId] });
+      toast.success("בקשת אישור נשלחה ללקוח");
+    },
+    onError: () => toast.error("שגיאה בשליחת בקשה"),
+  });
+
   const deleteStage = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -156,6 +204,8 @@ export function useProjectStages(projectId: string | null) {
     updateStage,
     deleteStage,
     reorderStages,
+    approveStageByClient,
+    requestClientApproval,
     completedCount,
     totalCount,
     progressPercent,
