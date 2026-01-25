@@ -116,7 +116,22 @@ export function BillingRecordDialog({ open, onOpenChange, record }: BillingRecor
       if (record) {
         await updateRecord.mutateAsync({ id: record.id, ...data });
       } else {
-        await createRecord.mutateAsync(data);
+        await createRecord.mutateAsync({
+          client_id: data.client_id,
+          period_start: data.period_start,
+          period_end: data.period_end,
+          year: data.year,
+          month: data.month,
+          agreement_id: data.agreement_id,
+          base_amount: data.base_amount,
+          commission_amount: data.commission_amount,
+          additional_amount: data.additional_amount,
+          amount_billed: data.amount_billed,
+          amount_paid: data.amount_paid,
+          status: data.status,
+          due_date: data.due_date,
+          notes: data.notes,
+        });
       }
       onOpenChange(false);
     } catch (error) {

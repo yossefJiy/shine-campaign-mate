@@ -113,10 +113,25 @@ export function useBillingRecords(filters?: {
   });
 
   const createRecord = useMutation({
-    mutationFn: async (data: Omit<BillingRecord, 'id' | 'total_amount' | 'created_at' | 'updated_at' | 'clients' | 'client_agreements'>) => {
+    mutationFn: async (data: {
+      client_id: string;
+      period_start: string;
+      period_end: string;
+      year: number;
+      month?: number | null;
+      agreement_id?: string | null;
+      base_amount?: number;
+      commission_amount?: number | null;
+      additional_amount?: number | null;
+      amount_billed?: number;
+      amount_paid?: number;
+      status?: string;
+      due_date?: string | null;
+      notes?: string | null;
+    }) => {
       const { data: result, error } = await supabase
         .from("billing_records")
-        .insert(data as any)
+        .insert(data)
         .select()
         .single();
       if (error) throw error;
