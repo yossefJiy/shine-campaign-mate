@@ -4,25 +4,15 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { 
-  CheckSquare,
   Loader2,
-  Clock,
-  FolderKanban,
-  TrendingUp,
   Trophy,
-  Target,
   Plus,
-  Calendar,
-  CircleDot
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { useGamification } from "@/hooks/useGamification";
 import { StreakCounter, ProgressRing } from "@/components/gamification";
-import { SmartDashboardWidgets } from "@/components/dashboard/SmartDashboardWidgets";
+import { FocusDashboard } from "@/components/dashboard/FocusDashboard";
 
 export default function Dashboard() {
   const { selectedClient, isAgencyView } = useClient();
@@ -47,51 +37,16 @@ export default function Dashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["dashboard-stats", selectedClient?.id, isAgencyView],
     queryFn: async () => {
-      // Get tasks - when in agency view (master account), show ALL tasks
-      let tasksQuery = supabase.from("tasks").select("status, client_id, due_date");
+      let tasksQuery = supabase.from("tasks").select("status, client_id");
       if (selectedClient && !isAgencyView) {
-        // Only filter by client if NOT in agency view
         tasksQuery = tasksQuery.eq("client_id", selectedClient.id);
       }
       const { data: tasks } = await tasksQuery;
-
-      // Get projects - when in agency view, show ALL projects
-      let projectsQuery = supabase.from("projects").select("status, client_id");
-      if (selectedClient && !isAgencyView) {
-        projectsQuery = projectsQuery.eq("client_id", selectedClient.id);
-      }
-      const { data: projects } = await projectsQuery;
-
-      const today = new Date().toISOString().split("T")[0];
       
       return {
         totalTasks: tasks?.length || 0,
         completedTasks: tasks?.filter(t => t.status === "completed").length || 0,
-        openTasks: tasks?.filter(t => t.status !== "completed").length || 0,
-        todayTasks: tasks?.filter(t => t.due_date === today && t.status !== "completed").length || 0,
-        activeProjects: projects?.filter(p => p.status === "active").length || 0,
       };
-    },
-  });
-
-  // Get recent tasks - when in agency view, show ALL tasks
-  const { data: recentTasks = [] } = useQuery({
-    queryKey: ["recent-tasks", selectedClient?.id, isAgencyView],
-    queryFn: async () => {
-      let query = supabase
-        .from("tasks")
-        .select("id, title, status, priority, due_date, projects(name, color), clients(name)")
-        .neq("status", "completed")
-        .order("due_date", { ascending: true, nullsFirst: false })
-        .limit(5);
-      
-      // Only filter by client if NOT in agency view
-      if (selectedClient && !isAgencyView) {
-        query = query.eq("client_id", selectedClient.id);
-      }
-      
-      const { data } = await query;
-      return data || [];
     },
   });
 
@@ -109,7 +64,7 @@ export default function Dashboard() {
               שלום{currentTeamMember?.name ? `, ${currentTeamMember.name}` : ''} 👋
             </h1>
             <p className="text-muted-foreground">
-              {selectedClient ? `דשבורד ${selectedClient.name}` : "הנה סיכום המשימות שלך"}
+              {selectedClient ? `דשבורד ${selectedClient.name}` : "זה מה שיקדם את העסק היום"}
             </p>
           </div>
           <Button asChild>
@@ -126,190 +81,44 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            {/* Gamification Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Progress Ring */}
+            {/* Gamification Row - Compact */}
+            <div className="grid grid-cols-3 gap-4">
               <Card className="border-0 shadow-sm">
-                <CardContent className="pt-6 flex flex-col items-center">
-                  <ProgressRing progress={completionPercent} size={100}>
-                    <div className="text-center">
-                      <span className="text-2xl font-bold">{completionPercent}%</span>
-                    </div>
+                <CardContent className="pt-4 pb-4 flex items-center justify-center gap-3">
+                  <ProgressRing progress={completionPercent} size={60}>
+                    <span className="text-sm font-bold">{completionPercent}%</span>
                   </ProgressRing>
-                  <p className="text-sm text-muted-foreground mt-3">שיעור השלמה</p>
+                  <span className="text-sm text-muted-foreground">השלמה</span>
                 </CardContent>
               </Card>
 
-              {/* Points */}
               <Card className="border-0 shadow-sm">
-                <CardContent className="pt-6 flex flex-col items-center">
-                  <div className="w-20 h-20 rounded-full bg-primary/10 flex flex-col items-center justify-center">
-                    <Trophy className="w-8 h-8 text-primary" />
-                    <span className="text-lg font-bold">{points?.total_points || 0}</span>
+                <CardContent className="pt-4 pb-4 flex items-center justify-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Trophy className="w-5 h-5 text-primary" />
                   </div>
-                  <p className="text-sm text-muted-foreground mt-3">
-                    רמה {levelInfo.level} · {levelInfo.progress}%
-                  </p>
+                  <div>
+                    <span className="text-lg font-bold">{points?.total_points || 0}</span>
+                    <p className="text-xs text-muted-foreground">רמה {levelInfo.level}</p>
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Streak */}
               <Card className="border-0 shadow-sm">
-                <CardContent className="pt-6 flex flex-col items-center">
+                <CardContent className="pt-4 pb-4 flex items-center justify-center gap-3">
                   <StreakCounter 
                     streak={streak?.current_streak || 0} 
                     longestStreak={streak?.longest_streak}
-                    size="md"
+                    size="sm"
                     showLabel={false}
                   />
-                  <p className="text-sm text-muted-foreground mt-3">רצף ימים</p>
+                  <span className="text-sm text-muted-foreground">רצף ימים</span>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="border-0 shadow-sm">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Target className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{stats?.todayTasks || 0}</p>
-                      <p className="text-xs text-muted-foreground">משימות להיום</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-sm">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                      <CircleDot className="w-5 h-5 text-amber-500" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{stats?.openTasks || 0}</p>
-                      <p className="text-xs text-muted-foreground">משימות פתוחות</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-sm">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                      <CheckSquare className="w-5 h-5 text-green-500" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{stats?.completedTasks || 0}</p>
-                      <p className="text-xs text-muted-foreground">הושלמו</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-0 shadow-sm">
-                <CardContent className="pt-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                      <FolderKanban className="w-5 h-5 text-purple-500" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{stats?.activeProjects || 0}</p>
-                      <p className="text-xs text-muted-foreground">פרויקטים פעילים</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Smart Dashboard Widgets */}
-            <SmartDashboardWidgets clientId={isAgencyView ? undefined : selectedClient?.id} />
-
-            {/* Progress & Recent Tasks */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Progress Card */}
-              <Card className="border-0 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <TrendingUp className="w-5 h-5 text-primary" />
-                    התקדמות כללית
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">השלמת משימות</span>
-                      <span className="text-2xl font-bold">{completionPercent}%</span>
-                    </div>
-                    <Progress value={completionPercent} className="h-3" />
-                    <p className="text-sm text-muted-foreground">
-                      {stats?.completedTasks} מתוך {stats?.totalTasks} משימות הושלמו
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Recent Tasks */}
-              <Card className="border-0 shadow-sm">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Clock className="w-5 h-5 text-amber-500" />
-                    משימות קרובות
-                  </CardTitle>
-                  <Link to="/tasks">
-                    <Badge variant="outline" className="cursor-pointer hover:bg-muted">
-                      הצג הכל
-                    </Badge>
-                  </Link>
-                </CardHeader>
-                <CardContent>
-                  {recentTasks.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">
-                      אין משימות פתוחות 🎉
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {recentTasks.map((task: any) => (
-                        <Link 
-                          key={task.id}
-                          to={`/tasks?task=${task.id}`}
-                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
-                        >
-                          <CircleDot className="w-4 h-4 text-muted-foreground" />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{task.title}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              {task.projects?.name && (
-                                <Badge 
-                                  variant="secondary" 
-                                  className="text-xs"
-                                  style={{ 
-                                    backgroundColor: task.projects.color + '20',
-                                    color: task.projects.color 
-                                  }}
-                                >
-                                  {task.projects.name}
-                                </Badge>
-                              )}
-                              {task.due_date && (
-                                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Calendar className="w-3 h-3" />
-                                  {new Date(task.due_date).toLocaleDateString('he-IL')}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            {/* Focus Dashboard - Main Content */}
+            <FocusDashboard clientId={isAgencyView ? undefined : selectedClient?.id} />
           </>
         )}
       </div>
