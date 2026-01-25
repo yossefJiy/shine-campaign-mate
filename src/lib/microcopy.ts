@@ -96,10 +96,30 @@ export const microcopy = {
   // Client portal
   clientPortal: {
     welcome: "ברוכים הבאים לפורטל הלקוח",
-    projectStatus: "סטטוס הפרויקט שלך",
+    projectStatus: "סטטוס עבודה",
     stagesPending: "שלבים ממתינים לאישור",
     confirmAndApprove: "קראתי ואישרתי את התנאים",
     mustConfirm: "יש לאשר את התנאים לפני ההמשך",
+    waitingForYourApproval: "ממתין לאישור שלך",
+    stageApproved: "לקוח אישר — עכשיו מתקדמים",
+    stageWaitingClient: "שלב זה ממתין לתגובה מהלקוח",
+    noStages: "אין שלבים להצגה",
+  },
+
+  // Project messages
+  projects: {
+    campaignIsBreadAndButter: "🔥 קמפיין הוא הלחם והחמאה",
+    noActivityWarning: "אין תזוזה {days} ימים — בוא נסגור חסימות",
+    clientApprovedStage: "לקוח אישר שלב: {stageName}",
+    stageWaitingResponse: "ממתין לתגובה מהלקוח",
+    addFirstStage: "הוסף שלב ראשון",
+    noStagesYet: "אין שלבים בפרויקט זה",
+    moreTasks: "עוד {count} משימות",
+    requestClientApproval: "בקש אישור לקוח",
+    markAsCompleted: "סמן כהושלם",
+    shareWithClient: "שתף עם לקוח",
+    addStage: "הוסף שלב",
+    addTask: "הוסף משימה",
   },
 
   // Alerts

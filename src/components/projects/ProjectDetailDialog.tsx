@@ -267,11 +267,24 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <FolderKanban className="h-6 w-6 text-primary" />
-              <div>
-                <span className="text-xl">{project?.name}</span>
-                {project?.clients?.name && (
-                  <Badge variant="outline" className="mr-3 text-xs">
-                    {project.clients.name}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">{project?.name}</span>
+                  {project?.clients?.name && (
+                    <Badge variant="outline" className="text-xs">
+                      {project.clients.name}
+                    </Badge>
+                  )}
+                </div>
+                {/* Internal tag - Campaign is bread and butter */}
+                {(project?.name?.toLowerCase().includes('קמפיין') ||
+                  project?.name?.toLowerCase().includes('campaign') ||
+                  project?.name?.toLowerCase().includes('meta') ||
+                  project?.name?.toLowerCase().includes('google') ||
+                  project?.name?.toLowerCase().includes('tiktok')) && (
+                  <Badge variant="secondary" className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                    <Flame className="h-3 w-3 ml-1" />
+                    קמפיין הוא הלחם והחמאה
                   </Badge>
                 )}
               </div>
@@ -283,7 +296,7 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
               </Button>
               <Button variant="outline" size="sm">
                 <Share2 className="h-4 w-4 ml-1" />
-                שתף
+                שתף עם לקוח
               </Button>
             </div>
           </DialogTitle>
@@ -472,48 +485,80 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
           {/* Client View Tab */}
           <TabsContent value="client">
             <ScrollArea className="h-[500px] pr-4">
-              <Card className="mb-4">
-                <CardHeader>
+              <Card className="mb-4 border-dashed border-2">
+                <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Eye className="h-4 w-4" />
-                    מה הלקוח רואה
+                    תצוגה מקדימה - מה הלקוח רואה
                   </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {microcopy.clientPortal.projectStatus}
+                  <p className="text-xs text-muted-foreground">
+                    הלקוח לא רואה: משימות, צוות, כספים מפורטים, הערות פנימיות
                   </p>
+                </CardHeader>
+                <CardContent className="pt-2">
+                  {/* Client View Header */}
+                  <div className="text-center p-4 bg-muted/50 rounded-lg mb-4">
+                    <p className="font-medium text-lg">{microcopy.clientPortal.projectStatus}</p>
+                    <p className="text-sm text-muted-foreground">{project?.name}</p>
+                  </div>
                   
                   <div className="space-y-3">
-                    {stages.map((stage: any) => (
-                      <div key={stage.id} className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium">{stage.name}</span>
-                          <Badge className={cn(statusColors[stage.status])}>
-                            {stageStatusLabels[stage.status] || stage.status}
-                          </Badge>
-                        </div>
+                    {stages.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-6">אין שלבים להצגה</p>
+                    ) : (
+                      stages.map((stage: any, idx: number) => {
+                        const needsApproval = stage.requires_client_approval && 
+                                              !stage.approved_by_client && 
+                                              stage.status !== "completed";
+                        const isWaitingClient = stage.status === "waiting_client";
                         
-                        {stage.requires_client_approval && stage.status !== "completed" && stage.status !== "approved" && (
-                          <div className="flex items-center gap-2 mt-3 pt-3 border-t">
-                            <Button size="sm" className="gap-1">
-                              <CheckCircle2 className="h-3 w-3" />
-                              {microcopy.buttons.approve}
-                            </Button>
-                            <Button variant="outline" size="sm">
-                              {microcopy.buttons.iHaveComment}
-                            </Button>
+                        return (
+                          <div 
+                            key={stage.id} 
+                            className={cn(
+                              "p-4 border rounded-lg",
+                              (needsApproval || isWaitingClient) && "border-warning bg-warning/5"
+                            )}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-muted-foreground">{idx + 1}</span>
+                                {stage.status === "completed" || stage.approved_by_client ? (
+                                  <CheckCircle2 className="h-4 w-4 text-success" />
+                                ) : isWaitingClient ? (
+                                  <AlertTriangle className="h-4 w-4 text-warning" />
+                                ) : (
+                                  <Clock className="h-4 w-4 text-muted-foreground" />
+                                )}
+                                <span className="font-medium">{stage.name}</span>
+                              </div>
+                              <Badge className={cn("text-xs", statusColors[stage.status])}>
+                                {isWaitingClient ? "ממתין לאישור שלך" : stageStatusLabels[stage.status] || stage.status}
+                              </Badge>
+                            </div>
+                            
+                            {(needsApproval || isWaitingClient) && (
+                              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-warning/30">
+                                <Button size="sm" className="gap-1">
+                                  <CheckCircle2 className="h-3 w-3" />
+                                  {microcopy.buttons.approve}
+                                </Button>
+                                <Button variant="outline" size="sm">
+                                  {microcopy.buttons.iHaveComment}
+                                </Button>
+                              </div>
+                            )}
+                            
+                            {stage.approved_by_client && (
+                              <Badge variant="outline" className="mt-2 text-xs text-success">
+                                <CheckCircle2 className="h-3 w-3 ml-1" />
+                                אושר על ידי הלקוח
+                              </Badge>
+                            )}
                           </div>
-                        )}
-                        
-                        {stage.approved_by_client && (
-                          <Badge variant="outline" className="mt-2 text-xs text-success">
-                            <CheckCircle2 className="h-3 w-3 ml-1" />
-                            אושר על ידי הלקוח
-                          </Badge>
-                        )}
-                      </div>
-                    ))}
+                        );
+                      })
+                    )}
                   </div>
                 </CardContent>
               </Card>
