@@ -54,7 +54,7 @@ export function QuoteDialog({ open, onOpenChange, quote }: QuoteDialogProps) {
   const [title, setTitle] = useState("הצעת מחיר");
   const [validUntil, setValidUntil] = useState("");
   const [discountPercent, setDiscountPercent] = useState(0);
-  const [taxRate, setTaxRate] = useState(17);
+  const [taxRate, setTaxRate] = useState(18);
   const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState("");
   const [items, setItems] = useState<LineItem[]>([
@@ -139,7 +139,7 @@ export function QuoteDialog({ open, onOpenChange, quote }: QuoteDialogProps) {
         defaultValidUntil.setDate(defaultValidUntil.getDate() + 30);
         setValidUntil(defaultValidUntil.toISOString().split("T")[0]);
         setDiscountPercent(0);
-        setTaxRate(17);
+        setTaxRate(18);
         setNotes("");
         setTerms("");
         setItems([{ name: "", description: "", quantity: 1, unit_price: 0, discount_percent: 0, total: 0, is_optional: false, is_selected: true }]);

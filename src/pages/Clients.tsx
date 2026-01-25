@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DomainErrorBoundary } from "@/components/shared/DomainErrorBoundary";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -46,7 +47,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { useClient } from "@/hooks/useClient";
 
 interface ClientRow {
   id: string;
@@ -65,7 +65,7 @@ interface ClientRow {
 
 export default function Clients() {
   const queryClient = useQueryClient();
-  const { setSelectedClient } = useClient();
+  const navigate = useNavigate();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingClient, setEditingClient] = useState<ClientRow | null>(null);
   const [formData, setFormData] = useState({
@@ -278,7 +278,7 @@ export default function Clients() {
                     "hover:shadow-lg transition-shadow group cursor-pointer",
                     client.is_master_account && "border-primary/50 bg-primary/5"
                   )}
-                  onClick={() => setSelectedClient(client as any)}
+                  onClick={() => navigate(`/clients/${client.id}`)}
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between">

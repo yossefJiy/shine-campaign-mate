@@ -3552,6 +3552,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           due_date: string | null
+          icount_doc_id: string | null
+          icount_synced_at: string | null
           id: string
           invoice_number: string
           issue_date: string
@@ -3574,6 +3576,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           due_date?: string | null
+          icount_doc_id?: string | null
+          icount_synced_at?: string | null
           id?: string
           invoice_number: string
           issue_date?: string
@@ -3596,6 +3600,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           due_date?: string | null
+          icount_doc_id?: string | null
+          icount_synced_at?: string | null
           id?: string
           invoice_number?: string
           issue_date?: string
@@ -4832,6 +4838,8 @@ export type Database = {
           created_by: string | null
           discount_amount: number | null
           discount_percent: number | null
+          icount_doc_id: string | null
+          icount_synced_at: string | null
           id: string
           lead_id: string | null
           metadata: Json | null
@@ -4858,6 +4866,8 @@ export type Database = {
           created_by?: string | null
           discount_amount?: number | null
           discount_percent?: number | null
+          icount_doc_id?: string | null
+          icount_synced_at?: string | null
           id?: string
           lead_id?: string | null
           metadata?: Json | null
@@ -4884,6 +4894,8 @@ export type Database = {
           created_by?: string | null
           discount_amount?: number | null
           discount_percent?: number | null
+          icount_doc_id?: string | null
+          icount_synced_at?: string | null
           id?: string
           lead_id?: string | null
           metadata?: Json | null

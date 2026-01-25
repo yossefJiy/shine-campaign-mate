@@ -49,7 +49,7 @@ export function InvoiceDialog({ open, onOpenChange, invoice }: InvoiceDialogProp
   const [type, setType] = useState<"invoice" | "receipt" | "proforma" | "credit_note">("invoice");
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
   const [dueDate, setDueDate] = useState("");
-  const [taxRate, setTaxRate] = useState(17);
+  const [taxRate, setTaxRate] = useState(18);
   const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState("");
   const [items, setItems] = useState<LineItem[]>([
@@ -113,7 +113,7 @@ export function InvoiceDialog({ open, onOpenChange, invoice }: InvoiceDialogProp
         setType("invoice");
         setIssueDate(new Date().toISOString().split("T")[0]);
         setDueDate("");
-        setTaxRate(17);
+        setTaxRate(18);
         setNotes("");
         setTerms("");
         setItems([{ description: "", quantity: 1, unit_price: 0, discount_percent: 0, total: 0 }]);
