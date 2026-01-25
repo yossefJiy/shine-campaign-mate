@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Quote, QuoteItem, useBilling } from "@/hooks/useBilling";
 import { useClient } from "@/hooks/useClient";
+import { useProposalTemplates, ProposalTemplate } from "@/hooks/useProposalTemplates";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Trash2, Loader2, FileText, Send, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 interface QuoteDialogProps {
@@ -42,13 +44,17 @@ interface LineItem {
   total: number;
   is_optional: boolean;
   is_selected: boolean;
+  creates_stage: boolean;
+  preset_tasks: string[];
 }
 
 export function QuoteDialog({ open, onOpenChange, quote }: QuoteDialogProps) {
   const queryClient = useQueryClient();
   const { selectedClient, isAgencyView } = useClient();
   const { createQuote } = useBilling();
+  const { templates, isLoading: templatesLoading } = useProposalTemplates();
   
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [clientId, setClientId] = useState<string>("");
   const [leadId, setLeadId] = useState<string>("");
   const [title, setTitle] = useState("הצעת מחיר");
@@ -58,7 +64,7 @@ export function QuoteDialog({ open, onOpenChange, quote }: QuoteDialogProps) {
   const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState("");
   const [items, setItems] = useState<LineItem[]>([
-    { name: "", description: "", quantity: 1, unit_price: 0, discount_percent: 0, total: 0, is_optional: false, is_selected: true }
+    { name: "", description: "", quantity: 1, unit_price: 0, discount_percent: 0, total: 0, is_optional: false, is_selected: true, creates_stage: true, preset_tasks: [] }
   ]);
 
   // Fetch clients for selection
@@ -128,6 +134,8 @@ export function QuoteDialog({ open, onOpenChange, quote }: QuoteDialogProps) {
             total: item.total,
             is_optional: item.is_optional,
             is_selected: item.is_selected,
+            creates_stage: true,
+            preset_tasks: [],
           })));
         }
       } else {
@@ -142,7 +150,7 @@ export function QuoteDialog({ open, onOpenChange, quote }: QuoteDialogProps) {
         setTaxRate(18);
         setNotes("");
         setTerms("");
-        setItems([{ name: "", description: "", quantity: 1, unit_price: 0, discount_percent: 0, total: 0, is_optional: false, is_selected: true }]);
+        setItems([{ name: "", description: "", quantity: 1, unit_price: 0, discount_percent: 0, total: 0, is_optional: false, is_selected: true, creates_stage: true, preset_tasks: [] }]);
       }
     }
   }, [open, quote, quoteItems, selectedClient]);
@@ -161,7 +169,7 @@ export function QuoteDialog({ open, onOpenChange, quote }: QuoteDialogProps) {
   };
 
   const addItem = () => {
-    setItems([...items, { name: "", description: "", quantity: 1, unit_price: 0, discount_percent: 0, total: 0, is_optional: false, is_selected: true }]);
+    setItems([...items, { name: "", description: "", quantity: 1, unit_price: 0, discount_percent: 0, total: 0, is_optional: false, is_selected: true, creates_stage: true, preset_tasks: [] }]);
   };
 
   const removeItem = (index: number) => {
