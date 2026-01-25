@@ -32,7 +32,6 @@ import {
   Calendar,
   X,
   Loader2,
-  Send,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +50,6 @@ interface TaskBulkActionsProps {
   onClearSelection: () => void;
   teamMembers: Array<{ id: string; name: string }>;
   categories: string[];
-  onShareClick?: () => void;
 }
 
 const statusOptions = [
@@ -71,7 +69,6 @@ export function TaskBulkActions({
   onClearSelection,
   teamMembers,
   categories,
-  onShareClick,
 }: TaskBulkActionsProps) {
   const queryClient = useQueryClient();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -221,20 +218,6 @@ export function TaskBulkActions({
             ))}
           </SelectContent>
         </Select>
-
-        {/* Share with client */}
-        {onShareClick && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1"
-            onClick={onShareClick}
-            disabled={updateMutation.isPending || deleteMutation.isPending}
-          >
-            <Send className="w-4 h-4" />
-            שלח ללקוח
-          </Button>
-        )}
 
         {/* Delete */}
         <Button
