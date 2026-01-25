@@ -11,7 +11,8 @@ const ICOUNT_API_URL = "https://api.icount.co.il/api/v3.php";
 interface ICountConfig {
   cid: string;
   user: string;
-  pass: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
 interface InvoiceCreateRequest {
@@ -40,20 +41,21 @@ interface DocGetRequest {
 async function getICountConfig(): Promise<ICountConfig> {
   const cid = Deno.env.get("ICOUNT_CID");
   const user = Deno.env.get("ICOUNT_USER");
-  const pass = Deno.env.get("ICOUNT_PASS");
+  const accessToken = Deno.env.get("ICOUNT_ACCESS_TOKEN");
+  const refreshToken = Deno.env.get("ICOUNT_REFRESH_TOKEN");
 
-  if (!cid || !user || !pass) {
-    throw new Error("Missing iCount credentials. Please configure ICOUNT_CID, ICOUNT_USER, and ICOUNT_PASS secrets.");
+  if (!cid || !user || !accessToken) {
+    throw new Error("Missing iCount credentials. Please configure ICOUNT_CID, ICOUNT_USER, ICOUNT_ACCESS_TOKEN, and ICOUNT_REFRESH_TOKEN secrets.");
   }
 
-  return { cid, user, pass };
+  return { cid, user, accessToken, refreshToken: refreshToken || "" };
 }
 
 async function createDocument(config: ICountConfig, data: InvoiceCreateRequest) {
   const payload = {
     cid: config.cid,
     user: config.user,
-    pass: config.pass,
+    sid: config.accessToken,
     doctype: data.doctype,
     client_name: data.client_name,
     client_email: data.client_email || "",
@@ -98,7 +100,7 @@ async function getDocument(config: ICountConfig, doctype: string, docnum: string
   const payload = {
     cid: config.cid,
     user: config.user,
-    pass: config.pass,
+    sid: config.accessToken,
     doctype,
     docnum,
   };
@@ -124,7 +126,7 @@ async function getDocumentPDF(config: ICountConfig, doctype: string, docnum: str
   const payload = {
     cid: config.cid,
     user: config.user,
-    pass: config.pass,
+    sid: config.accessToken,
     doctype,
     docnum,
     pdf: 1,
