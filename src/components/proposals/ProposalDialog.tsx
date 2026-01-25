@@ -66,7 +66,7 @@ export function ProposalDialog({ open, onOpenChange }: ProposalDialogProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
   const [validUntil, setValidUntil] = useState("");
   const [discountPercent, setDiscountPercent] = useState(0);
-  const [taxRate, setTaxRate] = useState(17);
+  const [taxRate, setTaxRate] = useState(18);
   const [notes, setNotes] = useState("");
   const [terms, setTerms] = useState(
     "העבודה מתחילה לאחר אישור ההצעה ותשלום הריטיינר.\nשירותים משלימים נועדו לתמוך בקמפיין הממומן."
@@ -123,7 +123,7 @@ export function ProposalDialog({ open, onOpenChange }: ProposalDialogProps) {
       setValidUntil(defaultValidUntil.toISOString().split("T")[0]);
       
       setDiscountPercent(0);
-      setTaxRate(17);
+      setTaxRate(18);
       setNotes("");
       setPaymentModel("retainer");
       setRetainerAmount(4350);
@@ -337,16 +337,16 @@ export function ProposalDialog({ open, onOpenChange }: ProposalDialogProps) {
                 </Button>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2" dir="rtl">
                 {/* Header */}
                 <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2">
-                  <div className="col-span-3">שם השירות</div>
-                  <div className="col-span-2">תיאור</div>
-                  <div className="col-span-2">מחיר</div>
+                  <div className="col-span-3 text-right">שם השירות</div>
+                  <div className="col-span-2 text-right">תיאור</div>
+                  <div className="col-span-2 text-right">מחיר</div>
                   <div className="col-span-1 text-center">אופציונלי</div>
                   <div className="col-span-1 text-center">פותח שלב</div>
-                  <div className="col-span-1">תג</div>
-                  <div className="col-span-1 text-left">סה״כ</div>
+                  <div className="col-span-1 text-right">תג</div>
+                  <div className="col-span-1 text-right">סה״כ</div>
                   <div className="col-span-1"></div>
                 </div>
 
@@ -408,7 +408,7 @@ export function ProposalDialog({ open, onOpenChange }: ProposalDialogProps) {
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="col-span-1 text-sm font-medium text-left">
+                    <div className="col-span-1 text-sm font-medium text-right">
                       {formatCurrency(item.total)}
                     </div>
                     <div className="col-span-1">

@@ -205,7 +205,7 @@ export function useProposals(clientId?: string) {
           subtotal: dto.subtotal,
           discount_percent: dto.discount_percent || 0,
           discount_amount: dto.discount_amount || 0,
-          tax_rate: dto.tax_rate || 17,
+          tax_rate: dto.tax_rate || 18,
           tax_amount: dto.tax_amount || 0,
           total_amount: dto.total_amount,
           public_token: publicToken,
@@ -344,7 +344,7 @@ export function useProposals(clientId?: string) {
             project_id: project.id,
             name: item.stage_name || item.name,
             sort_order: i,
-            status: i === 0 ? "in_progress" : "not_started",
+            status: i === 0 ? "in_progress" : "pending",
             client_approval_required: true,
           })
           .select()
