@@ -11,9 +11,16 @@ export type AlertType =
   | 'no_income_tasks'
   | 'proposal_approved' 
   | 'proposal_expired' 
-  | 'task_assigned';
+  | 'proposal_sent'
+  | 'task_assigned'
+  | 'task_waiting'
+  | 'stage_approval_request'
+  | 'retainer_paid'
+  | 'work_blocked';
 
 export type AlertPriority = 'low' | 'normal' | 'high' | 'urgent';
+export type AlertSeverity = 'info' | 'warn' | 'critical';
+export type RecipientType = 'user' | 'client_contact';
 
 export interface SmartAlert {
   id: string;
@@ -24,8 +31,14 @@ export interface SmartAlert {
   title: string;
   message: string | null;
   priority: AlertPriority;
+  severity: AlertSeverity;
   is_read: boolean;
   created_at: string;
+  deliver_by: string | null;
+  delivered_at: string | null;
+  recipient_type: RecipientType;
+  recipient_id: string | null;
+  alert_day: string | null;
 }
 
 export function useSmartAlerts() {
@@ -37,10 +50,13 @@ export function useSmartAlerts() {
     queryFn: async (): Promise<SmartAlert[]> => {
       if (!user?.id) return [];
 
+      const now = new Date().toISOString();
+      
       const { data, error } = await supabase
         .from("smart_alerts")
         .select("*")
         .eq("to_user_id", user.id)
+        .or(`deliver_by.is.null,deliver_by.lte.${now}`) // Only show if deliver_by is null or past
         .order("created_at", { ascending: false })
         .limit(50);
 

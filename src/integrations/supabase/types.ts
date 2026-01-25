@@ -227,6 +227,45 @@ export type Database = {
         }
         Relationships: []
       }
+      agency_settings: {
+        Row: {
+          client_delay_threshold_days: number
+          created_at: string
+          id: string
+          payment_overdue_grace_days: number
+          project_stalled_threshold_days: number
+          timezone: string
+          updated_at: string
+          work_days: number[]
+          work_hours_end: string
+          work_hours_start: string
+        }
+        Insert: {
+          client_delay_threshold_days?: number
+          created_at?: string
+          id?: string
+          payment_overdue_grace_days?: number
+          project_stalled_threshold_days?: number
+          timezone?: string
+          updated_at?: string
+          work_days?: number[]
+          work_hours_end?: string
+          work_hours_start?: string
+        }
+        Update: {
+          client_delay_threshold_days?: number
+          created_at?: string
+          id?: string
+          payment_overdue_grace_days?: number
+          project_stalled_threshold_days?: number
+          timezone?: string
+          updated_at?: string
+          work_days?: number[]
+          work_hours_end?: string
+          work_hours_start?: string
+        }
+        Relationships: []
+      }
       agent_memory: {
         Row: {
           agent_id: string | null
@@ -1987,6 +2026,7 @@ export type Database = {
       }
       client_contacts: {
         Row: {
+          can_approve: boolean | null
           client_id: string
           created_at: string | null
           email: string | null
@@ -1994,12 +2034,18 @@ export type Database = {
           id: string
           is_primary: boolean | null
           name: string
+          notification_policy: string | null
+          notify: boolean | null
           phone: string | null
+          preferred_timezone: string | null
           receive_task_updates: boolean | null
           role: string | null
           updated_at: string | null
+          work_hours_end: string | null
+          work_hours_start: string | null
         }
         Insert: {
+          can_approve?: boolean | null
           client_id: string
           created_at?: string | null
           email?: string | null
@@ -2007,12 +2053,18 @@ export type Database = {
           id?: string
           is_primary?: boolean | null
           name: string
+          notification_policy?: string | null
+          notify?: boolean | null
           phone?: string | null
+          preferred_timezone?: string | null
           receive_task_updates?: boolean | null
           role?: string | null
           updated_at?: string | null
+          work_hours_end?: string | null
+          work_hours_start?: string | null
         }
         Update: {
+          can_approve?: boolean | null
           client_id?: string
           created_at?: string | null
           email?: string | null
@@ -2020,10 +2072,15 @@ export type Database = {
           id?: string
           is_primary?: boolean | null
           name?: string
+          notification_policy?: string | null
+          notify?: boolean | null
           phone?: string | null
+          preferred_timezone?: string | null
           receive_task_updates?: boolean | null
           role?: string | null
           updated_at?: string | null
+          work_hours_end?: string | null
+          work_hours_start?: string | null
         }
         Relationships: [
           {
@@ -5135,9 +5192,13 @@ export type Database = {
           full_name: string | null
           id: string
           job_title: string | null
+          notification_policy: string | null
           phone: string | null
+          preferred_timezone: string | null
           timezone: string | null
           updated_at: string
+          work_hours_end: string | null
+          work_hours_start: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -5148,9 +5209,13 @@ export type Database = {
           full_name?: string | null
           id: string
           job_title?: string | null
+          notification_policy?: string | null
           phone?: string | null
+          preferred_timezone?: string | null
           timezone?: string | null
           updated_at?: string
+          work_hours_end?: string | null
+          work_hours_start?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -5161,9 +5226,13 @@ export type Database = {
           full_name?: string | null
           id?: string
           job_title?: string | null
+          notification_policy?: string | null
           phone?: string | null
+          preferred_timezone?: string | null
           timezone?: string | null
           updated_at?: string
+          work_hours_end?: string | null
+          work_hours_start?: string | null
         }
         Relationships: []
       }
@@ -6081,38 +6150,56 @@ export type Database = {
       }
       smart_alerts: {
         Row: {
+          alert_day: string | null
           alert_type: string
           created_at: string | null
+          deliver_by: string | null
+          delivered_at: string | null
           entity_id: string | null
           entity_type: string | null
           id: string
           is_read: boolean | null
           message: string | null
           priority: string | null
+          recipient_id: string | null
+          recipient_type: string | null
+          severity: string | null
           title: string
           to_user_id: string
         }
         Insert: {
+          alert_day?: string | null
           alert_type: string
           created_at?: string | null
+          deliver_by?: string | null
+          delivered_at?: string | null
           entity_id?: string | null
           entity_type?: string | null
           id?: string
           is_read?: boolean | null
           message?: string | null
           priority?: string | null
+          recipient_id?: string | null
+          recipient_type?: string | null
+          severity?: string | null
           title: string
           to_user_id: string
         }
         Update: {
+          alert_day?: string | null
           alert_type?: string
           created_at?: string | null
+          deliver_by?: string | null
+          delivered_at?: string | null
           entity_id?: string | null
           entity_type?: string | null
           id?: string
           is_read?: boolean | null
           message?: string | null
           priority?: string | null
+          recipient_id?: string | null
+          recipient_type?: string | null
+          severity?: string | null
           title?: string
           to_user_id?: string
         }
@@ -7395,6 +7482,14 @@ export type Database = {
           _domain?: string
         }
         Returns: boolean
+      }
+      calc_delivery_time: {
+        Args: {
+          p_recipient_id: string
+          p_recipient_type: string
+          p_severity?: string
+        }
+        Returns: string
       }
       cancel_approved_quote: {
         Args: { p_quote_id: string; p_reason: string }
