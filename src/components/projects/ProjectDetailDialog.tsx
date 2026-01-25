@@ -80,11 +80,12 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
   const [newNote, setNewNote] = useState("");
   const [showAddStageDialog, setShowAddStageDialog] = useState(false);
 
-  // Fetch project details
-  const { data: project, isLoading: projectLoading } = useQuery({
-    queryKey: ["project-detail", projectId],
+  // Optimized: Fetch all project data in parallel
+  const { data: projectData, isLoading: dataLoading } = useQuery({
+    queryKey: ["project-full-detail", projectId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch project first to get client_id
+      const { data: projectResult, error: projectError } = await supabase
         .from("projects")
         .select(`
           *,
@@ -93,105 +94,57 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
         .eq("id", projectId)
         .single();
       
-      if (error) throw error;
-      return data;
-    },
-    enabled: open && !!projectId,
-  });
-
-  // Fetch stages with tasks
-  const { data: stages = [], isLoading: stagesLoading } = useQuery({
-    queryKey: ["project-stages-with-tasks", projectId],
-    queryFn: async () => {
-      const { data: stagesData, error: stagesError } = await supabase
-        .from("project_stages")
-        .select("*")
-        .eq("project_id", projectId)
-        .order("sort_order");
+      if (projectError) throw projectError;
       
-      if (stagesError) throw stagesError;
+      // Fetch all related data in parallel
+      const [stagesResult, tasksResult, notesResult, billingResult, approvalsResult] = await Promise.all([
+        supabase
+          .from("project_stages")
+          .select("*")
+          .eq("project_id", projectId)
+          .order("sort_order"),
+        supabase
+          .from("tasks")
+          .select(`
+            id, title, status, priority, due_date, task_tag, income_value, 
+            is_client_visible, assignee, stage_id, updated_at,
+            team:assignee(name)
+          `)
+          .eq("project_id", projectId)
+          .order("created_at"),
+        supabase
+          .from("project_notes")
+          .select(`*, profiles:user_id(display_name)`)
+          .eq("project_id", projectId)
+          .order("created_at", { ascending: false }),
+        projectResult.client_id
+          ? supabase
+              .from("billing_records")
+              .select("*")
+              .eq("client_id", projectResult.client_id)
+              .order("created_at", { ascending: false })
+              .limit(10)
+          : Promise.resolve({ data: [], error: null }),
+        supabase
+          .from("stage_approvals")
+          .select(`
+            id, created_at, decision, notes,
+            project_stages!inner(name, project_id)
+          `)
+          .eq("project_stages.project_id", projectId)
+          .order("created_at", { ascending: false })
+          .limit(20),
+      ]);
 
-      const { data: tasksData, error: tasksError } = await supabase
-        .from("tasks")
-        .select(`
-          id, title, status, priority, due_date, task_tag, income_value, 
-          is_client_visible, assignee, stage_id,
-          team:assignee(name)
-        `)
-        .eq("project_id", projectId)
-        .order("created_at");
-      
-      if (tasksError) throw tasksError;
-
-      return (stagesData || []).map((stage: any) => ({
+      // Build stages with tasks
+      const stagesData = stagesResult.data || [];
+      const tasksData = tasksResult.data || [];
+      const stages = stagesData.map((stage: any) => ({
         ...stage,
-        tasks: (tasksData || []).filter((t: any) => t.stage_id === stage.id),
+        tasks: tasksData.filter((t: any) => t.stage_id === stage.id),
       }));
-    },
-    enabled: open && !!projectId,
-  });
 
-  // Fetch billing records
-  const { data: billingRecords = [] } = useQuery({
-    queryKey: ["project-billing", projectId],
-    queryFn: async () => {
-      if (!project?.client_id) return [];
-      
-      const { data, error } = await supabase
-        .from("billing_records")
-        .select("*")
-        .eq("client_id", project.client_id)
-        .order("created_at", { ascending: false })
-        .limit(10);
-      
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: open && !!project?.client_id,
-  });
-
-  // Fetch project notes
-  const { data: notes = [] } = useQuery({
-    queryKey: ["project-notes", projectId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("project_notes")
-        .select(`
-          *,
-          profiles:user_id(display_name)
-        `)
-        .eq("project_id", projectId)
-        .order("created_at", { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: open && !!projectId,
-  });
-
-  // Fetch activity history (stage changes, task updates)
-  const { data: activityHistory = [] } = useQuery({
-    queryKey: ["project-activity", projectId],
-    queryFn: async () => {
-      // Get stage approvals
-      const { data: approvals } = await supabase
-        .from("stage_approvals")
-        .select(`
-          id, created_at, decision, notes,
-          project_stages!inner(name, project_id)
-        `)
-        .eq("project_stages.project_id", projectId)
-        .order("created_at", { ascending: false })
-        .limit(20);
-      
-      // Get recent task status changes
-      const { data: recentTasks } = await supabase
-        .from("tasks")
-        .select("id, title, status, updated_at")
-        .eq("project_id", projectId)
-        .order("updated_at", { ascending: false })
-        .limit(10);
-      
+      // Build activity history
       const activities: Array<{
         id: string;
         type: "approval" | "task_update" | "note";
@@ -200,7 +153,7 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
         actor?: string;
       }> = [];
       
-      (approvals || []).forEach((a: any) => {
+      (approvalsResult.data || []).forEach((a: any) => {
         activities.push({
           id: a.id,
           type: "approval",
@@ -209,7 +162,8 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
         });
       });
       
-      (recentTasks || []).forEach((t: any) => {
+      // Use tasks already fetched for activity (latest 10)
+      tasksData.slice(0, 10).forEach((t: any) => {
         activities.push({
           id: t.id,
           type: "task_update",
@@ -217,13 +171,33 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
           timestamp: t.updated_at,
         });
       });
-      
-      return activities.sort((a, b) => 
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      ).slice(0, 20);
+
+      const sortedActivities = activities
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+        .slice(0, 20);
+
+      return {
+        project: projectResult,
+        stages,
+        notes: notesResult.data || [],
+        billingRecords: billingResult.data || [],
+        activityHistory: sortedActivities,
+      };
     },
     enabled: open && !!projectId,
+    staleTime: 30000, // Cache for 30 seconds
   });
+
+  // Extract data from combined query
+  const project = projectData?.project;
+  const stages = projectData?.stages || [];
+  const notes = projectData?.notes || [];
+  const billingRecords = projectData?.billingRecords || [];
+  const activityHistory = projectData?.activityHistory || [];
+  
+  // Aliases for loading states
+  const projectLoading = dataLoading;
+  const stagesLoading = dataLoading;
 
   // Update stage status mutation
   const updateStageMutation = useMutation({
@@ -259,8 +233,7 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
         .eq("id", projectId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["project-stages-with-tasks", projectId] });
-      queryClient.invalidateQueries({ queryKey: ["project-detail", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["project-full-detail", projectId] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast.success("השלב עודכן");
     },
@@ -288,7 +261,7 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
     },
     onSuccess: () => {
       setNewNote("");
-      queryClient.invalidateQueries({ queryKey: ["project-notes", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["project-full-detail", projectId] });
       toast.success("ההערה נוספה");
     },
     onError: () => toast.error("שגיאה בהוספת ההערה"),

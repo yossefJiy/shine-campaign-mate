@@ -6,7 +6,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ClientProvider } from "@/hooks/useClient";
 import { RoleSimulationProvider } from "@/hooks/useRoleSimulation";
-import ProtectedRoute from "@/components/ProtectedRoute";
+// Auth protection temporarily disabled
+// import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Core pages
 import Auth from "./pages/Auth";
@@ -34,23 +35,23 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <Routes>
-                {/* Redirect root to dashboard (auth required) */}
+                {/* Redirect root to dashboard */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/auth" element={<Auth />} />
                 
-                {/* Public client views (no auth required) */}
+                {/* Public client views */}
                 <Route path="/p/:token" element={<ClientProposalView />} />
                 
-                {/* Protected routes */}
-                <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
-                <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-                <Route path="/proposals" element={<ProtectedRoute><Proposals /></ProtectedRoute>} />
-                <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
-                <Route path="/clients/:id" element={<ProtectedRoute><ClientProfile /></ProtectedRoute>} />
-                <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
-                <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
-                <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                {/* All routes open (auth disabled) */}
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/proposals" element={<Proposals />} />
+                <Route path="/clients" element={<Clients />} />
+                <Route path="/clients/:id" element={<ClientProfile />} />
+                <Route path="/team" element={<Team />} />
+                <Route path="/billing" element={<Billing />} />
+                <Route path="/settings" element={<Settings />} />
                 
                 {/* 404 */}
                 <Route path="*" element={<NotFound />} />
