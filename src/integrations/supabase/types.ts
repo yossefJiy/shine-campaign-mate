@@ -5111,9 +5111,11 @@ export type Database = {
           description: string | null
           icon: string | null
           id: string
+          last_activity_at: string | null
           name: string
           priority_category: string | null
           priority_override_percent: number | null
+          proposal_id: string | null
           start_date: string | null
           status: string
           target_date: string | null
@@ -5129,9 +5131,11 @@ export type Database = {
           description?: string | null
           icon?: string | null
           id?: string
+          last_activity_at?: string | null
           name: string
           priority_category?: string | null
           priority_override_percent?: number | null
+          proposal_id?: string | null
           start_date?: string | null
           status?: string
           target_date?: string | null
@@ -5147,9 +5151,11 @@ export type Database = {
           description?: string | null
           icon?: string | null
           id?: string
+          last_activity_at?: string | null
           name?: string
           priority_category?: string | null
           priority_override_percent?: number | null
+          proposal_id?: string | null
           start_date?: string | null
           status?: string
           target_date?: string | null
@@ -5163,51 +5169,103 @@ export type Database = {
             referencedRelation: "clients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "projects_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      proposal_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          stages_json: Json
+          template_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          stages_json?: Json
+          template_type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          stages_json?: Json
+          template_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       quote_items: {
         Row: {
           created_at: string
+          creates_stage: boolean | null
           description: string | null
           discount_percent: number | null
           id: string
           is_optional: boolean | null
           is_selected: boolean | null
           name: string
+          preset_tasks: Json | null
           quantity: number
           quote_id: string
           service_id: string | null
           sort_order: number | null
+          stage_name: string | null
           total: number
           unit_price: number
         }
         Insert: {
           created_at?: string
+          creates_stage?: boolean | null
           description?: string | null
           discount_percent?: number | null
           id?: string
           is_optional?: boolean | null
           is_selected?: boolean | null
           name: string
+          preset_tasks?: Json | null
           quantity?: number
           quote_id: string
           service_id?: string | null
           sort_order?: number | null
+          stage_name?: string | null
           total: number
           unit_price: number
         }
         Update: {
           created_at?: string
+          creates_stage?: boolean | null
           description?: string | null
           discount_percent?: number | null
           id?: string
           is_optional?: boolean | null
           is_selected?: boolean | null
           name?: string
+          preset_tasks?: Json | null
           quantity?: number
           quote_id?: string
           service_id?: string | null
           sort_order?: number | null
+          stage_name?: string | null
           total?: number
           unit_price?: number
         }
@@ -5233,7 +5291,9 @@ export type Database = {
           accepted_at: string | null
           approved_at: string | null
           approved_by: string | null
+          client_confirmed: boolean | null
           client_id: string | null
+          confirmation_text: string | null
           created_at: string
           created_by: string | null
           created_project_id: string | null
@@ -5255,17 +5315,21 @@ export type Database = {
           subtotal: number
           tax_amount: number | null
           tax_rate: number | null
+          template_id: string | null
           terms: string | null
           title: string
           total_amount: number
           updated_at: string
           valid_until: string | null
+          version: number | null
         }
         Insert: {
           accepted_at?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          client_confirmed?: boolean | null
           client_id?: string | null
+          confirmation_text?: string | null
           created_at?: string
           created_by?: string | null
           created_project_id?: string | null
@@ -5287,17 +5351,21 @@ export type Database = {
           subtotal?: number
           tax_amount?: number | null
           tax_rate?: number | null
+          template_id?: string | null
           terms?: string | null
           title: string
           total_amount?: number
           updated_at?: string
           valid_until?: string | null
+          version?: number | null
         }
         Update: {
           accepted_at?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          client_confirmed?: boolean | null
           client_id?: string | null
+          confirmation_text?: string | null
           created_at?: string
           created_by?: string | null
           created_project_id?: string | null
@@ -5319,11 +5387,13 @@ export type Database = {
           subtotal?: number
           tax_amount?: number | null
           tax_rate?: number | null
+          template_id?: string | null
           terms?: string | null
           title?: string
           total_amount?: number
           updated_at?: string
           valid_until?: string | null
+          version?: number | null
         }
         Relationships: [
           {
@@ -5345,6 +5415,13 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "proposal_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -5746,6 +5823,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      smart_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          is_read: boolean | null
+          message: string | null
+          priority: string | null
+          title: string
+          to_user_id: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          priority?: string | null
+          title: string
+          to_user_id: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          priority?: string | null
+          title?: string
+          to_user_id?: string
+        }
+        Relationships: []
       }
       social_accounts: {
         Row: {
@@ -6362,6 +6478,8 @@ export type Database = {
           duration_minutes: number
           id: string
           income_value: number | null
+          is_blocking: boolean | null
+          is_client_visible: boolean | null
           notification_email: boolean | null
           notification_email_address: string | null
           notification_phone: string | null
@@ -6379,6 +6497,7 @@ export type Database = {
           task_tag: string | null
           title: string
           updated_at: string
+          waiting_since: string | null
         }
         Insert: {
           assignee?: string | null
@@ -6394,6 +6513,8 @@ export type Database = {
           duration_minutes?: number
           id?: string
           income_value?: number | null
+          is_blocking?: boolean | null
+          is_client_visible?: boolean | null
           notification_email?: boolean | null
           notification_email_address?: string | null
           notification_phone?: string | null
@@ -6411,6 +6532,7 @@ export type Database = {
           task_tag?: string | null
           title: string
           updated_at?: string
+          waiting_since?: string | null
         }
         Update: {
           assignee?: string | null
@@ -6426,6 +6548,8 @@ export type Database = {
           duration_minutes?: number
           id?: string
           income_value?: number | null
+          is_blocking?: boolean | null
+          is_client_visible?: boolean | null
           notification_email?: boolean | null
           notification_email_address?: string | null
           notification_phone?: string | null
@@ -6443,6 +6567,7 @@ export type Database = {
           task_tag?: string | null
           title?: string
           updated_at?: string
+          waiting_since?: string | null
         }
         Relationships: [
           {
