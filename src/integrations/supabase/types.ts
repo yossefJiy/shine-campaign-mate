@@ -1355,6 +1355,7 @@ export type Database = {
           month: number | null
           notes: string | null
           paid_at: string | null
+          payment_type: string | null
           period_end: string
           period_start: string
           status: string | null
@@ -1380,6 +1381,7 @@ export type Database = {
           month?: number | null
           notes?: string | null
           paid_at?: string | null
+          payment_type?: string | null
           period_end: string
           period_start: string
           status?: string | null
@@ -1405,6 +1407,7 @@ export type Database = {
           month?: number | null
           notes?: string | null
           paid_at?: string | null
+          payment_type?: string | null
           period_end?: string
           period_start?: string
           status?: string | null
@@ -2223,6 +2226,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "client_limits_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_onboarding: {
+        Row: {
+          assets_connected: Json | null
+          business_info: Json | null
+          client_id: string | null
+          completed_at: string | null
+          completed_steps: Json | null
+          created_at: string | null
+          current_step: number | null
+          id: string
+          materials_uploaded: boolean | null
+          status: string | null
+          terms_accepted: boolean | null
+          terms_accepted_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assets_connected?: Json | null
+          business_info?: Json | null
+          client_id?: string | null
+          completed_at?: string | null
+          completed_steps?: Json | null
+          created_at?: string | null
+          current_step?: number | null
+          id?: string
+          materials_uploaded?: boolean | null
+          status?: string | null
+          terms_accepted?: boolean | null
+          terms_accepted_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assets_connected?: Json | null
+          business_info?: Json | null
+          client_id?: string | null
+          completed_at?: string | null
+          completed_steps?: Json | null
+          created_at?: string | null
+          current_step?: number | null
+          id?: string
+          materials_uploaded?: boolean | null
+          status?: string | null
+          terms_accepted?: boolean | null
+          terms_accepted_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_onboarding_client_id_fkey"
             columns: ["client_id"]
             isOneToOne: true
             referencedRelation: "clients"
@@ -4628,6 +4687,75 @@ export type Database = {
           },
         ]
       }
+      performance_fees: {
+        Row: {
+          calculated_fee: number | null
+          client_id: string | null
+          created_at: string | null
+          id: string
+          invoiced_at: string | null
+          month: number
+          notes: string | null
+          paid_at: string | null
+          percentage: number | null
+          project_id: string | null
+          reported_at: string | null
+          revenue_reported: number | null
+          status: string | null
+          updated_at: string | null
+          year: number
+        }
+        Insert: {
+          calculated_fee?: number | null
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          invoiced_at?: string | null
+          month: number
+          notes?: string | null
+          paid_at?: string | null
+          percentage?: number | null
+          project_id?: string | null
+          reported_at?: string | null
+          revenue_reported?: number | null
+          status?: string | null
+          updated_at?: string | null
+          year: number
+        }
+        Update: {
+          calculated_fee?: number | null
+          client_id?: string | null
+          created_at?: string | null
+          id?: string
+          invoiced_at?: string | null
+          month?: number
+          notes?: string | null
+          paid_at?: string | null
+          percentage?: number | null
+          project_id?: string | null
+          reported_at?: string | null
+          revenue_reported?: number | null
+          status?: string | null
+          updated_at?: string | null
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_fees_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "performance_fees_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       planning_dialogue_parts: {
         Row: {
           completed_at: string | null
@@ -5187,6 +5315,7 @@ export type Database = {
           id: string
           last_activity_at: string | null
           name: string
+          payment_status: string | null
           priority_category: string | null
           priority_override_percent: number | null
           proposal_id: string | null
@@ -5207,6 +5336,7 @@ export type Database = {
           id?: string
           last_activity_at?: string | null
           name: string
+          payment_status?: string | null
           priority_category?: string | null
           priority_override_percent?: number | null
           proposal_id?: string | null
@@ -5227,6 +5357,7 @@ export type Database = {
           id?: string
           last_activity_at?: string | null
           name?: string
+          payment_status?: string | null
           priority_category?: string | null
           priority_override_percent?: number | null
           proposal_id?: string | null
