@@ -5365,8 +5365,11 @@ export type Database = {
           accepted_at: string | null
           approved_at: string | null
           approved_by: string | null
+          cancelled_reason: string | null
           client_confirmed: boolean | null
+          client_confirmed_terms: boolean | null
           client_id: string | null
+          client_view_token: string | null
           confirmation_text: string | null
           created_at: string
           created_by: string | null
@@ -5379,11 +5382,13 @@ export type Database = {
           lead_id: string | null
           metadata: Json | null
           notes: string | null
+          parent_quote_id: string | null
           proposal_status: string | null
           public_token: string | null
           quote_number: string
           rejected_at: string | null
           rejection_reason: string | null
+          sent_at: string | null
           signature_url: string | null
           status: string
           subtotal: number
@@ -5401,8 +5406,11 @@ export type Database = {
           accepted_at?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          cancelled_reason?: string | null
           client_confirmed?: boolean | null
+          client_confirmed_terms?: boolean | null
           client_id?: string | null
+          client_view_token?: string | null
           confirmation_text?: string | null
           created_at?: string
           created_by?: string | null
@@ -5415,11 +5423,13 @@ export type Database = {
           lead_id?: string | null
           metadata?: Json | null
           notes?: string | null
+          parent_quote_id?: string | null
           proposal_status?: string | null
           public_token?: string | null
           quote_number: string
           rejected_at?: string | null
           rejection_reason?: string | null
+          sent_at?: string | null
           signature_url?: string | null
           status?: string
           subtotal?: number
@@ -5437,8 +5447,11 @@ export type Database = {
           accepted_at?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          cancelled_reason?: string | null
           client_confirmed?: boolean | null
+          client_confirmed_terms?: boolean | null
           client_id?: string | null
+          client_view_token?: string | null
           confirmation_text?: string | null
           created_at?: string
           created_by?: string | null
@@ -5451,11 +5464,13 @@ export type Database = {
           lead_id?: string | null
           metadata?: Json | null
           notes?: string | null
+          parent_quote_id?: string | null
           proposal_status?: string | null
           public_token?: string | null
           quote_number?: string
           rejected_at?: string | null
           rejection_reason?: string | null
+          sent_at?: string | null
           signature_url?: string | null
           status?: string
           subtotal?: number
@@ -5489,6 +5504,13 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotes_parent_quote_id_fkey"
+            columns: ["parent_quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
             referencedColumns: ["id"]
           },
           {
@@ -7215,8 +7237,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      cancel_approved_quote: {
+        Args: { p_quote_id: string; p_reason: string }
+        Returns: undefined
+      }
       cleanup_expired_2fa_codes: { Args: never; Returns: undefined }
       cleanup_expired_trusted_devices: { Args: never; Returns: undefined }
+      create_quote_version: { Args: { p_quote_id: string }; Returns: string }
       decrypt_integration_credentials: {
         Args: { encrypted_data: string }
         Returns: Json
@@ -7225,6 +7252,7 @@ export type Database = {
         Args: { credentials: Json }
         Returns: string
       }
+      generate_daily_alerts: { Args: never; Returns: Json }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
@@ -7259,6 +7287,7 @@ export type Database = {
         }
         Returns: string
       }
+      mark_overdue_payments: { Args: never; Returns: number }
     }
     Enums: {
       ai_capability_category:
