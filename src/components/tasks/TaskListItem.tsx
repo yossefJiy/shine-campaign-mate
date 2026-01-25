@@ -13,7 +13,10 @@ import {
   Calendar,
   Building2,
   Paperclip,
-  FolderKanban
+  FolderKanban,
+  DollarSign,
+  Wrench,
+  UserCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { TaskQuickActions } from "./TaskQuickActions";
 import { TaskAttachmentsBadge } from "./TaskAttachmentsBadge";
 import { TaskSubtaskProgress } from "./TaskSubtaskProgress";
+import { microcopy } from "@/lib/microcopy";
 
 export interface Task {
   id: string;
@@ -46,9 +50,18 @@ export interface Task {
   credits_cost: number | null;
   recurrence_type: string | null;
   recurrence_end_date: string | null;
+  stage_id?: string | null;
+  task_tag?: string | null;
+  income_value?: number | null;
   clients?: { name: string; is_master_account?: boolean } | null;
   projects?: { id: string; name: string; color: string | null } | null;
 }
+
+const taskTagConfig: Record<string, { icon: typeof DollarSign; color: string; label: string }> = {
+  income_generating: { icon: DollarSign, color: "bg-success/10 text-success border-success/30", label: microcopy.taskTags.income_generating },
+  operational: { icon: Wrench, color: "bg-muted text-muted-foreground", label: microcopy.taskTags.operational },
+  client_dependent: { icon: UserCheck, color: "bg-warning/10 text-warning border-warning/30", label: microcopy.taskTags.client_dependent },
+};
 
 interface TeamMember {
   id: string;
@@ -173,6 +186,19 @@ export function TaskListItem({
                 {task.title}
               </h3>
               <span className={cn("w-2 h-2 rounded-full flex-shrink-0", priority.color)} title={priority.label} />
+              {/* Task Tag Badge */}
+              {task.task_tag && taskTagConfig[task.task_tag] && (
+                <Badge 
+                  variant="outline" 
+                  className={cn("text-xs flex items-center gap-1", taskTagConfig[task.task_tag].color)}
+                >
+                  {(() => {
+                    const TagIcon = taskTagConfig[task.task_tag!].icon;
+                    return <TagIcon className="w-3 h-3" />;
+                  })()}
+                  {taskTagConfig[task.task_tag].label}
+                </Badge>
+              )}
               {hasChildren && (
                 <Badge variant="secondary" className="text-xs">
                   {childTasks.length} תתי-משימות
