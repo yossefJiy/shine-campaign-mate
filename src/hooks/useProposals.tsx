@@ -271,7 +271,7 @@ export function useProposals(clientId?: string) {
         .from("quotes")
         .update({ 
           status: "sent",
-          // sent_at could be added to schema if needed
+          sent_at: new Date().toISOString(),
         })
         .eq("id", proposalId);
 

@@ -5210,6 +5210,8 @@ export type Database = {
           actual_hours: number | null
           approved_at: string | null
           approved_by: string | null
+          approved_by_client: boolean | null
+          client_approved_at: string | null
           client_notes: string | null
           completed_at: string | null
           created_at: string | null
@@ -5230,6 +5232,8 @@ export type Database = {
           actual_hours?: number | null
           approved_at?: string | null
           approved_by?: string | null
+          approved_by_client?: boolean | null
+          client_approved_at?: string | null
           client_notes?: string | null
           completed_at?: string | null
           created_at?: string | null
@@ -5250,6 +5254,8 @@ export type Database = {
           actual_hours?: number | null
           approved_at?: string | null
           approved_by?: string | null
+          approved_by_client?: boolean | null
+          client_approved_at?: string | null
           client_notes?: string | null
           completed_at?: string | null
           created_at?: string | null

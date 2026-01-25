@@ -15,7 +15,11 @@ import {
   AlertTriangle,
   UserCheck,
   Pause,
-  Check
+  Check,
+  MoreVertical,
+  Copy,
+  Trash2,
+  Archive
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +30,14 @@ import { ProjectDetailDialog } from "@/components/projects/ProjectDetailDialog";
 import { CreateProjectDialog } from "@/components/projects/CreateProjectDialog";
 import { microcopy, formatMessage } from "@/lib/microcopy";
 import { differenceInDays } from "date-fns";
+import { useProjectMutations } from "@/hooks/useProjects";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Status configuration with icons and colors
 const statusConfig: Record<string, { label: string; color: string; bgColor: string; icon: typeof Clock }> = {
@@ -48,6 +60,7 @@ type FilterStatus = "all" | "active" | "waiting_client" | "waiting_payment" | "a
 
 export default function Projects() {
   const { selectedClient, effectiveClient, isAgencyView, clients } = useClient();
+  const { duplicateProject, deleteProject, archiveProject } = useProjectMutations();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
@@ -277,7 +290,34 @@ export default function Projects() {
                             </p>
                           )}
                         </div>
-                        <StatusIcon className={cn("w-4 h-4", status.color)} />
+                        <div className="flex items-center gap-1">
+                          <StatusIcon className={cn("w-4 h-4", status.color)} />
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuItem onClick={() => duplicateProject.mutate(project.id)}>
+                                <Copy className="w-4 h-4 ml-2" />
+                                שכפל פרויקט
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => archiveProject.mutate(project.id)}>
+                                <Archive className="w-4 h-4 ml-2" />
+                                העבר לארכיון
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                className="text-destructive"
+                                onClick={() => deleteProject.mutate(project.id)}
+                              >
+                                <Trash2 className="w-4 h-4 ml-2" />
+                                מחק פרויקט
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
 
                       {/* Status & Platform Badges */}
