@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DomainErrorBoundary } from "@/components/shared/DomainErrorBoundary";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,6 +23,8 @@ import {
   ExternalLink
 } from "lucide-react";
 import { ClientBillingTab } from "@/components/billing/ClientBillingTab";
+import { ClientTeamManager } from "@/components/client/ClientTeamManager";
+import { ClientContactsManager } from "@/components/client/ClientContactsManager";
 import { cn } from "@/lib/utils";
 
 interface ClientData {
@@ -223,7 +224,7 @@ export default function ClientProfile() {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full max-w-2xl grid-cols-5">
+            <TabsList className="grid w-full max-w-3xl grid-cols-6">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <Building2 className="w-4 h-4" />
                 סקירה
@@ -243,6 +244,10 @@ export default function ClientProfile() {
               <TabsTrigger value="team" className="flex items-center gap-2">
                 <Users className="w-4 h-4" />
                 צוות
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                הגדרות
               </TabsTrigger>
             </TabsList>
 
@@ -424,6 +429,21 @@ export default function ClientProfile() {
                   )}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            {/* Settings Tab */}
+            <TabsContent value="settings" className="space-y-6">
+              {/* Team Manager */}
+              <ClientTeamManager 
+                clientId={id!} 
+                clientName={client.name} 
+              />
+              
+              {/* Contacts Manager */}
+              <ClientContactsManager 
+                clientId={id!} 
+                clientName={client.name} 
+              />
             </TabsContent>
           </Tabs>
         </div>

@@ -1,72 +1,77 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useAuth, usePermissions } from "@/hooks/useAuth";
-import { useClient } from "@/hooks/useClient";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { 
-  User, 
-  Bell, 
-  Palette,
-  Save,
-  Loader2,
   Shield,
-  Users,
-  UserCircle,
   Plug,
   Check,
-  ExternalLink,
+  Building2,
+  Plus,
+  Loader2,
+  Star,
+  Crown,
+  ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
-import { AuthorizedUsersManager } from "@/components/admin/AuthorizedUsersManager";
-import { ClientContactsManager } from "@/components/client/ClientContactsManager";
-import { ClientTeamManager } from "@/components/client/ClientTeamManager";
 import { Badge } from "@/components/ui/badge";
+import { AuthorizedUsersManager } from "@/components/admin/AuthorizedUsersManager";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const settingsSections = [
-  { id: "profile", icon: User, title: "פרופיל", description: "ניהול פרטים אישיים" },
-  { id: "notifications", icon: Bell, title: "התראות", description: "הגדרת התראות ועדכונים" },
+  { id: "clients", icon: Building2, title: "לקוחות", description: "ניהול לקוחות ומותגים" },
   { id: "integrations", icon: Plug, title: "אינטגרציות", description: "חיבורים למערכות חיצוניות" },
   { id: "users", icon: Shield, title: "משתמשים מורשים", description: "ניהול גישה למערכת", adminOnly: true },
-  { id: "team", icon: Users, title: "צוות עובדים", description: "צוות משויך ללקוח", requiresClient: true },
-  { id: "contacts", icon: UserCircle, title: "אנשי קשר", description: "אנשי קשר של הלקוח", requiresClient: true },
 ];
 
+interface ClientRow {
+  id: string;
+  name: string;
+  industry: string | null;
+  logo_url: string | null;
+  is_master_account: boolean;
+  is_agency_brand: boolean | null;
+  is_favorite: boolean | null;
+  account_type: string | null;
+}
+
 export default function Settings() {
-  const { user } = useAuth();
+  const navigate = useNavigate();
   const { isAdmin } = usePermissions();
-  const { selectedClient } = useClient();
-  const [activeSection, setActiveSection] = useState("profile");
-  const [saving, setSaving] = useState(false);
+  const [activeSection, setActiveSection] = useState("clients");
 
   const visibleSections = settingsSections.filter(section => {
     if (section.adminOnly && !isAdmin) return false;
-    if (section.requiresClient && !selectedClient) return false;
     return true;
   });
 
-  const handleSave = async () => {
-    setSaving(true);
-    await new Promise(r => setTimeout(r, 1000));
-    setSaving(false);
-    toast.success("ההגדרות נשמרו בהצלחה");
-  };
+  // Fetch clients for the clients section
+  const { data: clients = [], isLoading: isLoadingClients } = useQuery({
+    queryKey: ["settings-clients"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("id, name, industry, logo_url, is_master_account, is_agency_brand, is_favorite, account_type")
+        .is("deleted_at", null)
+        .order("is_master_account", { ascending: false })
+        .order("is_favorite", { ascending: false })
+        .order("name");
+      if (error) throw error;
+      return data as ClientRow[];
+    },
+    enabled: activeSection === "clients",
+  });
 
   return (
     <MainLayout>
       <div className="p-8 max-w-6xl mx-auto">
         <PageHeader 
           title="הגדרות"
-          description="ניהול חשבון והעדפות"
-          actions={
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 className="w-4 h-4 ml-2 animate-spin" /> : <Save className="w-4 h-4 ml-2" />}
-              שמור שינויים
-            </Button>
-          }
+          description="ניהול מערכת והגדרות כלליות"
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8">
@@ -96,55 +101,99 @@ export default function Settings() {
 
           {/* Content Panel */}
           <div className="lg:col-span-3">
-            {activeSection === "profile" && (
+            {/* Clients Section */}
+            {activeSection === "clients" && (
               <div className="card-clean p-6 animate-slide-up">
-                <h2 className="text-xl font-semibold mb-6">פרופיל</h2>
-                <div className="space-y-4 max-w-md">
+                <div className="flex items-center justify-between mb-6">
                   <div>
-                    <label className="text-sm text-muted-foreground block mb-2">אימייל</label>
-                    <Input value={user?.email || ""} disabled className="bg-muted" />
+                    <h2 className="text-xl font-semibold">לקוחות</h2>
+                    <p className="text-sm text-muted-foreground">ניהול לקוחות ומותגים במערכת</p>
                   </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground block mb-2">שם מלא</label>
-                    <Input placeholder="הכנס שם מלא" />
-                  </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground block mb-2">תפקיד</label>
-                    <Input placeholder="הכנס תפקיד" />
-                  </div>
+                  <Button onClick={() => navigate("/clients")}>
+                    <Plus className="w-4 h-4 ml-2" />
+                    לקוח חדש
+                  </Button>
                 </div>
+                
+                {isLoadingClients ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : clients.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Building2 className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                    <p className="text-muted-foreground">אין לקוחות במערכת</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {clients.map((client) => (
+                      <div
+                        key={client.id}
+                        onClick={() => navigate(`/clients/${client.id}`)}
+                        className={cn(
+                          "flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm",
+                          client.is_master_account 
+                            ? "border-primary/30 bg-primary/5 hover:bg-primary/10" 
+                            : "hover:bg-muted/50"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          {client.logo_url ? (
+                            <div className="w-10 h-10 rounded-lg bg-white border border-border flex items-center justify-center overflow-hidden shrink-0">
+                              <img 
+                                src={client.logo_url} 
+                                alt={client.name}
+                                className="w-full h-full object-contain p-0.5"
+                              />
+                            </div>
+                          ) : (
+                            <div className={cn(
+                              "w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg shrink-0",
+                              client.is_master_account 
+                                ? "bg-primary text-primary-foreground" 
+                                : "bg-primary/10 text-primary"
+                            )}>
+                              {client.is_master_account ? (
+                                <Crown className="w-5 h-5" />
+                              ) : (
+                                client.name.charAt(0)
+                              )}
+                            </div>
+                          )}
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{client.name}</span>
+                              {client.is_favorite && (
+                                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {client.industry && (
+                                <span className="text-xs text-muted-foreground">{client.industry}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {client.is_master_account && (
+                            <Badge className="bg-primary text-primary-foreground">סוכנות</Badge>
+                          )}
+                          {client.is_agency_brand && (
+                            <Badge variant="outline" className="border-primary/50 text-primary">מותג</Badge>
+                          )}
+                          {client.account_type === "premium_client" && (
+                            <Badge variant="outline" className="border-yellow-500/50 text-yellow-600">פרמיום</Badge>
+                          )}
+                          <ArrowLeft className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
-            {activeSection === "notifications" && (
-              <div className="card-clean p-6 animate-slide-up">
-                <h2 className="text-xl font-semibold mb-6">התראות</h2>
-                <div className="space-y-6 max-w-md">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">התראות אימייל</p>
-                      <p className="text-sm text-muted-foreground">קבל עדכונים לאימייל</p>
-                    </div>
-                    <Switch />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">תזכורות משימות</p>
-                      <p className="text-sm text-muted-foreground">קבל תזכורות על משימות</p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">סיכום יומי</p>
-                      <p className="text-sm text-muted-foreground">קבל סיכום יומי לאימייל</p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-                </div>
-              </div>
-            )}
-
+            {/* Integrations Section */}
             {activeSection === "integrations" && (
               <div className="card-clean p-6 animate-slide-up">
                 <h2 className="text-xl font-semibold mb-2">אינטגרציות</h2>
@@ -245,27 +294,10 @@ export default function Settings() {
               </div>
             )}
 
+            {/* Users Section */}
             {activeSection === "users" && isAdmin && (
               <div className="animate-slide-up">
                 <AuthorizedUsersManager />
-              </div>
-            )}
-
-            {activeSection === "team" && selectedClient && (
-              <div className="animate-slide-up">
-                <ClientTeamManager 
-                  clientId={selectedClient.id} 
-                  clientName={selectedClient.name} 
-                />
-              </div>
-            )}
-
-            {activeSection === "contacts" && selectedClient && (
-              <div className="animate-slide-up">
-                <ClientContactsManager 
-                  clientId={selectedClient.id} 
-                  clientName={selectedClient.name} 
-                />
               </div>
             )}
           </div>
