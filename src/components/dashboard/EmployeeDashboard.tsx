@@ -210,7 +210,7 @@ export function EmployeeDashboard() {
           ) : (
             <div className="text-center py-6 text-muted-foreground">
               <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
-              <p>{microcopy.empty.noIncomeToday.replace("משימות שמכניסות כסף", "משימות")}</p>
+              <p>אין לך משימות להיום - כל הכבוד!</p>
             </div>
           )}
         </CardContent>

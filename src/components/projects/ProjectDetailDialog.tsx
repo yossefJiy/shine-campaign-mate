@@ -135,54 +135,26 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
     enabled: open && !!project?.client_id,
   });
 
-  // Fetch project notes
-  const { data: notes = [] } = useQuery({
-    queryKey: ["project-notes", projectId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("project_notes")
-        .select("*, team:user_id(name)")
-        .eq("project_id", projectId)
-        .order("created_at", { ascending: false });
-      
-      if (error) {
-        // Table might not exist yet
-        console.log("Notes table not available");
-        return [];
-      }
-      return data || [];
-    },
-    enabled: open && !!projectId,
-  });
+  // Notes stored locally for now (project_notes table to be created)
+  const [localNotes, setLocalNotes] = useState<Array<{ id: string; content: string; created_at: string }>>([]);
+  
+  const notes = localNotes;
 
-  // Add note mutation
-  const addNoteMutation = useMutation({
-    mutationFn: async () => {
+  // Add note handler (local for now)
+  const addNoteMutation = {
+    mutate: () => {
       if (!newNote.trim()) return;
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      const { error } = await supabase
-        .from("project_notes")
-        .insert({
-          project_id: projectId,
-          content: newNote,
-          user_id: user.id,
-          is_internal: true,
-        });
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
+      const note = {
+        id: crypto.randomUUID(),
+        content: newNote,
+        created_at: new Date().toISOString(),
+      };
+      setLocalNotes((prev) => [note, ...prev]);
       setNewNote("");
-      queryClient.invalidateQueries({ queryKey: ["project-notes", projectId] });
       toast.success("ההערה נוספה");
     },
-    onError: () => {
-      toast.error("שגיאה בהוספת ההערה");
-    },
-  });
+    isPending: false,
+  };
 
   // Calculate stats
   const allTasks = stages.flatMap((s: any) => s.tasks || []);
@@ -319,7 +291,7 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
                                       </span>
                                     )}
                                     <Badge className={cn("text-xs", statusColors[task.status as keyof typeof statusColors])}>
-                                      {microcopy.statuses[task.status as keyof typeof microcopy.statuses] || task.status}
+                                      {microcopy.status[task.status as keyof typeof microcopy.status] || task.status}
                                     </Badge>
                                   </div>
                                 </div>
@@ -356,7 +328,7 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
                           <div className="flex items-center justify-between mb-2">
                             <span className="font-medium">{stage.name}</span>
                             <Badge variant={stage.status === "completed" ? "default" : "secondary"}>
-                              {microcopy.statuses[stage.status as keyof typeof microcopy.statuses] || stage.status}
+                              {microcopy.status[stage.status as keyof typeof microcopy.status] || stage.status}
                             </Badge>
                           </div>
                           
