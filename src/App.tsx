@@ -17,6 +17,7 @@ import Projects from "./pages/Projects";
 import Clients from "./pages/Clients";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
+import Billing from "./pages/Billing";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
                 <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
                 <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
                 <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
+                <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 
                 {/* Legacy redirects */}
