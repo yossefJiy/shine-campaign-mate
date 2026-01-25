@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   User,
   Plus,
@@ -17,7 +19,8 @@ import {
   DollarSign,
   Wrench,
   UserCheck,
-  Info
+  Info,
+  Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -359,22 +362,39 @@ export function TaskEditDialog({
               icon={<FolderKanban className="w-4 h-4" />}
               isExpanded={expandedSections.has('project')}
               onToggle={() => toggleSection('project')}
-              hasValue={!!formData.projectId}
+              hasValue={!!formData.projectId || !!formData.stageId}
             >
-              <Select value={formData.projectId || "none"} onValueChange={(v) => updateField('projectId', v === "none" ? "" : v)}>
-                <SelectTrigger><SelectValue placeholder="בחר פרויקט" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">-</SelectItem>
-                  {projects.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || '#3B82F6' }} />
-                        {p.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="space-y-3">
+                <Select value={formData.projectId || "none"} onValueChange={(v) => {
+                  updateField('projectId', v === "none" ? "" : v);
+                  // Clear stage when project changes
+                  if (v === "none" || v !== formData.projectId) {
+                    updateField('stageId', "");
+                  }
+                }}>
+                  <SelectTrigger><SelectValue placeholder="בחר פרויקט" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">-</SelectItem>
+                    {projects.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || '#3B82F6' }} />
+                          {p.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {/* Stage selector - shows when project is selected */}
+                {formData.projectId && (
+                  <StageSelector
+                    projectId={formData.projectId}
+                    value={formData.stageId}
+                    onChange={(v) => updateField('stageId', v)}
+                  />
+                )}
+              </div>
             </CollapsibleField>
           )}
 
@@ -710,5 +730,63 @@ function ReminderPreview({ showPreview, setShowPreview, selectedReminders, formD
         </div>
       )}
     </div>
+  );
+}
+
+// StageSelector component for task assignment to project stages
+function StageSelector({ projectId, value, onChange }: {
+  projectId: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const { data: stages = [], isLoading } = useQuery({
+    queryKey: ["project-stages-for-task", projectId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("project_stages")
+        .select("id, name, status, sort_order")
+        .eq("project_id", projectId)
+        .order("sort_order", { ascending: true });
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!projectId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Loader2 className="w-3 h-3 animate-spin" />
+        טוען שלבים...
+      </div>
+    );
+  }
+
+  if (stages.length === 0) {
+    return (
+      <div className="text-sm text-muted-foreground">
+        אין שלבים בפרויקט זה
+      </div>
+    );
+  }
+
+  return (
+    <Select value={value || "none"} onValueChange={(v) => onChange(v === "none" ? "" : v)}>
+      <SelectTrigger>
+        <div className="flex items-center gap-2">
+          <Layers className="w-3 h-3" />
+          <SelectValue placeholder="בחר שלב (אופציונלי)" />
+        </div>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="none">ללא שלב</SelectItem>
+        {stages.map((stage) => (
+          <SelectItem key={stage.id} value={stage.id}>
+            {stage.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

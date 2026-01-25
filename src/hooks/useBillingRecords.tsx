@@ -195,6 +195,69 @@ export function useBillingRecords(filters?: {
     },
   });
 
+  // Delete payment - only allowed if not already paid
+  const deleteRecord = useMutation({
+    mutationFn: async (id: string) => {
+      const record = records?.find((r) => r.id === id);
+      if (!record) throw new Error("Record not found");
+      
+      // Prevent deletion of paid records
+      if (record.status === "paid") {
+        throw new Error("לא ניתן למחוק תשלום שכבר שולם");
+      }
+
+      const { error } = await supabase
+        .from("billing_records")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["billing-records"] });
+      queryClient.invalidateQueries({ queryKey: ["billing-stats"] });
+      toast.success("רשומה נמחקה");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "שגיאה במחיקת רשומה");
+    },
+  });
+
+  // Duplicate payment record
+  const duplicateRecord = useMutation({
+    mutationFn: async (id: string) => {
+      const record = records?.find((r) => r.id === id);
+      if (!record) throw new Error("Record not found");
+
+      const { data: result, error } = await supabase
+        .from("billing_records")
+        .insert({
+          client_id: record.client_id,
+          period_start: record.period_start,
+          period_end: record.period_end,
+          year: record.year,
+          month: record.month,
+          base_amount: record.base_amount,
+          commission_amount: record.commission_amount,
+          additional_amount: record.additional_amount,
+          status: "pending",
+          due_date: record.due_date,
+          notes: record.notes ? `${record.notes} (העתק)` : "(העתק)",
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["billing-records"] });
+      queryClient.invalidateQueries({ queryKey: ["billing-stats"] });
+      toast.success("רשומה שוכפלה");
+    },
+    onError: (error: Error) => {
+      toast.error("שגיאה בשכפול רשומה: " + error.message);
+    },
+  });
+
   return {
     records,
     stats,
@@ -202,5 +265,7 @@ export function useBillingRecords(filters?: {
     createRecord,
     updateRecord,
     markAsPaid,
+    deleteRecord,
+    duplicateRecord,
   };
 }
