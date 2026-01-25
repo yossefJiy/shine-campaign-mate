@@ -19,7 +19,8 @@ import {
   Play,
   Pause,
   Check,
-  Building2
+  Building2,
+  Eye
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { StyledDatePicker } from "@/components/ui/styled-date-picker";
+import { ProjectDetailDialog } from "@/components/projects/ProjectDetailDialog";
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Play }> = {
   active: { label: "פעיל", color: "bg-success text-success-foreground", icon: Play },
@@ -72,6 +74,7 @@ export default function Projects() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingProject, setEditingProject] = useState<any>(null);
   const [newProjectClientId, setNewProjectClientId] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -281,7 +284,7 @@ export default function Projects() {
                     key={project.id} 
                     className="hover:shadow-lg transition-shadow group cursor-pointer"
                     style={{ borderTopColor: project.color, borderTopWidth: 3 }}
-                    onClick={() => navigate(`/tasks?project=${project.id}`)}
+                    onClick={() => setSelectedProjectId(project.id)}
                   >
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between">
@@ -531,6 +534,15 @@ export default function Projects() {
               </form>
             </DialogContent>
           </Dialog>
+
+          {/* Project Detail Dialog */}
+          {selectedProjectId && (
+            <ProjectDetailDialog
+              open={!!selectedProjectId}
+              onOpenChange={(open) => !open && setSelectedProjectId(null)}
+              projectId={selectedProjectId}
+            />
+          )}
         </div>
       </DomainErrorBoundary>
     </MainLayout>

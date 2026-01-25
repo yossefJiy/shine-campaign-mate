@@ -456,16 +456,32 @@ export function QuoteDialog({ open, onOpenChange, quote }: QuoteDialogProps) {
           </div>
         </div>
 
-        <DialogFooter className="mt-6">
+        <DialogFooter className="mt-6 flex-wrap gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             ביטול
           </Button>
           <Button 
+            variant="outline"
             onClick={() => saveMutation.mutate()}
             disabled={saveMutation.isPending}
           >
             {saveMutation.isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-            {quote ? "שמירה" : "צור הצעת מחיר"}
+            <FileText className="w-4 h-4 ml-2" />
+            שמור טיוטה
+          </Button>
+          <Button 
+            onClick={() => {
+              // Save and send to client
+              saveMutation.mutate();
+              toast.success("ההצעה נשלחה ללקוח", {
+                description: "הלקוח יקבל הודעה לאישור ההצעה"
+              });
+            }}
+            disabled={saveMutation.isPending || (!clientId && !leadId)}
+          >
+            {saveMutation.isPending && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+            <Send className="w-4 h-4 ml-2" />
+            שלח ללקוח
           </Button>
         </DialogFooter>
       </DialogContent>
