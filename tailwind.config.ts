@@ -16,6 +16,13 @@ export default {
       fontFamily: {
         sans: ['Heebo', 'sans-serif'],
       },
+      fontSize: {
+        // Typography hierarchy - clean and consistent
+        'page-title': ['1.25rem', { lineHeight: '1.75rem', fontWeight: '600' }],  // 20px
+        'section-title': ['0.9375rem', { lineHeight: '1.375rem', fontWeight: '500' }], // 15px
+        'body': ['0.875rem', { lineHeight: '1.25rem', fontWeight: '400' }],  // 14px
+        'meta': ['0.75rem', { lineHeight: '1rem', fontWeight: '400' }],  // 12px
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -62,10 +69,16 @@ export default {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
         },
-        jiy: {
-          gold: "hsl(var(--jiy-gold))",
-          "gold-light": "hsl(var(--jiy-gold-light))",
-          "gold-dark": "hsl(var(--jiy-gold-dark))",
+        // Task tag colors
+        tag: {
+          income: "hsl(var(--tag-income))",
+          "income-foreground": "hsl(var(--tag-income-foreground))",
+          waiting: "hsl(var(--tag-waiting))",
+          "waiting-foreground": "hsl(var(--tag-waiting-foreground))",
+          client: "hsl(var(--tag-client))",
+          "client-foreground": "hsl(var(--tag-client-foreground))",
+          operational: "hsl(var(--tag-operational))",
+          "operational-foreground": "hsl(var(--tag-operational-foreground))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
