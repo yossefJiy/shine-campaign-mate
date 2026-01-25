@@ -51,13 +51,13 @@ const menuItems: MenuItem[] = [
   { icon: FolderKanban, label: "פרויקטים", path: "/projects" },
   { icon: CheckSquare, label: "משימות", path: "/tasks" },
   { icon: Building2, label: "לקוחות", path: "/clients" },
+  { icon: CreditCard, label: "חיובים", path: "/billing" },
   { icon: Users, label: "צוות", path: "/team" },
 ];
 
 // Legacy modules - preserved but inactive
 const legacyModules: MenuItem[] = [
   { icon: UserPlus, label: "לידים", path: "/leads" },
-  { icon: CreditCard, label: "חיובים", path: "/billing" },
   { icon: Bot, label: "סוכני AI", path: "/ai-agents" },
 ];
 
