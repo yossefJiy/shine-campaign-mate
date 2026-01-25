@@ -16,7 +16,8 @@ import {
   FolderKanban,
   DollarSign,
   Wrench,
-  UserCheck
+  UserCheck,
+  Pause
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -70,9 +71,10 @@ interface TeamMember {
 }
 
 const statusConfig: Record<string, { color: string; bg: string; label: string; icon: typeof Circle }> = {
-  pending: { color: "text-warning", bg: "bg-warning/10", label: "ממתין", icon: Circle },
-  "in-progress": { color: "text-info", bg: "bg-info/10", label: "בתהליך", icon: Clock },
-  completed: { color: "text-success", bg: "bg-success/10", label: "הושלם", icon: CheckCircle2 },
+  pending: { color: "text-muted-foreground", bg: "bg-muted", label: microcopy.tasks.statusNotStarted, icon: Circle },
+  "in-progress": { color: "text-info", bg: "bg-info/10", label: microcopy.tasks.statusInProgress, icon: Clock },
+  waiting: { color: "text-warning", bg: "bg-warning/10", label: microcopy.tasks.statusWaiting, icon: Pause },
+  completed: { color: "text-success", bg: "bg-success/10", label: microcopy.tasks.statusDone, icon: CheckCircle2 },
 };
 
 const priorityConfig: Record<string, { color: string; label: string }> = {

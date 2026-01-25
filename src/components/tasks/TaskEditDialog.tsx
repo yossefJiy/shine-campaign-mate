@@ -101,9 +101,10 @@ interface TaskEditDialogProps {
 }
 
 const statusOptions = [
-  { value: "pending", label: "ממתין", color: "bg-muted text-muted-foreground" },
-  { value: "in-progress", label: "בתהליך", color: "bg-info/10 text-info" },
-  { value: "completed", label: "הושלם", color: "bg-success/10 text-success" },
+  { value: "pending", label: microcopy.tasks.statusNotStarted, color: "bg-muted text-muted-foreground" },
+  { value: "in-progress", label: microcopy.tasks.statusInProgress, color: "bg-info/10 text-info" },
+  { value: "waiting", label: microcopy.tasks.statusWaiting, color: "bg-warning/10 text-warning" },
+  { value: "completed", label: microcopy.tasks.statusDone, color: "bg-success/10 text-success" },
 ];
 
 const priorityOptions = [

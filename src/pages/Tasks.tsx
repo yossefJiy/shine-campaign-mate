@@ -109,6 +109,7 @@ interface Task {
   income_value: number | null;
   waiting_since: string | null;
   is_blocking: boolean | null;
+  created_at?: string;
   clients?: { name: string; is_master_account?: boolean } | null;
   projects?: Project | null;
 }
@@ -243,6 +244,7 @@ export default function Tasks() {
         projects: (task as any).projects || null,
         waiting_since: (task as any).waiting_since || null,
         is_blocking: (task as any).is_blocking || false,
+        created_at: (task as any).created_at || new Date().toISOString(),
       })) as Task[];
     },
   });
@@ -763,6 +765,23 @@ export default function Tasks() {
               </div>
             }
           />
+
+          {/* Inbox Section - Tasks without project */}
+          {!showArchive && !projectFilterId && inboxTasks.length > 0 && (
+            <TaskInbox
+              tasks={inboxTasks.map(t => ({
+                id: t.id,
+                title: t.title,
+                created_at: t.created_at || new Date().toISOString(),
+                assignee: t.assignee,
+                priority: t.priority,
+                client_name: t.clients?.name,
+              }))}
+              projects={projects}
+              onAssignToProject={(taskId, projectId) => assignToProjectMutation.mutate({ taskId, projectId })}
+              isAssigning={assignToProjectMutation.isPending}
+            />
+          )}
 
           {/* Project Filter Banner */}
           {projectFilterId && currentProject && (
