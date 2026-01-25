@@ -104,6 +104,26 @@ export const microcopy = {
     coreTaskHint: "💡 משימות Core הן משימות שמכניסות כסף ישירות לעסק",
     operationalHint: "משימות תפעוליות הן חיוניות אך לא מייצרות הכנסה ישירה",
     clientDependentHint: "משימה זו תלויה בתגובה או אישור מהלקוח",
+    // Inbox
+    inboxTitle: "תיבת דואר נכנס",
+    inboxDescription: "משימות בלי פרויקט — שייכי אותן תוך 24 שעות",
+    noProjectWarning: "משימה בלי פרויקט = בלאגן עתידי",
+    assignToProjectCTA: "שייך לפרויקט",
+    // Smart filters
+    filterMine: "שלי",
+    filterIncome: "💸 מכניס כסף",
+    filterWaiting: "⏳ ממתין",
+    filterOverdue: "🔴 באיחור",
+    // Statuses
+    statusNotStarted: "לא התחיל",
+    statusInProgress: "בתהליך",
+    statusWaiting: "ממתין",
+    statusDone: "הושלם",
+    // Motivation
+    oneTaskBetter: "משימה אחת שמסתיימת עדיפה על חמש פתוחות",
+    noIncomeToday: "אם זה לא מכניס כסף — אל תיתן לזה להוביל את היום",
+    waitingNotStuck: "ממתין ללקוח ≠ תקוע, אבל צריך מעקב",
+    tooManyOpen: "אולי הגיע הזמן לסגור משהו",
   },
 
   // Priority labels

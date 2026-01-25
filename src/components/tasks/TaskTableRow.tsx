@@ -54,6 +54,8 @@ interface Task {
   stage_id: string | null;
   task_tag: string | null;
   income_value: number | null;
+  waiting_since: string | null;
+  is_blocking: boolean | null;
   projects?: { id: string; name: string; color: string | null } | null;
   clients?: { name: string; is_master_account?: boolean } | null;
 }
