@@ -18,6 +18,7 @@ import {
   CreditCard,
   Bot,
   Archive,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -48,6 +49,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "דשבורד", path: "/dashboard" },
+  { icon: FileText, label: "הצעות מחיר", path: "/proposals" },
   { icon: FolderKanban, label: "פרויקטים", path: "/projects" },
   { icon: CheckSquare, label: "משימות", path: "/tasks" },
   { icon: CreditCard, label: "חיובים", path: "/billing" },

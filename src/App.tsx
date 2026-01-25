@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import Tasks from "./pages/Tasks";
 import Projects from "./pages/Projects";
+import Proposals from "./pages/Proposals";
 import Clients from "./pages/Clients";
 import ClientProfile from "./pages/ClientProfile";
 import Team from "./pages/Team";
@@ -40,6 +41,7 @@ const App = () => (
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
                 <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+                <Route path="/proposals" element={<ProtectedRoute><Proposals /></ProtectedRoute>} />
                 <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
                 <Route path="/clients/:id" element={<ProtectedRoute><ClientProfile /></ProtectedRoute>} />
                 <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
