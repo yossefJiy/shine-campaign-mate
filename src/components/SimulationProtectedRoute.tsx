@@ -14,38 +14,14 @@ interface SimulationProtectedRouteProps {
 const PATH_TO_MODULE: Record<string, keyof ClientModules> = {
   '/dashboard': 'dashboard',
   '/projects': 'projects',
-  '/analytics': 'analytics',
-  '/ecommerce': 'ecommerce',
-  '/google-shopping': 'google_shopping',
-  '/marketing': 'marketing',
-  '/kpis': 'kpis',
-  '/competitors': 'competitors',
-  '/social': 'social',
-  '/content-studio': 'content_studio',
-  '/campaigns': 'campaigns',
-  '/programmatic': 'programmatic',
-  '/ab-tests': 'ab_tests',
   '/tasks': 'tasks',
-  '/leads': 'leads',
   '/billing': 'billing',
-  '/approvals': 'approvals',
   '/team': 'team',
-  '/insights': 'insights',
-  '/ai-agents': 'ai_agent',
-  '/ai-insights': 'ai_insights',
-  '/reports': 'reports',
-  '/agency': 'agency',
 };
 
 // Admin-only paths that simulated users should not access
 const ADMIN_ONLY_PATHS = [
-  '/permissions',
-  '/client-management',
-  '/status',
-  '/code-health',
-  '/system-diagram',
-  '/credits',
-  '/agency',
+  '/settings',
   '/clients',
 ];
 
