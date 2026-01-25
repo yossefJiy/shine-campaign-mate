@@ -692,16 +692,10 @@ export default function Tasks() {
               title="לוח זמנים יומי"
               description="תכנון משימות לפי שעות"
               actions={
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setShowDashboard(true)}>
-                    <LayoutDashboard className="w-4 h-4 ml-2" />
-                    הדשבורד שלי
-                  </Button>
-                  <Button variant="outline" onClick={() => setShowTimeBoard(false)}>
-                    <List className="w-4 h-4 ml-2" />
-                    תצוגה מלאה
-                  </Button>
-                </div>
+                <Button variant="outline" onClick={() => setShowTimeBoard(false)}>
+                  <List className="w-4 h-4 ml-2" />
+                  חזרה לרשימה
+                </Button>
               }
             />
             <TimeSlotBoard showAllTeam={!selectedClient} />
@@ -711,33 +705,28 @@ export default function Tasks() {
     );
   }
 
-  if (showDashboard) {
-    return (
-      <MainLayout>
-        <DomainErrorBoundary domain="tasks">
-          <div className="p-4 md:p-8">
-            <PageHeader
-              title="הדשבורד שלי"
-              description="משימות להיום ולקראת"
-              actions={
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setShowTimeBoard(true)}>
-                    <Clock className="w-4 h-4 ml-2" />
-                    לוח זמנים
-                  </Button>
-                  <Button variant="outline" onClick={() => setShowDashboard(false)}>
-                    <List className="w-4 h-4 ml-2" />
-                    תצוגה מלאה
-                  </Button>
-                </div>
-              }
-            />
-            <MyDayBoard />
-          </div>
-        </DomainErrorBoundary>
-      </MainLayout>
-    );
-  }
+  // My Day Dashboard - currently disabled, kept as draft
+  // if (showDashboard) {
+  //   return (
+  //     <MainLayout>
+  //       <DomainErrorBoundary domain="tasks">
+  //         <div className="p-4 md:p-8">
+  //           <PageHeader
+  //             title="הדשבורד שלי"
+  //             description="משימות להיום ולקראת"
+  //             actions={
+  //               <Button variant="outline" onClick={() => setShowDashboard(false)}>
+  //                 <List className="w-4 h-4 ml-2" />
+  //                 חזרה לרשימה
+  //               </Button>
+  //             }
+  //           />
+  //           <MyDayBoard />
+  //         </div>
+  //       </DomainErrorBoundary>
+  //     </MainLayout>
+  //   );
+  // }
 
   return (
     <MainLayout>
@@ -748,21 +737,9 @@ export default function Tasks() {
             description={showArchive ? "משימות שהושלמו" : (currentProject ? `${filteredTasks.length} משימות בפרויקט` : "לפי עובד, לקוח ומחלקה")}
             actions={
               <div className="flex items-center gap-2 flex-wrap">
-                <Button variant="outline" size="sm" onClick={() => { setNotificationHistoryTaskId(undefined); setNotificationHistoryOpen(true); }}>
-                  <Bell className="w-4 h-4 ml-2" />
-                  היסטוריית התראות
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setIntegrationsDialogOpen(true)}>
-                  <Settings2 className="w-4 h-4 ml-2" />
-                  אינטגרציות
-                </Button>
                 <Button variant="outline" size="sm" onClick={() => setShowTimeBoard(true)}>
                   <Clock className="w-4 h-4 ml-2" />
                   לוח זמנים
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setShowDashboard(true)}>
-                  <LayoutDashboard className="w-4 h-4 ml-2" />
-                  הדשבורד שלי
                 </Button>
                 <Button variant={showArchive ? "default" : "outline"} size="sm" onClick={() => setShowArchive(!showArchive)}>
                   <Archive className="w-4 h-4 ml-2" />
