@@ -198,7 +198,7 @@ export default function Proposals() {
                 <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                 <h3 className="text-lg font-medium mb-2">אין הצעות מחיר עדיין</h3>
                 <p className="text-muted-foreground mb-4">
-                  הצעה היא התחייבות — לא טיוטה בראש
+                  {microcopy.proposals.isCommitment}
                 </p>
                 <Button onClick={() => setShowCreateDialog(true)}>
                   <Plus className="w-4 h-4 ml-2" />

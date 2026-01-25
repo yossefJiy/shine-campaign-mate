@@ -391,7 +391,7 @@ export function useProposals(clientId?: string) {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["billing-records"] });
 
-      toast.success("הצעה אושרה!", {
+      toast.success("הצעה אושרה — הפרויקט נפתח", {
         description: `הפרויקט "${data.project.name}" נוצר אוטומטית`,
       });
     },

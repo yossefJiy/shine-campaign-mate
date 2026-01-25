@@ -122,6 +122,17 @@ export const microcopy = {
     addTask: "הוסף משימה",
   },
 
+  // Proposal messages
+  proposals: {
+    isCommitment: "הצעה היא התחייבות — לא טיוטה בראש",
+    onlyMarkedItemsCreateStages: "רק סעיפים מסומנים ייפתחו כשלבים",
+    servicesForCampaign: "שירותים משלימים תמיד משרתים את הקמפיין",
+    cannotEditAfterSent: "לא ניתן לערוך הצעה שנשלחה — שכפל גרסה חדשה",
+    clientNoResponse: "הלקוח לא הגיב כבר {days} ימים",
+    proposalApprovedProject: "הצעה אושרה — הפרויקט נפתח",
+    waitingForClientApproval: "ממתין לאישור לקוח",
+  },
+
   // Alerts
   alerts: {
     taskOverdue: "משימה באיחור",
