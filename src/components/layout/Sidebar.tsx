@@ -50,7 +50,6 @@ const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "דשבורד", path: "/dashboard" },
   { icon: FolderKanban, label: "פרויקטים", path: "/projects" },
   { icon: CheckSquare, label: "משימות", path: "/tasks" },
-  { icon: Building2, label: "לקוחות", path: "/clients" },
   { icon: CreditCard, label: "חיובים", path: "/billing" },
   { icon: Users, label: "צוות", path: "/team" },
 ];
@@ -59,12 +58,6 @@ const menuItems: MenuItem[] = [
 const legacyModules: MenuItem[] = [
   { icon: UserPlus, label: "לידים", path: "/leads" },
   { icon: Bot, label: "סוכני AI", path: "/ai-agents" },
-];
-
-const settingsItems = [
-  { icon: User, label: "פרופיל", path: "/settings" },
-  { icon: Bell, label: "התראות", path: "/settings?tab=notifications" },
-  { icon: Palette, label: "מראה", path: "/settings?tab=appearance" },
 ];
 
 export function Sidebar() {
@@ -239,37 +232,21 @@ export function Sidebar() {
 
       {/* Bottom Section */}
       <div className="border-t border-border shrink-0">
-        {/* Settings Dropdown */}
+        {/* Settings Link (direct, no dropdown) */}
         <div className="p-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start gap-3 h-10",
-                  isCollapsed && "justify-center px-2",
-                  location.pathname === "/settings"
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                <Settings className="w-5 h-5 shrink-0" />
-                {!isCollapsed && <span className="font-medium text-sm">הגדרות</span>}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="top" className="w-48">
-              <DropdownMenuLabel>הגדרות</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {settingsItems.map((item) => (
-                <DropdownMenuItem key={item.label} asChild>
-                  <Link to={item.path} className="flex items-center gap-2 cursor-pointer">
-                    <item.icon className="w-4 h-4" />
-                    <span>{item.label}</span>
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Link
+            to="/settings"
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 w-full",
+              isCollapsed && "justify-center px-2",
+              location.pathname.startsWith("/settings")
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            <Settings className="w-5 h-5 shrink-0" />
+            {!isCollapsed && <span className="font-medium text-sm">הגדרות</span>}
+          </Link>
         </div>
 
         {/* User Menu */}
