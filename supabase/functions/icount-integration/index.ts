@@ -250,6 +250,33 @@ serve(async (req) => {
         );
       }
 
+      case "list": {
+        // List documents from iCount
+        const payload = {
+          cid: config.cid,
+          user: config.user,
+          sid: config.accessToken,
+          doctype: body.doctype || "invoice,receipt,invrec",
+          from_date: body.start_date || "",
+          to_date: body.end_date || "",
+          detail_level: body.detail_level || 5,
+          limit: body.limit || 100,
+        };
+
+        const response = await fetch(`${ICOUNT_API_URL}/doc/list`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+        
+        return new Response(
+          JSON.stringify({ success: true, data: result }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       case "status": {
         // Check if iCount is configured
         return new Response(
@@ -264,7 +291,7 @@ serve(async (req) => {
 
       default:
         return new Response(
-          JSON.stringify({ error: "Invalid action. Use: create, get, pdf, or status" }),
+          JSON.stringify({ error: "Invalid action. Use: create, get, pdf, list, or status" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
     }

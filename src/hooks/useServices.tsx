@@ -16,18 +16,20 @@ export interface Service {
   updated_at: string;
 }
 
+// ClientService matches existing table schema (direct service per client)
 export interface ClientService {
   id: string;
   client_id: string;
-  service_id: string;
-  custom_price: number | null;
-  quantity: number;
+  name: string;
+  description: string | null;
+  price: number;
   billing_cycle: string;
-  start_date: string | null;
-  end_date: string | null;
   is_active: boolean;
-  notes: string | null;
-  services?: Service;
+  category: string;
+  sort_order: number;
+  metadata: unknown;
+  created_at: string;
+  updated_at: string;
 }
 
 export function useServices() {
@@ -121,9 +123,9 @@ export function useClientServices(clientId?: string) {
       
       const { data, error } = await supabase
         .from("client_services")
-        .select("*, services(*)")
+        .select("*")
         .eq("client_id", clientId)
-        .order("created_at", { ascending: false });
+        .order("sort_order", { ascending: true });
       
       if (error) throw error;
       return data as ClientService[];
@@ -132,15 +134,15 @@ export function useClientServices(clientId?: string) {
   });
 
   const addServiceToClient = useMutation({
-    mutationFn: async (data: { client_id: string; service_id: string; custom_price?: number; quantity?: number; billing_cycle?: string }) => {
+    mutationFn: async (data: { client_id: string; name: string; price: number; billing_cycle?: string; category?: string }) => {
       const { error } = await supabase
         .from("client_services")
         .insert({
           client_id: data.client_id,
-          service_id: data.service_id,
-          custom_price: data.custom_price,
-          quantity: data.quantity || 1,
+          name: data.name,
+          price: data.price,
           billing_cycle: data.billing_cycle || "monthly",
+          category: data.category || "general",
         });
       
       if (error) throw error;
@@ -155,7 +157,7 @@ export function useClientServices(clientId?: string) {
   });
 
   const updateClientService = useMutation({
-    mutationFn: async ({ id, ...data }: Partial<ClientService> & { id: string }) => {
+    mutationFn: async ({ id, ...data }: { id: string; name?: string; price?: number; description?: string; billing_cycle?: string; is_active?: boolean; category?: string; sort_order?: number }) => {
       const { error } = await supabase
         .from("client_services")
         .update(data)
