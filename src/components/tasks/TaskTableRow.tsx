@@ -51,6 +51,9 @@ interface Task {
   credits_cost: number | null;
   recurrence_type: string | null;
   recurrence_end_date: string | null;
+  stage_id: string | null;
+  task_tag: string | null;
+  income_value: number | null;
   projects?: { id: string; name: string; color: string | null } | null;
   clients?: { name: string; is_master_account?: boolean } | null;
 }

@@ -61,10 +61,9 @@ export interface UpdateStageDTO {
   client_notes?: string;
 }
 
-// Task tag for income prioritization
-export type TaskTag = 'income_generating' | 'operational' | 'client_dependent';
+// Extended task with stage and tag - uses TaskTag from tasks.ts
+import type { TaskTag } from './tasks';
 
-// Extended task with stage and tag
 export interface EnhancedTask {
   id: string;
   title: string;

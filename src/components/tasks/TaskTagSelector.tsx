@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Cog, Clock } from "lucide-react";
-import type { TaskTag } from "@/types/domains/stages";
+import type { TaskTag } from "@/types/domains/tasks";
 
 const taskTagConfig: Record<TaskTag, { label: string; icon: React.ReactNode; color: string }> = {
   income_generating: { 

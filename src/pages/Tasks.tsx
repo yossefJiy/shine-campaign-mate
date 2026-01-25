@@ -96,6 +96,9 @@ interface Task {
   credits_cost: number | null;
   recurrence_type: string | null;
   recurrence_end_date: string | null;
+  stage_id: string | null;
+  task_tag: string | null;
+  income_value: number | null;
   clients?: { name: string; is_master_account?: boolean } | null;
   projects?: Project | null;
 }
@@ -497,7 +500,7 @@ export default function Tasks() {
         category: task.category || "",
         projectId: task.project_id || "",
         stageId: task.stage_id || "",
-        taskTag: task.task_tag || "operational",
+        taskTag: (task.task_tag as 'income_generating' | 'operational' | 'client_dependent') || "operational",
         incomeValue: task.income_value?.toString() || "",
         reminderAt: task.reminder_at || "",
         notificationEmail: task.notification_email,

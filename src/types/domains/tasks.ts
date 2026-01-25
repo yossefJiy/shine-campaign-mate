@@ -15,7 +15,12 @@ export interface Task extends BaseEntity {
   actual_hours: number | null;
   tags: string[];
   parent_task_id: string | null;
+  stage_id: string | null;
+  task_tag: TaskTag | null;
+  income_value: number | null;
 }
+
+export type TaskTag = 'income_generating' | 'operational' | 'client_dependent';
 
 export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'completed' | 'blocked';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
