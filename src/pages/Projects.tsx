@@ -4,6 +4,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { DomainErrorBoundary } from "@/components/shared/DomainErrorBoundary";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useClient } from "@/hooks/useClient";
+import { usePermissions } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -21,7 +22,8 @@ import {
   Copy,
   Trash2,
   Archive,
-  FileText
+  FileText,
+  Wrench
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +31,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { ProjectDetailDialog } from "@/components/projects/ProjectDetailDialog";
+import { CreateInternalProjectDialog } from "@/components/projects/CreateInternalProjectDialog";
 import { microcopy, formatMessage } from "@/lib/microcopy";
 import { differenceInDays } from "date-fns";
 import { useProjectMutations } from "@/hooks/useProjects";
@@ -68,8 +71,10 @@ type FilterStatus = "all" | "active" | "waiting_client" | "waiting_payment" | "a
 export default function Projects() {
   const navigate = useNavigate();
   const { selectedClient, effectiveClient, isAgencyView, clients } = useClient();
+  const { isAdmin } = usePermissions();
   const { duplicateProject, deleteProject, archiveProject } = useProjectMutations();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [showInternalDialog, setShowInternalDialog] = useState(false);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
 
   // Fetch projects with stages count
@@ -208,19 +213,38 @@ export default function Projects() {
               title="פרויקטים"
               description={selectedClient ? `פרויקטים של ${selectedClient.name}` : "כל הפרויקטים"}
             />
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button onClick={() => navigate("/proposals")}>
-                    <FileText className="w-4 h-4 ml-2" />
-                    צור הצעת מחיר
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>פרויקטים נוצרים מהצעות מחיר שאושרו</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <div className="flex items-center gap-2">
+              {/* Admin-only: Create Internal Project */}
+              {isAdmin && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" onClick={() => setShowInternalDialog(true)}>
+                        <Wrench className="w-4 h-4 ml-2" />
+                        פרויקט פנימי
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>יצירת פרויקט ללא הצעת מחיר (Admin)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              {/* Primary: Create Proposal */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button onClick={() => navigate("/proposals")}>
+                      <FileText className="w-4 h-4 ml-2" />
+                      צור הצעת מחיר
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>פרויקטים נוצרים מהצעות מחיר שאושרו</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
 
           {/* Status Filter Chips */}
@@ -417,6 +441,13 @@ export default function Projects() {
             />
           )}
 
+          {/* Create Internal Project Dialog (Admin only) */}
+          <CreateInternalProjectDialog
+            open={showInternalDialog}
+            onOpenChange={setShowInternalDialog}
+            clients={clients}
+            effectiveClient={effectiveClient}
+          />
         </div>
       </DomainErrorBoundary>
     </MainLayout>

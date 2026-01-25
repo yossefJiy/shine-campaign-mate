@@ -2434,6 +2434,7 @@ export type Database = {
           priority_override_percent: number | null
           proposal_id: string | null
           retainer_plan: string | null
+          source: string | null
           start_date: string | null
           status: string
           target_date: string | null
@@ -2459,6 +2460,7 @@ export type Database = {
           priority_override_percent?: number | null
           proposal_id?: string | null
           retainer_plan?: string | null
+          source?: string | null
           start_date?: string | null
           status?: string
           target_date?: string | null
@@ -2484,6 +2486,7 @@ export type Database = {
           priority_override_percent?: number | null
           proposal_id?: string | null
           retainer_plan?: string | null
+          source?: string | null
           start_date?: string | null
           status?: string
           target_date?: string | null
