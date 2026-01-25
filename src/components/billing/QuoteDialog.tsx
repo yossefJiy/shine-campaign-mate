@@ -329,16 +329,16 @@ export function QuoteDialog({ open, onOpenChange, quote }: QuoteDialogProps) {
               </Button>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2" dir="rtl">
               {/* Header */}
               <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2">
-                <div className="col-span-3">שם</div>
-                <div className="col-span-2">תיאור</div>
-                <div className="col-span-1">כמות</div>
-                <div className="col-span-2">מחיר</div>
-                <div className="col-span-1">הנחה %</div>
-                <div className="col-span-1">אופציונלי</div>
-                <div className="col-span-1 text-left">סה"כ</div>
+                <div className="col-span-3 text-right">שם</div>
+                <div className="col-span-2 text-right">תיאור</div>
+                <div className="col-span-1 text-right">כמות</div>
+                <div className="col-span-2 text-right">מחיר</div>
+                <div className="col-span-1 text-right">הנחה %</div>
+                <div className="col-span-1 text-center">אופציונלי</div>
+                <div className="col-span-1 text-right">סה"כ</div>
                 <div className="col-span-1"></div>
               </div>
 
@@ -389,7 +389,7 @@ export function QuoteDialog({ open, onOpenChange, quote }: QuoteDialogProps) {
                       onCheckedChange={(checked) => updateItem(index, "is_optional", checked)}
                     />
                   </div>
-                  <div className="col-span-1 text-sm font-medium text-left">
+                  <div className="col-span-1 text-sm font-medium text-right">
                     {formatCurrency(item.total)}
                   </div>
                   <div className="col-span-1">

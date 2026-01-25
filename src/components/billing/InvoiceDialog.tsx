@@ -280,14 +280,14 @@ export function InvoiceDialog({ open, onOpenChange, invoice }: InvoiceDialogProp
               </Button>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2" dir="rtl">
               {/* Header */}
               <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground px-2">
-                <div className="col-span-5">תיאור</div>
-                <div className="col-span-2">כמות</div>
-                <div className="col-span-2">מחיר</div>
-                <div className="col-span-1">הנחה %</div>
-                <div className="col-span-2 text-left">סה"כ</div>
+                <div className="col-span-5 text-right">תיאור</div>
+                <div className="col-span-2 text-right">כמות</div>
+                <div className="col-span-2 text-right">מחיר</div>
+                <div className="col-span-1 text-right">הנחה %</div>
+                <div className="col-span-2 text-right">סה"כ</div>
               </div>
 
               {items.map((item, index) => (
@@ -324,7 +324,7 @@ export function InvoiceDialog({ open, onOpenChange, invoice }: InvoiceDialogProp
                       onChange={(e) => updateItem(index, "discount_percent", Number(e.target.value))}
                     />
                   </div>
-                  <div className="col-span-1 text-sm font-medium text-left">
+                  <div className="col-span-1 text-sm font-medium text-right">
                     {formatCurrency(item.total)}
                   </div>
                   <div className="col-span-1">
