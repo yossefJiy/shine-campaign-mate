@@ -13,7 +13,11 @@ import {
   Check,
   Paperclip,
   FolderKanban,
-  Building2
+  Building2,
+  DollarSign,
+  Wrench,
+  UserCheck,
+  Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -35,12 +39,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Card, CardContent } from "@/components/ui/card";
 import { StyledDatePicker } from "@/components/ui/styled-date-picker";
 import { CollapsibleField } from "./CollapsibleField";
 import { TaskAttachments } from "./TaskAttachments";
 import { NewTaskAttachments, PendingAttachment } from "./NewTaskAttachments";
 import { SubtaskList } from "./SubtaskList";
 import { TaskFormData, ReminderOption } from "@/hooks/useTaskForm";
+import { microcopy } from "@/lib/microcopy";
 
 interface TeamMember {
   id: string;
@@ -95,15 +101,21 @@ interface TaskEditDialogProps {
 }
 
 const statusOptions = [
-  { value: "pending", label: "ממתין" },
-  { value: "in-progress", label: "בתהליך" },
-  { value: "completed", label: "הושלם" },
+  { value: "pending", label: "ממתין", color: "bg-muted text-muted-foreground" },
+  { value: "in-progress", label: "בתהליך", color: "bg-info/10 text-info" },
+  { value: "completed", label: "הושלם", color: "bg-success/10 text-success" },
 ];
 
 const priorityOptions = [
-  { value: "low", label: "נמוכה" },
-  { value: "medium", label: "בינונית" },
-  { value: "high", label: "גבוהה" },
+  { value: "low", label: "נמוכה", color: "bg-muted" },
+  { value: "medium", label: "בינונית", color: "bg-warning/10 text-warning" },
+  { value: "high", label: "גבוהה", color: "bg-destructive/10 text-destructive" },
+];
+
+const taskTagOptions = [
+  { value: "income_generating", label: microcopy.taskTags.income_generating, icon: DollarSign, color: "bg-success/10 text-success border-success/30" },
+  { value: "operational", label: microcopy.taskTags.operational, icon: Wrench, color: "bg-muted text-muted-foreground" },
+  { value: "client_dependent", label: microcopy.taskTags.client_dependent, icon: UserCheck, color: "bg-warning/10 text-warning border-warning/30" },
 ];
 
 export function TaskEditDialog({
@@ -148,18 +160,29 @@ export function TaskEditDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle>{selectedTaskId ? "עריכת משימה" : "משימה חדשה"}</DialogTitle>
+        <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b">
+          <div className="flex items-center gap-3">
+            <DialogTitle>{selectedTaskId ? "עריכת משימה" : "משימה חדשה"}</DialogTitle>
+            {/* Status badge */}
+            {formData.status && (
+              <Badge 
+                variant="secondary" 
+                className={statusOptions.find(s => s.value === formData.status)?.color || ''}
+              >
+                {statusOptions.find(s => s.value === formData.status)?.label}
+              </Badge>
+            )}
+          </div>
           <Button onClick={onSave} disabled={isSaving} size="sm">
             {isSaving && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
             שמור
           </Button>
         </DialogHeader>
 
-        <div className="space-y-3 py-4">
-          {/* Title - Always expanded */}
+        <div className="space-y-4 py-4">
+          {/* Area A: Title & Description */}
           <CollapsibleField
-            label="כותרת ותיאור"
+            label={microcopy.tasks.titleAndDescription}
             icon={<ListTree className="w-4 h-4" />}
             isExpanded={expandedSections.has('title')}
             onToggle={() => toggleSection('title')}
@@ -181,22 +204,74 @@ export function TaskEditDialog({
               />
               <div className="grid grid-cols-2 gap-3">
                 <Select value={formData.status} onValueChange={(v) => updateField('status', v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     {statusOptions.map(s => (
-                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                      <SelectItem key={s.value} value={s.value}>
+                        <span className={`px-2 py-0.5 rounded text-xs ${s.color}`}>{s.label}</span>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <Select value={formData.priority} onValueChange={(v) => updateField('priority', v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     {priorityOptions.map(p => (
-                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
+                      <SelectItem key={p.value} value={p.value}>
+                        <span className={`px-2 py-0.5 rounded text-xs ${p.color}`}>{p.label}</span>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+          </CollapsibleField>
+
+          {/* Area B: Task Type - Core/Add-on Tags */}
+          <CollapsibleField
+            label={microcopy.tasks.taskType}
+            icon={<DollarSign className="w-4 h-4" />}
+            isExpanded={expandedSections.has('taskType')}
+            onToggle={() => toggleSection('taskType')}
+            hasValue={!!formData.taskTag}
+          >
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-2">
+                {taskTagOptions.map((tag) => {
+                  const IconComponent = tag.icon;
+                  const isSelected = formData.taskTag === tag.value;
+                  return (
+                    <Button
+                      key={tag.value}
+                      type="button"
+                      variant={isSelected ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => updateField('taskTag', tag.value as 'income_generating' | 'operational' | 'client_dependent')}
+                      className={`gap-2 ${isSelected ? '' : tag.color}`}
+                    >
+                      <IconComponent className="w-4 h-4" />
+                      {tag.label}
+                    </Button>
+                  );
+                })}
+              </div>
+              {/* Hint based on selection */}
+              {formData.taskTag && (
+                <Card className="border-muted bg-muted/30">
+                  <CardContent className="p-3 flex items-start gap-2">
+                    <Info className="w-4 h-4 text-muted-foreground mt-0.5" />
+                    <p className="text-xs text-muted-foreground">
+                      {formData.taskTag === 'income_generating' && microcopy.tasks.coreTaskHint}
+                      {formData.taskTag === 'operational' && microcopy.tasks.operationalHint}
+                      {formData.taskTag === 'client_dependent' && microcopy.tasks.clientDependentHint}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </CollapsibleField>
 
@@ -233,9 +308,9 @@ export function TaskEditDialog({
             </CollapsibleField>
           )}
 
-          {/* Assignee & Department */}
+          {/* Area C: Assignee & Department */}
           <CollapsibleField
-            label="שיוך ומחלקה"
+            label={microcopy.tasks.assignmentAndDepartment}
             icon={<User className="w-4 h-4" />}
             isExpanded={expandedSections.has('assignee')}
             onToggle={() => toggleSection('assignee')}
@@ -276,10 +351,10 @@ export function TaskEditDialog({
             </Select>
           </CollapsibleField>
 
-          {/* Project */}
+          {/* Area D: Project & Stage */}
           {projects.length > 0 && (
             <CollapsibleField
-              label="פרויקט"
+              label={microcopy.tasks.projectAndStage}
               icon={<FolderKanban className="w-4 h-4" />}
               isExpanded={expandedSections.has('project')}
               onToggle={() => toggleSection('project')}
@@ -302,9 +377,9 @@ export function TaskEditDialog({
             </CollapsibleField>
           )}
 
-          {/* Date, Time & Reminders */}
+          {/* Schedule & Reminders */}
           <CollapsibleField
-            label="תאריך, שעה ותזכורות"
+            label={microcopy.tasks.scheduleAndReminders}
             icon={<Calendar className="w-4 h-4" />}
             isExpanded={expandedSections.has('datetime')}
             onToggle={() => toggleSection('datetime')}
@@ -418,7 +493,7 @@ export function TaskEditDialog({
 
           {/* Subtasks */}
           <CollapsibleField
-            label="תתי-משימות"
+            label={microcopy.tasks.subtasksLabel}
             icon={<ListTree className="w-4 h-4" />}
             isExpanded={expandedSections.has('subtasks')}
             onToggle={() => toggleSection('subtasks')}
@@ -427,15 +502,15 @@ export function TaskEditDialog({
             {selectedTaskId ? (
               <SubtaskList parentTaskId={selectedTaskId} />
             ) : (
-              <div className="text-sm text-muted-foreground">
-                שמור את המשימה כדי להוסיף תתי-משימות.
+              <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-lg">
+                {microcopy.tasks.saveBeforeSubtasks}
               </div>
             )}
           </CollapsibleField>
 
           {/* Attachments */}
           <CollapsibleField
-            label="נספחים"
+            label={microcopy.tasks.attachmentsLabel}
             icon={<Paperclip className="w-4 h-4" />}
             isExpanded={expandedSections.has('attachments')}
             onToggle={() => toggleSection('attachments')}
@@ -450,6 +525,15 @@ export function TaskEditDialog({
               />
             )}
           </CollapsibleField>
+
+          {/* Microcopy Hint */}
+          <Card className="border-muted bg-muted/20">
+            <CardContent className="p-3">
+              <p className="text-xs text-muted-foreground text-center">
+                {microcopy.mindset.oneTaskBetterThanFive}
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </DialogContent>
     </Dialog>

@@ -5,7 +5,10 @@ import {
   Plus, 
   Edit2, 
   Trash2, 
-  Calendar 
+  Calendar,
+  DollarSign,
+  Wrench,
+  UserCheck
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -13,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TaskQuickActions } from "./TaskQuickActions";
+import { microcopy } from "@/lib/microcopy";
 
 interface Task {
   id: string;
@@ -65,6 +69,12 @@ const priorityConfig: Record<string, { color: string; label: string }> = {
   low: { color: "bg-muted", label: "נמוכה" },
   medium: { color: "bg-warning", label: "בינונית" },
   high: { color: "bg-destructive", label: "גבוהה" },
+};
+
+const taskTagConfig: Record<string, { icon: typeof DollarSign; color: string; label: string }> = {
+  income_generating: { icon: DollarSign, color: "bg-success/10 text-success border-success/30", label: microcopy.taskTags.income_generating },
+  operational: { icon: Wrench, color: "bg-muted text-muted-foreground", label: microcopy.taskTags.operational },
+  client_dependent: { icon: UserCheck, color: "bg-warning/10 text-warning border-warning/30", label: microcopy.taskTags.client_dependent },
 };
 
 export function TaskGridCard({
@@ -122,6 +132,20 @@ export function TaskGridCard({
         <h3 className={cn("font-medium mb-2", task.status === "completed" && "line-through text-muted-foreground")}>
           {task.title}
         </h3>
+
+        {/* Task Tag Badge */}
+        {task.task_tag && taskTagConfig[task.task_tag] && (
+          <Badge 
+            variant="outline" 
+            className={cn("text-xs flex items-center gap-1 mb-2 w-fit", taskTagConfig[task.task_tag].color)}
+          >
+            {(() => {
+              const TagIcon = taskTagConfig[task.task_tag!].icon;
+              return <TagIcon className="w-3 h-3" />;
+            })()}
+            {taskTagConfig[task.task_tag].label}
+          </Badge>
+        )}
 
         {task.description && (
           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{task.description}</p>

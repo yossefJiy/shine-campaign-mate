@@ -83,6 +83,27 @@ export const microcopy = {
     income_generating: "💸 מכניס כסף",
     operational: "⚙️ תפעולי",
     client_dependent: "👤 תלוי בלקוח",
+    core: "💸 Core",
+    addon: "🧩 Add-on",
+  },
+
+  // Tasks module
+  tasks: {
+    titleAndDescription: "כותרת ותיאור",
+    assignmentAndDepartment: "שיוך ומחלקה",
+    scheduleAndReminders: "תאריך, שעה ותזכורות",
+    projectAndStage: "פרויקט ושלב",
+    taskType: "סוג משימה",
+    subtasksLabel: "תתי-משימות",
+    attachmentsLabel: "נספחים",
+    saveBeforeSubtasks: "שמור את המשימה כדי להוסיף תתי-משימות",
+    incomeTasksFirst: "משימות שמכניסות כסף קודמות",
+    taskSaved: "המשימה נשמרה",
+    taskDeleted: "המשימה נמחקה",
+    selectClientFirst: "יש לבחור לקוח לפני יצירת משימה",
+    coreTaskHint: "💡 משימות Core הן משימות שמכניסות כסף ישירות לעסק",
+    operationalHint: "משימות תפעוליות הן חיוניות אך לא מייצרות הכנסה ישירה",
+    clientDependentHint: "משימה זו תלויה בתגובה או אישור מהלקוח",
   },
 
   // Priority labels
