@@ -17,6 +17,15 @@ Deno.serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Mark projects blocked by overdue payments
+    const { data: blockedProjects, error: blockedError } = await supabase.rpc('mark_projects_blocked_by_payment');
+    
+    if (blockedError) {
+      console.error('Error marking blocked projects:', blockedError);
+    } else {
+      console.log('Projects blocked by payment:', blockedProjects);
+    }
+
     // Call the database function to generate daily alerts
     const { data, error } = await supabase.rpc('generate_daily_alerts');
 

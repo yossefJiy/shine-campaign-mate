@@ -384,6 +384,26 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
           {/* Stages & Tasks Tab */}
           <TabsContent value="stages">
             <ScrollArea className="h-[500px] pr-4">
+              {/* Work State Banner */}
+              {project?.work_state === "blocked_payment" && (
+                <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/30 flex items-center gap-3">
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                  <div>
+                    <p className="font-medium text-destructive">⛔ עבודה חסומה עד תשלום</p>
+                    <p className="text-sm text-muted-foreground">הריטיינר טרם שולם - לא ניתן להתחיל עבודה</p>
+                  </div>
+                </div>
+              )}
+              {project?.work_state === "work_ok" && (
+                <div className="mb-4 p-3 rounded-lg bg-success/10 border border-success/30 flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-success" />
+                  <div>
+                    <p className="font-medium text-success">✅ אפשר לעבוד</p>
+                    <p className="text-sm text-muted-foreground">התשלום התקבל - העבודה מאושרת</p>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
                   <span>התקדמות כללית</span>
@@ -710,6 +730,32 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
           {/* Billing Tab */}
           <TabsContent value="billing">
             <ScrollArea className="h-[500px] pr-4">
+              {/* Work Status Banner */}
+              <div className={cn(
+                "mb-4 p-4 rounded-lg flex items-center gap-3",
+                project?.work_state === "blocked_payment" 
+                  ? "bg-destructive/10 border border-destructive/30" 
+                  : "bg-success/10 border border-success/30"
+              )}>
+                {project?.work_state === "blocked_payment" ? (
+                  <>
+                    <AlertTriangle className="h-6 w-6 text-destructive" />
+                    <div>
+                      <p className="font-medium text-destructive">⛔ עבודה חסומה</p>
+                      <p className="text-sm text-muted-foreground">ממתין לתשלום ריטיינר</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-6 w-6 text-success" />
+                    <div>
+                      <p className="font-medium text-success">✅ Work OK</p>
+                      <p className="text-sm text-muted-foreground">אפשר לעבוד</p>
+                    </div>
+                  </>
+                )}
+              </div>
+
               <div className="grid grid-cols-3 gap-4 mb-6">
                 <Card>
                   <CardContent className="pt-4 text-center">

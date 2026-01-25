@@ -179,11 +179,16 @@ export function useBillingRecords(filters?: {
         })
         .eq("id", id);
       if (error) throw error;
+
+      // If this is a retainer payment, the trigger will automatically update project work_state
+      // But we should also invalidate projects cache
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["billing-records"] });
       queryClient.invalidateQueries({ queryKey: ["billing-stats"] });
-      toast.success("סומן כשולם");
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project-detail"] });
+      toast.success("סומן כשולם - הפרויקט שוחרר לעבודה");
     },
     onError: (error) => {
       toast.error("שגיאה: " + error.message);

@@ -316,14 +316,18 @@ export function useProposals(clientId?: string) {
 
       if (updateError) throw updateError;
 
-      // Create project
+      // Create project with work_state blocked until payment
       const { data: project, error: projectError } = await supabase
         .from("projects")
         .insert({
           client_id: proposal.client_id,
           name: proposal.title,
-          status: "active",
+          status: "waiting_payment",
           quote_id: proposalId,
+          work_state: "blocked_payment",
+          payment_status: "pending",
+          monthly_retainer_amount: proposal.total_amount,
+          retainer_plan: proposal.total_amount >= 4350 ? "package_4350" : "standard",
         })
         .select()
         .single();
@@ -368,16 +372,24 @@ export function useProposals(clientId?: string) {
         if (taskError) throw taskError;
       }
 
-      // Create retainer payment if applicable
+      // Create retainer payment linked to project
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 7); // Due in 7 days
+      
       const { error: paymentError } = await supabase
         .from("billing_records")
         .insert({
           client_id: proposal.client_id,
+          project_id: project.id,
           period_start: new Date().toISOString().split("T")[0],
           period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+          year: new Date().getFullYear(),
+          month: new Date().getMonth() + 1,
+          base_amount: proposal.total_amount,
           total_amount: proposal.total_amount,
           status: "pending",
           payment_type: "retainer",
+          due_date: dueDate.toISOString().split("T")[0],
           notes: `ריטיינר עבור: ${proposal.title}`,
         });
 
