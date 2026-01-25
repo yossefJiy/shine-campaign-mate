@@ -4675,29 +4675,41 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           department: string | null
           email: string | null
           full_name: string | null
           id: string
+          job_title: string | null
+          phone: string | null
+          timezone: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           department?: string | null
           email?: string | null
           full_name?: string | null
           id: string
+          job_title?: string | null
+          phone?: string | null
+          timezone?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           department?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
+          job_title?: string | null
+          phone?: string | null
+          timezone?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -6155,6 +6167,66 @@ export type Database = {
           updated_at?: string
           user_id?: string
           weekly_points?: number
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          created_at: string | null
+          default_view: string | null
+          email_daily_summary: boolean | null
+          email_task_assigned: boolean | null
+          email_task_completed: boolean | null
+          email_task_due_reminder: boolean | null
+          email_weekly_report: boolean | null
+          id: string
+          push_enabled: boolean | null
+          push_mentions: boolean | null
+          push_task_updates: boolean | null
+          reminder_hours_before: number | null
+          reminder_time: string | null
+          sidebar_collapsed: boolean | null
+          theme: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          default_view?: string | null
+          email_daily_summary?: boolean | null
+          email_task_assigned?: boolean | null
+          email_task_completed?: boolean | null
+          email_task_due_reminder?: boolean | null
+          email_weekly_report?: boolean | null
+          id?: string
+          push_enabled?: boolean | null
+          push_mentions?: boolean | null
+          push_task_updates?: boolean | null
+          reminder_hours_before?: number | null
+          reminder_time?: string | null
+          sidebar_collapsed?: boolean | null
+          theme?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          default_view?: string | null
+          email_daily_summary?: boolean | null
+          email_task_assigned?: boolean | null
+          email_task_completed?: boolean | null
+          email_task_due_reminder?: boolean | null
+          email_weekly_report?: boolean | null
+          id?: string
+          push_enabled?: boolean | null
+          push_mentions?: boolean | null
+          push_task_updates?: boolean | null
+          reminder_hours_before?: number | null
+          reminder_time?: string | null
+          sidebar_collapsed?: boolean | null
+          theme?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }

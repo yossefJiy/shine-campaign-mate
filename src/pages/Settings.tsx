@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { useAuth, usePermissions } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -15,14 +15,19 @@ import {
   Star,
   Crown,
   ArrowLeft,
+  User,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AuthorizedUsersManager } from "@/components/admin/AuthorizedUsersManager";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProfileSection } from "@/components/settings/ProfileSection";
+import { NotificationsSection } from "@/components/settings/NotificationsSection";
 
 const settingsSections = [
+  { id: "profile", icon: User, title: "פרופיל", description: "פרטים אישיים ותמונה" },
+  { id: "notifications", icon: Bell, title: "התראות", description: "העדפות התראות ותזכורות" },
   { id: "clients", icon: Building2, title: "לקוחות", description: "ניהול לקוחות ומותגים" },
   { id: "integrations", icon: Plug, title: "אינטגרציות", description: "חיבורים למערכות חיצוניות" },
   { id: "users", icon: Shield, title: "משתמשים מורשים", description: "ניהול גישה למערכת", adminOnly: true },
@@ -42,7 +47,7 @@ interface ClientRow {
 export default function Settings() {
   const navigate = useNavigate();
   const { isAdmin } = usePermissions();
-  const [activeSection, setActiveSection] = useState("clients");
+  const [activeSection, setActiveSection] = useState("profile");
 
   const visibleSections = settingsSections.filter(section => {
     if (section.adminOnly && !isAdmin) return false;
@@ -101,6 +106,20 @@ export default function Settings() {
 
           {/* Content Panel */}
           <div className="lg:col-span-3">
+            {/* Profile Section */}
+            {activeSection === "profile" && (
+              <div className="animate-slide-up">
+                <ProfileSection />
+              </div>
+            )}
+
+            {/* Notifications Section */}
+            {activeSection === "notifications" && (
+              <div className="animate-slide-up">
+                <NotificationsSection />
+              </div>
+            )}
+
             {/* Clients Section */}
             {activeSection === "clients" && (
               <div className="card-clean p-6 animate-slide-up">

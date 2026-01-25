@@ -18,7 +18,6 @@ import {
   CheckSquare,
   FolderKanban,
   Receipt,
-  Users,
   Settings,
   ExternalLink
 } from "lucide-react";
@@ -222,9 +221,9 @@ export default function ClientProfile() {
             </div>
           </div>
 
-          {/* Tabs */}
+          {/* Tabs - removed duplicate "team" tab */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full max-w-3xl grid-cols-6">
+            <TabsList className="grid w-full max-w-2xl grid-cols-5">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <Building2 className="w-4 h-4" />
                 סקירה
@@ -240,10 +239,6 @@ export default function ClientProfile() {
               <TabsTrigger value="billing" className="flex items-center gap-2">
                 <Receipt className="w-4 h-4" />
                 חיובים
-              </TabsTrigger>
-              <TabsTrigger value="team" className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                צוות
               </TabsTrigger>
               <TabsTrigger value="settings" className="flex items-center gap-2">
                 <Settings className="w-4 h-4" />
@@ -395,43 +390,7 @@ export default function ClientProfile() {
               <ClientBillingTab clientId={id!} />
             </TabsContent>
 
-            {/* Team Tab */}
-            <TabsContent value="team">
-              <Card>
-                <CardHeader>
-                  <CardTitle>אנשי צוות משויכים</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {teamMembers.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-8">אין אנשי צוות משויכים ללקוח זה</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {teamMembers.map((member: any) => (
-                        <div key={member.id} className="flex items-center justify-between p-3 rounded-lg border">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                              {member.profiles?.avatar_url ? (
-                                <img 
-                                  src={member.profiles.avatar_url} 
-                                  alt={member.profiles.full_name}
-                                  className="w-full h-full rounded-full object-cover"
-                                />
-                              ) : (
-                                <Users className="w-5 h-5 text-primary" />
-                              )}
-                            </div>
-                            <span className="font-medium">{member.profiles?.full_name || "משתמש"}</span>
-                          </div>
-                          <Badge variant="outline">{member.role || "member"}</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Settings Tab */}
+            {/* Settings Tab - includes Team and Contacts management */}
             <TabsContent value="settings" className="space-y-6">
               {/* Team Manager */}
               <ClientTeamManager 
