@@ -406,7 +406,7 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
                   </Button>
                 </div>
               ) : (
-                <Accordion type="multiple" className="space-y-2">
+                <Accordion type="multiple" defaultValue={stages.length > 0 ? [stages[0].id] : []} className="space-y-2">
                   {stages.map((stage: any, index: number) => {
                     const stageTasks = stage.tasks || [];
                     const stageCompleted = stageTasks.filter((t: any) => t.status === "completed").length;
