@@ -106,12 +106,14 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
           .select("*")
           .eq("project_id", projectId)
           .order("sort_order"),
+        // Note: Removed team:assignee(name) join because tasks.assignee is TEXT 
+        // while team.id is UUID - this caused the query to fail and return empty results.
+        // If assignee names are needed, do a separate lookup by team member ID.
         supabase
           .from("tasks")
           .select(`
             id, title, status, priority, due_date, task_tag, income_value, 
-            is_client_visible, assignee, stage_id, updated_at,
-            team:assignee(name)
+            is_client_visible, assignee, stage_id, updated_at
           `)
           .eq("project_id", projectId)
           .order("created_at"),

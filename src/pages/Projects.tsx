@@ -105,15 +105,18 @@ export default function Projects() {
   });
 
   // Fetch tasks for progress calculation
+  // In Agency view (no client selected or master account selected), fetch ALL tasks
+  // Only filter by client_id when a specific real client is selected
   const { data: allTasks = [] } = useQuery({
-    queryKey: ["project-tasks", selectedClient?.id],
+    queryKey: ["project-tasks", selectedClient?.id, isAgencyView],
     queryFn: async () => {
       let query = supabase
         .from("tasks")
         .select("id, status, project_id, task_tag")
         .not("project_id", "is", null);
       
-      if (selectedClient) {
+      // Only filter by client_id when a specific non-master client is selected
+      if (selectedClient && !selectedClient.is_master_account) {
         query = query.eq("client_id", selectedClient.id);
       }
       
