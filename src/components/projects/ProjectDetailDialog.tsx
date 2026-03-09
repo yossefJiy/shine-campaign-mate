@@ -46,6 +46,7 @@ import { format, differenceInDays } from "date-fns";
 import { he } from "date-fns/locale";
 import { AddStageDialog } from "./AddStageDialog";
 import { ProjectEditDetailsDialog } from "./ProjectEditDetailsDialog";
+import { ProjectTeamManager } from "./ProjectTeamManager";
 
 interface ProjectDetailDialogProps {
   open: boolean;
@@ -344,10 +345,14 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
         </DialogHeader>
 
         <Tabs defaultValue="stages" className="mt-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="stages" className="gap-2">
               <CheckCircle2 className="h-4 w-4" />
               שלבים ומשימות
+            </TabsTrigger>
+            <TabsTrigger value="team" className="gap-2">
+              <UserCheck className="h-4 w-4" />
+              צוות
             </TabsTrigger>
             <TabsTrigger value="client" className="gap-2">
               <Eye className="h-4 w-4" />
@@ -541,6 +546,11 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
                 </Accordion>
               )}
             </ScrollArea>
+          </TabsContent>
+
+          {/* Team Tab */}
+          <TabsContent value="team">
+            <ProjectTeamManager projectId={projectId} />
           </TabsContent>
 
           {/* Client View Tab */}
