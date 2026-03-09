@@ -1519,6 +1519,33 @@ export type Database = {
           },
         ]
       }
+      departments: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          manager_user_id: string | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          manager_user_id?: string | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          manager_user_id?: string | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       feature_requests: {
         Row: {
           archived_at: string | null
@@ -2136,6 +2163,48 @@ export type Database = {
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_teams: {
+        Row: {
+          created_at: string | null
+          department_id: string | null
+          id: string
+          manager_team_member_id: string | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department_id?: string | null
+          id?: string
+          manager_team_member_id?: string | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department_id?: string | null
+          id?: string
+          manager_team_member_id?: string | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_teams_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_teams_manager_team_member_id_fkey"
+            columns: ["manager_team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team"
             referencedColumns: ["id"]
           },
         ]
@@ -3653,12 +3722,16 @@ export type Database = {
           avatar_color: string | null
           avatar_url: string | null
           created_at: string
+          department_id: string | null
           departments: string[]
           email: string | null
           emails: string[] | null
           id: string
           is_active: boolean | null
+          manager_id: string | null
           name: string
+          operational_role: string | null
+          org_team_id: string | null
           phones: string[] | null
           updated_at: string
           user_id: string | null
@@ -3667,12 +3740,16 @@ export type Database = {
           avatar_color?: string | null
           avatar_url?: string | null
           created_at?: string
+          department_id?: string | null
           departments?: string[]
           email?: string | null
           emails?: string[] | null
           id?: string
           is_active?: boolean | null
+          manager_id?: string | null
           name: string
+          operational_role?: string | null
+          org_team_id?: string | null
           phones?: string[] | null
           updated_at?: string
           user_id?: string | null
@@ -3681,17 +3758,43 @@ export type Database = {
           avatar_color?: string | null
           avatar_url?: string | null
           created_at?: string
+          department_id?: string | null
           departments?: string[]
           email?: string | null
           emails?: string[] | null
           id?: string
           is_active?: boolean | null
+          manager_id?: string | null
           name?: string
+          operational_role?: string | null
+          org_team_id?: string | null
           phones?: string[] | null
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "team_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "team"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_org_team_id_fkey"
+            columns: ["org_team_id"]
+            isOneToOne: false
+            referencedRelation: "org_teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trusted_devices: {
         Row: {
@@ -3837,6 +3940,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_privileges: {
+        Row: {
+          can_create_teams: boolean | null
+          can_invite_users: boolean | null
+          can_manage_client_assignments: boolean | null
+          can_manage_project_assignments: boolean | null
+          can_override_hierarchy: boolean | null
+          can_view_prices: boolean | null
+          can_view_proposals: boolean | null
+          created_at: string | null
+          id: string
+          is_admin: boolean | null
+          is_super_admin: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          can_create_teams?: boolean | null
+          can_invite_users?: boolean | null
+          can_manage_client_assignments?: boolean | null
+          can_manage_project_assignments?: boolean | null
+          can_override_hierarchy?: boolean | null
+          can_view_prices?: boolean | null
+          can_view_proposals?: boolean | null
+          created_at?: string | null
+          id?: string
+          is_admin?: boolean | null
+          is_super_admin?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          can_create_teams?: boolean | null
+          can_invite_users?: boolean | null
+          can_manage_client_assignments?: boolean | null
+          can_manage_project_assignments?: boolean | null
+          can_override_hierarchy?: boolean | null
+          can_view_prices?: boolean | null
+          can_view_proposals?: boolean | null
+          created_at?: string | null
+          id?: string
+          is_admin?: boolean | null
+          is_super_admin?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -3934,10 +4085,12 @@ export type Database = {
         Returns: string
       }
       generate_daily_alerts: { Args: never; Returns: Json }
+      get_user_privileges: { Args: { _user_id: string }; Returns: Json }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      has_admin_privilege: { Args: { _user_id: string }; Returns: boolean }
       has_client_access: {
         Args: { _client_id: string; _user_id: string }
         Returns: boolean
@@ -3994,6 +4147,8 @@ export type Database = {
         | "team_member"
         | "client"
         | "demo"
+        | "department_manager"
+        | "team_employee"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4144,6 +4299,8 @@ export const Constants = {
         "team_member",
         "client",
         "demo",
+        "department_manager",
+        "team_employee",
       ],
     },
   },

@@ -21,9 +21,9 @@ interface ProjectTeamManagerProps {
 
 export function ProjectTeamManager({ projectId }: ProjectTeamManagerProps) {
   const queryClient = useQueryClient();
-  const { isAdmin, isTeamManager } = usePermissions();
+  const { isAdmin, isManager, canManageProjectAssignments } = usePermissions();
   const [selectedMemberId, setSelectedMemberId] = useState("");
-  const canManage = isAdmin || isTeamManager;
+  const canManage = isAdmin || isManager || canManageProjectAssignments;
 
   // Fetch current project team
   const { data: projectTeam = [], isLoading: teamLoading } = useQuery({

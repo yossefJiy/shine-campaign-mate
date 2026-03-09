@@ -2,42 +2,62 @@ import { useState, useEffect, createContext, useContext, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-// Updated role hierarchy with new roles
-type AppRole = 'super_admin' | 'admin' | 'agency_manager' | 'team_manager' | 'employee' | 'premium_client' | 'basic_client' | 'demo';
+// Operational roles (what the person does in the org)
+type OperationalRole = 'department_manager' | 'team_manager' | 'team_employee' | 'premium_client' | 'basic_client' | 'demo';
+
+// Keep AppRole for backward compatibility with DB enum
+type AppRole = 'super_admin' | 'admin' | 'agency_manager' | 'team_manager' | 'employee' | 'premium_client' | 'basic_client' | 'department_manager' | 'team_employee' | 'manager' | 'department_head' | 'team_lead' | 'team_member' | 'client' | 'demo';
+
+// Elevated privileges (layered on top of operational role)
+export interface UserPrivileges {
+  is_admin: boolean;
+  is_super_admin: boolean;
+  can_view_proposals: boolean;
+  can_view_prices: boolean;
+  can_invite_users: boolean;
+  can_create_teams: boolean;
+  can_manage_project_assignments: boolean;
+  can_manage_client_assignments: boolean;
+  can_override_hierarchy: boolean;
+}
+
+const DEFAULT_PRIVILEGES: UserPrivileges = {
+  is_admin: false,
+  is_super_admin: false,
+  can_view_proposals: false,
+  can_view_prices: false,
+  can_invite_users: false,
+  can_create_teams: false,
+  can_manage_project_assignments: false,
+  can_manage_client_assignments: false,
+  can_override_hierarchy: false,
+};
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   role: AppRole | null;
+  privileges: UserPrivileges;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-/**
- * Clean up a potentially invalid session from localStorage
- */
 const cleanupInvalidSession = async () => {
   try {
     await supabase.auth.signOut();
   } catch {
-    // Fallback: clear localStorage directly
     const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID as string | undefined;
     if (projectId) {
       try {
         localStorage.removeItem(`sb-${projectId}-auth-token`);
         localStorage.removeItem(`sb-${projectId}-auth-token-code-verifier`);
-      } catch {
-        // Ignore localStorage errors
-      }
+      } catch { /* ignore */ }
     }
   }
 };
 
-/**
- * Check if an error indicates an invalid session
- */
 const isSessionInvalidError = (error: any): boolean => {
   if (!error) return false;
   const message = error.message || String(error);
@@ -57,48 +77,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<AppRole | null>(null);
+  const [privileges, setPrivileges] = useState<UserPrivileges>(DEFAULT_PRIVILEGES);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
-        // Defer role fetching to avoid deadlock
         if (currentSession?.user) {
           setTimeout(() => {
             fetchUserRole(currentSession.user.id);
+            fetchUserPrivileges(currentSession.user.id);
           }, 0);
         } else {
           setRole(null);
+          setPrivileges(DEFAULT_PRIVILEGES);
         }
         
         setLoading(false);
       }
     );
 
-    // THEN check for existing session and validate it against the server
     const initializeAuth = async () => {
       try {
         const { data: { session: localSession } } = await supabase.auth.getSession();
         
         if (localSession) {
-          // Validate session against server with getUser()
           const { data: { user: validatedUser }, error: userError } = await supabase.auth.getUser();
           
           if (userError || !validatedUser) {
-            // Session exists locally but is invalid on server
             console.warn('Invalid session detected, cleaning up...');
             await cleanupInvalidSession();
             setSession(null);
             setUser(null);
             setRole(null);
+            setPrivileges(DEFAULT_PRIVILEGES);
           } else {
-            // Session is valid
             setSession(localSession);
             setUser(validatedUser);
             fetchUserRole(validatedUser.id);
+            fetchUserPrivileges(validatedUser.id);
           }
         } else {
           setSession(null);
@@ -144,6 +163,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const fetchUserPrivileges = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('get_user_privileges', { _user_id: userId });
+      
+      if (error) {
+        console.error('Error fetching user privileges:', error);
+        return;
+      }
+
+      if (data) {
+        const privs = typeof data === 'string' ? JSON.parse(data) : data;
+        setPrivileges({
+          is_admin: privs.is_admin ?? false,
+          is_super_admin: privs.is_super_admin ?? false,
+          can_view_proposals: privs.can_view_proposals ?? false,
+          can_view_prices: privs.can_view_prices ?? false,
+          can_invite_users: privs.can_invite_users ?? false,
+          can_create_teams: privs.can_create_teams ?? false,
+          can_manage_project_assignments: privs.can_manage_project_assignments ?? false,
+          can_manage_client_assignments: privs.can_manage_client_assignments ?? false,
+          can_override_hierarchy: privs.can_override_hierarchy ?? false,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching user privileges:', error);
+    }
+  };
+
   const signOut = async () => {
     const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID as string | undefined;
     const storageKey = projectId ? `sb-${projectId}-auth-token` : null;
@@ -152,24 +199,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     } catch {
-      // Fallback: force-clear local session to prevent redirect loops/flicker if network revoke fails
       try {
         if (storageKey) {
           localStorage.removeItem(storageKey);
           localStorage.removeItem(`${storageKey}-code-verifier`);
         }
-      } catch {
-        // ignore
-      }
+      } catch { /* ignore */ }
     } finally {
       setUser(null);
       setSession(null);
       setRole(null);
+      setPrivileges(DEFAULT_PRIVILEGES);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, role, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, role, privileges, signOut }}>
       {children}
     </AuthContext.Provider>
   );
@@ -183,74 +228,90 @@ export const useAuth = () => {
   return context;
 };
 
-// Updated role hierarchy (from highest to lowest)
-const ROLE_HIERARCHY: AppRole[] = [
-  'super_admin',
-  'admin', 
-  'agency_manager',
-  'team_manager',
-  'employee',
-  'premium_client',
-  'basic_client',
-  'demo'
-];
-
-// Role labels in Hebrew
-export const ROLE_LABELS: Record<AppRole, string> = {
+// Map operational roles to Hebrew labels
+export const ROLE_LABELS: Record<string, string> = {
   super_admin: 'סופר אדמין',
   admin: 'אדמין',
   agency_manager: 'מנהל סוכנות',
+  department_manager: 'מנהל מחלקה',
   team_manager: 'מנהל צוות',
+  team_employee: 'עובד צוות',
   employee: 'עובד',
   premium_client: 'לקוח פרמיום',
   basic_client: 'לקוח בסיס',
   demo: 'דמו',
+  manager: 'מנהל',
+  department_head: 'ראש מחלקה',
+  team_lead: 'ראש צוות',
+  team_member: 'חבר צוות',
+  client: 'לקוח',
 };
 
-// Helper hook to check permissions with new role hierarchy
+// Helper hook that combines role + privileges for permission checks
 export const usePermissions = () => {
-  const { role } = useAuth();
+  const { role, privileges } = useAuth();
   
-  const hasRoleLevel = (minRole: AppRole): boolean => {
-    if (!role) return false;
-    const userRoleIndex = ROLE_HIERARCHY.indexOf(role);
-    const minRoleIndex = ROLE_HIERARCHY.indexOf(minRole);
-    return userRoleIndex !== -1 && minRoleIndex !== -1 && userRoleIndex <= minRoleIndex;
-  };
+  // Check if user has admin-level access (via role OR privileges)
+  const isAdminLevel = privileges.is_admin || privileges.is_super_admin || 
+    role === 'super_admin' || role === 'admin';
+  
+  // Check if user has management-level access
+  const isManagerLevel = isAdminLevel || 
+    role === 'department_manager' || role === 'agency_manager' || 
+    role === 'team_manager' || role === 'manager' || role === 'department_head';
 
   return {
-    // Super admin - full access
-    isSuperAdmin: role === 'super_admin',
+    // Privilege-based checks (preferred)
+    isSuperAdmin: privileges.is_super_admin || role === 'super_admin',
+    isAdmin: isAdminLevel,
+    isManager: isManagerLevel,
     
-    // Admin level access
-    isAdmin: hasRoleLevel('admin'),
-    
-    // Agency level access
-    isAgencyManager: hasRoleLevel('agency_manager'),
-    
-    // Team level access
-    isTeamManager: hasRoleLevel('team_manager'),
-    
-    // Employee level access
-    isEmployee: hasRoleLevel('employee'),
+    // Operational role checks
+    isDepartmentManager: role === 'department_manager' || role === 'department_head',
+    isTeamManager: role === 'team_manager',
+    isTeamEmployee: role === 'team_employee' || role === 'employee' || role === 'team_member',
     
     // Client types
     isPremiumClient: role === 'premium_client',
     isBasicClient: role === 'basic_client',
-    isClient: role === 'premium_client' || role === 'basic_client',
+    isClient: role === 'premium_client' || role === 'basic_client' || role === 'client',
     
     // Demo
     isDemo: role === 'demo',
     
-    // Check if user has at least a specific role level
-    hasRoleLevel,
+    // Privilege flags (direct access)
+    canViewProposals: privileges.can_view_proposals || isAdminLevel,
+    canViewPrices: privileges.can_view_prices || isAdminLevel,
+    canInviteUsers: privileges.can_invite_users || isAdminLevel,
+    canCreateTeams: privileges.can_create_teams || isAdminLevel,
+    canManageProjectAssignments: privileges.can_manage_project_assignments || isAdminLevel,
+    canManageClientAssignments: privileges.can_manage_client_assignments || isAdminLevel,
+    canOverrideHierarchy: privileges.can_override_hierarchy || privileges.is_super_admin,
+    
+    // Raw privileges object
+    privileges,
     
     // Current role
     role,
     
     // Role label
-    roleLabel: role ? ROLE_LABELS[role] : null,
+    roleLabel: role ? ROLE_LABELS[role] || role : null,
+
+    // Backward compatibility
+    hasRoleLevel: (minRole: AppRole): boolean => {
+      if (!role) return false;
+      if (isAdminLevel) return true;
+      // Simple hierarchy check
+      const hierarchy: AppRole[] = ['super_admin', 'admin', 'agency_manager', 'department_manager', 'team_manager', 'employee', 'team_employee', 'premium_client', 'basic_client', 'demo'];
+      const userIdx = hierarchy.indexOf(role);
+      const minIdx = hierarchy.indexOf(minRole);
+      return userIdx !== -1 && minIdx !== -1 && userIdx <= minIdx;
+    },
+    
+    // Legacy aliases
+    isAgencyManager: isManagerLevel,
+    isEmployee: isManagerLevel || role === 'employee' || role === 'team_employee' || role === 'team_member',
   };
 };
 
-export type { AppRole };
+export type { AppRole, OperationalRole };
