@@ -39,7 +39,9 @@ export function ClientSwitcher({ collapsed = false }: ClientSwitcherProps) {
         .from("clients")
         .select("id, name")
         .eq("is_master_account", true)
-        .single();
+        .is("deleted_at", null)
+        .limit(1)
+        .maybeSingle();
       return data;
     },
   });

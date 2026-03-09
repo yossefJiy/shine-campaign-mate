@@ -104,7 +104,8 @@ export class ClientsAPI extends BaseAPI {
         .from('clients')
         .select('*')
         .eq('is_master_account', true)
-        .single();
+        .limit(1)
+        .maybeSingle();
     });
   }
 }
