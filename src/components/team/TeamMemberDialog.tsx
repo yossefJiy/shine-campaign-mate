@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -115,6 +115,8 @@ interface Props {
 
 export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, departments, orgTeams }: Props) {
   const queryClient = useQueryClient();
+  const memberId = member?.id;
+  const memberUserId = member?.user_id;
 
   // Form state
   const [name, setName] = useState("");
@@ -133,37 +135,36 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
   const [newPhone, setNewPhone] = useState("");
   const [privilegesOpen, setPrivilegesOpen] = useState(false);
   const [scopesOpen, setScopesOpen] = useState(false);
-
-  // Scope assignments
   const [clientScopes, setClientScopes] = useState<string[]>([]);
+  const [initialized, setInitialized] = useState(false);
 
-  // Fetch existing privileges for this member
+  // Fetch existing privileges
   const { data: existingPrivileges } = useQuery({
-    queryKey: ["team-member-privileges", member?.user_id],
+    queryKey: ["team-member-privileges", memberUserId],
     queryFn: async () => {
-      if (!member?.user_id) return null;
+      if (!memberUserId) return null;
       const { data } = await supabase
         .from("user_privileges")
         .select("*")
-        .eq("user_id", member.user_id)
+        .eq("user_id", memberUserId)
         .maybeSingle();
       return data;
     },
-    enabled: !!member?.user_id,
+    enabled: !!memberUserId && open,
   });
 
   // Fetch existing scopes
   const { data: existingScopes = [] } = useQuery({
-    queryKey: ["team-member-scopes", member?.id],
+    queryKey: ["team-member-scopes", memberId],
     queryFn: async () => {
-      if (!member?.id) return [];
+      if (!memberId) return [];
       const { data } = await supabase
         .from("team_member_scopes")
         .select("*")
-        .eq("team_member_id", member.id);
+        .eq("team_member_id", memberId);
       return data || [];
     },
-    enabled: !!member?.id,
+    enabled: !!memberId && open,
   });
 
   // Fetch clients for scope assignment
@@ -179,56 +180,64 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
         .order("name");
       return data || [];
     },
+    enabled: open,
   });
 
-  // Reset form when member changes
+  // Initialize form when dialog opens
   useEffect(() => {
-    if (open) {
-      setName(member?.name || "");
-      setEmail(member?.email || "");
-      setEmails(member?.emails || []);
-      setPhones(member?.phones || []);
-      setDepts(member?.departments || []);
-      setColor(member?.avatar_color || "#6366f1");
-      setManagerId(member?.manager_id || "");
-      setDepartmentId(member?.department_id || "");
-      setOrgTeamId(member?.org_team_id || "");
-      setOperationalRole(member?.operational_role || "team_employee");
-      setHasSystemAccess(member?.has_system_access || false);
-      setNewEmail("");
-      setNewPhone("");
-      setPrivilegesOpen(false);
-      setScopesOpen(false);
+    if (!open) {
+      setInitialized(false);
+      return;
     }
+
+    setName(member?.name || "");
+    setEmail(member?.email || "");
+    setEmails(member?.emails || []);
+    setPhones(member?.phones || []);
+    setDepts(member?.departments || []);
+    setColor(member?.avatar_color || "#6366f1");
+    setManagerId(member?.manager_id || "");
+    setDepartmentId(member?.department_id || "");
+    setOrgTeamId(member?.org_team_id || "");
+    setOperationalRole(member?.operational_role || "team_employee");
+    setHasSystemAccess(member?.has_system_access || false);
+    setNewEmail("");
+    setNewPhone("");
+    setPrivilegesOpen(false);
+    setScopesOpen(false);
+    setInitialized(false);
   }, [open, member]);
 
-  // Sync privileges from DB
+  // Sync privileges + scopes ONCE after data loads
   useEffect(() => {
-    if (existingPrivileges) {
-      setPrivileges({
-        is_admin: existingPrivileges.is_admin ?? false,
-        is_super_admin: existingPrivileges.is_super_admin ?? false,
-        can_view_proposals: existingPrivileges.can_view_proposals ?? false,
-        can_view_prices: existingPrivileges.can_view_prices ?? false,
-        can_invite_users: existingPrivileges.can_invite_users ?? false,
-        can_create_teams: existingPrivileges.can_create_teams ?? false,
-        can_manage_project_assignments: existingPrivileges.can_manage_project_assignments ?? false,
-        can_manage_client_assignments: existingPrivileges.can_manage_client_assignments ?? false,
-        can_override_hierarchy: existingPrivileges.can_override_hierarchy ?? false,
-      });
-    } else {
-      setPrivileges(DEFAULT_PRIVILEGES);
-    }
-  }, [existingPrivileges]);
+    if (!open || initialized) return;
 
-  // Sync scopes
-  useEffect(() => {
-    setClientScopes(
-      existingScopes
-        .filter((s: any) => s.scope_type === 'client')
-        .map((s: any) => s.scope_id)
-    );
-  }, [existingScopes]);
+    if (existingPrivileges !== undefined) {
+      if (existingPrivileges) {
+        setPrivileges({
+          is_admin: existingPrivileges.is_admin ?? false,
+          is_super_admin: existingPrivileges.is_super_admin ?? false,
+          can_view_proposals: existingPrivileges.can_view_proposals ?? false,
+          can_view_prices: existingPrivileges.can_view_prices ?? false,
+          can_invite_users: existingPrivileges.can_invite_users ?? false,
+          can_create_teams: existingPrivileges.can_create_teams ?? false,
+          can_manage_project_assignments: existingPrivileges.can_manage_project_assignments ?? false,
+          can_manage_client_assignments: existingPrivileges.can_manage_client_assignments ?? false,
+          can_override_hierarchy: existingPrivileges.can_override_hierarchy ?? false,
+        });
+      } else {
+        setPrivileges(DEFAULT_PRIVILEGES);
+      }
+
+      setClientScopes(
+        existingScopes
+          .filter((s: any) => s.scope_type === 'client')
+          .map((s: any) => s.scope_id)
+      );
+
+      setInitialized(true);
+    }
+  }, [open, initialized, existingPrivileges, existingScopes]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -247,10 +256,10 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
         updated_at: new Date().toISOString(),
       };
 
-      let teamMemberId = member?.id;
+      let teamMemberId = memberId;
 
-      if (member?.id) {
-        const { error } = await supabase.from("team").update(payload).eq("id", member.id);
+      if (memberId) {
+        const { error } = await supabase.from("team").update(payload).eq("id", memberId);
         if (error) throw error;
       } else {
         const { data, error } = await supabase.from("team").insert(payload).select("id").single();
@@ -259,7 +268,7 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
       }
 
       // Sync privileges if user_id exists
-      if (member?.user_id && hasSystemAccess) {
+      if (memberUserId && hasSystemAccess) {
         const { error } = await supabase.rpc('sync_team_member_privileges', {
           p_team_member_id: teamMemberId!,
           p_is_admin: privileges.is_admin,
@@ -277,25 +286,19 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
 
       // Sync client scopes
       if (teamMemberId) {
-        // Delete removed scopes
-        const { error: delError } = await supabase
+        await supabase
           .from("team_member_scopes")
           .delete()
           .eq("team_member_id", teamMemberId)
           .eq("scope_type", "client");
-        if (delError) console.error('Error deleting scopes:', delError);
 
-        // Insert new scopes
         if (clientScopes.length > 0) {
           const scopeRows = clientScopes.map(scopeId => ({
             team_member_id: teamMemberId!,
             scope_type: 'client' as const,
             scope_id: scopeId,
           }));
-          const { error: insError } = await supabase
-            .from("team_member_scopes")
-            .insert(scopeRows);
-          if (insError) console.error('Error inserting scopes:', insError);
+          await supabase.from("team_member_scopes").insert(scopeRows);
         }
       }
     },
@@ -330,14 +333,13 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
 
   const toggleClientScope = (clientId: string) => {
     setClientScopes(prev =>
-      prev.includes(clientId)
-        ? prev.filter(id => id !== clientId)
-        : [...prev, clientId]
+      prev.includes(clientId) ? prev.filter(id => id !== clientId) : [...prev, clientId]
     );
   };
 
-  const filteredOrgTeams = orgTeams.filter(
-    t => departmentId && departmentId !== 'none' && t.department_id === departmentId
+  const filteredOrgTeams = useMemo(() =>
+    orgTeams.filter(t => departmentId && departmentId !== 'none' && t.department_id === departmentId),
+    [orgTeams, departmentId]
   );
 
   return (
@@ -348,13 +350,13 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
         </DialogHeader>
 
         <div className="space-y-5">
-          {/* === BASIC INFO === */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2 space-y-1.5">
+          {/* Basic Info */}
+          <div className="space-y-3">
+            <div className="space-y-1.5">
               <Label>שם</Label>
               <Input value={name} onChange={e => setName(e.target.value)} placeholder="שם מלא" />
             </div>
-            <div className="col-span-2 space-y-1.5">
+            <div className="space-y-1.5">
               <Label>אימייל ראשי</Label>
               <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" />
             </div>
@@ -362,7 +364,7 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
 
           <Separator />
 
-          {/* === ORGANIZATIONAL POSITION === */}
+          {/* Organizational Position */}
           <div className="space-y-3">
             <h4 className="text-sm font-semibold flex items-center gap-2">
               <FolderTree className="w-4 h-4 text-primary" />
@@ -427,7 +429,7 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
 
           <Separator />
 
-          {/* === SYSTEM ACCESS === */}
+          {/* System Access */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-semibold flex items-center gap-2">
@@ -438,21 +440,18 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
             </div>
             {hasSystemAccess && (
               <p className="text-xs text-muted-foreground">
-                {member?.user_id
-                  ? "✓ המשתמש מחובר למערכת"
-                  : "המשתמש יוכל להתחבר עם האימייל הראשי לאחר הפעלה"
-                }
+                {memberUserId ? "✓ המשתמש מחובר למערכת" : "המשתמש יוכל להתחבר עם האימייל הראשי לאחר הפעלה"}
               </p>
             )}
           </div>
 
-          {/* === ELEVATED PRIVILEGES === */}
+          {/* Elevated Privileges */}
           {hasSystemAccess && (
             <Collapsible open={privilegesOpen} onOpenChange={setPrivilegesOpen}>
               <CollapsibleTrigger className="flex items-center gap-2 w-full text-right p-2 rounded-lg hover:bg-muted/50 transition-colors">
                 <ChevronDown className={`w-4 h-4 transition-transform ${privilegesOpen ? 'rotate-180' : ''}`} />
                 <Shield className="w-4 h-4 text-amber-500" />
-                <span className="text-sm font-semibold">הרשאות מערכת מורחבות</span>
+                <span className="text-sm font-semibold">הרשאות מורחבות</span>
                 {(privileges.is_admin || privileges.is_super_admin) && (
                   <Badge variant="default" className="text-[10px]">אדמין</Badge>
                 )}
@@ -462,10 +461,7 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
                   {(Object.keys(privilegeLabels) as (keyof Privileges)[]).map(key => (
                     <div key={key} className="flex items-center justify-between">
                       <label className="text-sm cursor-pointer">{privilegeLabels[key]}</label>
-                      <Switch
-                        checked={privileges[key]}
-                        onCheckedChange={() => togglePrivilege(key)}
-                      />
+                      <Switch checked={privileges[key]} onCheckedChange={() => togglePrivilege(key)} />
                     </div>
                   ))}
                 </div>
@@ -473,7 +469,7 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
             </Collapsible>
           )}
 
-          {/* === SCOPE ASSIGNMENT === */}
+          {/* Scope Assignment */}
           <Collapsible open={scopesOpen} onOpenChange={setScopesOpen}>
             <CollapsibleTrigger className="flex items-center gap-2 w-full text-right p-2 rounded-lg hover:bg-muted/50 transition-colors">
               <ChevronDown className={`w-4 h-4 transition-transform ${scopesOpen ? 'rotate-180' : ''}`} />
@@ -504,42 +500,52 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
 
           <Separator />
 
-          {/* === CONTACT DETAILS === */}
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label>כתובות מייל נוספות</Label>
-              <div className="flex flex-wrap gap-1.5 mb-1.5">
-                {emails.map(e => (
-                  <div key={e} className="flex items-center gap-1 bg-muted px-2 py-0.5 rounded-md text-xs">
-                    <Mail className="w-3 h-3" /><span>{e}</span>
-                    <button type="button" onClick={() => setEmails(emails.filter(x => x !== e))}><X className="w-3 h-3 text-destructive" /></button>
-                  </div>
-                ))}
+          {/* Contact Details */}
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center gap-2 w-full text-right p-2 rounded-lg hover:bg-muted/50 transition-colors">
+              <ChevronDown className="w-4 h-4" />
+              <Mail className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-semibold">פרטי קשר נוספים</span>
+              {(emails.length + phones.length) > 0 && (
+                <Badge variant="secondary" className="text-[10px]">{emails.length + phones.length}</Badge>
+              )}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-2 space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">כתובות מייל</Label>
+                <div className="flex flex-wrap gap-1.5 mb-1.5">
+                  {emails.map(e => (
+                    <div key={e} className="flex items-center gap-1 bg-muted px-2 py-0.5 rounded-md text-xs">
+                      <Mail className="w-3 h-3" /><span>{e}</span>
+                      <button type="button" onClick={() => setEmails(emails.filter(x => x !== e))}><X className="w-3 h-3 text-destructive" /></button>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="הוסף מייל" className="text-sm" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addEmail())} />
+                  <Button type="button" variant="outline" size="icon" onClick={addEmail}><Plus className="w-4 h-4" /></Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="הוסף מייל" className="text-sm" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addEmail())} />
-                <Button type="button" variant="outline" size="icon" onClick={addEmail}><Plus className="w-4 h-4" /></Button>
-              </div>
-            </div>
 
-            <div className="space-y-1.5">
-              <Label>טלפונים</Label>
-              <div className="flex flex-wrap gap-1.5 mb-1.5">
-                {phones.map(p => (
-                  <div key={p} className="flex items-center gap-1 bg-muted px-2 py-0.5 rounded-md text-xs">
-                    <Phone className="w-3 h-3" /><span>{p}</span>
-                    <button type="button" onClick={() => setPhones(phones.filter(x => x !== p))}><X className="w-3 h-3 text-destructive" /></button>
-                  </div>
-                ))}
+              <div className="space-y-1.5">
+                <Label className="text-xs">טלפונים</Label>
+                <div className="flex flex-wrap gap-1.5 mb-1.5">
+                  {phones.map(p => (
+                    <div key={p} className="flex items-center gap-1 bg-muted px-2 py-0.5 rounded-md text-xs">
+                      <Phone className="w-3 h-3" /><span>{p}</span>
+                      <button type="button" onClick={() => setPhones(phones.filter(x => x !== p))}><X className="w-3 h-3 text-destructive" /></button>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input type="tel" value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder="הוסף טלפון" className="text-sm" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addPhone())} />
+                  <Button type="button" variant="outline" size="icon" onClick={addPhone}><Plus className="w-4 h-4" /></Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Input type="tel" value={newPhone} onChange={e => setNewPhone(e.target.value)} placeholder="הוסף טלפון" className="text-sm" onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addPhone())} />
-                <Button type="button" variant="outline" size="icon" onClick={addPhone}><Plus className="w-4 h-4" /></Button>
-              </div>
-            </div>
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
 
-          {/* === DEPARTMENT TAGS === */}
+          {/* Department Tags */}
           <Collapsible>
             <CollapsibleTrigger className="flex items-center gap-2 w-full text-right p-2 rounded-lg hover:bg-muted/50 transition-colors">
               <ChevronDown className="w-4 h-4" />
@@ -562,7 +568,7 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
             </CollapsibleContent>
           </Collapsible>
 
-          {/* === AVATAR COLOR === */}
+          {/* Avatar Color */}
           <div className="space-y-1.5">
             <Label>צבע</Label>
             <div className="flex flex-wrap gap-1.5">
@@ -577,7 +583,7 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
             </div>
           </div>
 
-          {/* === ACTIONS === */}
+          {/* Actions */}
           <div className="flex gap-2 justify-end pt-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>ביטול</Button>
             <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || !name.trim()}>
