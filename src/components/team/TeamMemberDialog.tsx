@@ -269,8 +269,8 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
         teamMemberId = data.id;
       }
 
-      // Sync privileges if user_id exists
-      if (memberUserId && hasSystemAccess) {
+      // Sync privileges if user_id exists AND current user is admin
+      if (memberUserId && hasSystemAccess && isAdmin) {
         const { error } = await supabase.rpc('sync_team_member_privileges', {
           p_team_member_id: teamMemberId!,
           p_is_admin: privileges.is_admin,
@@ -283,7 +283,10 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
           p_can_manage_client_assignments: privileges.can_manage_client_assignments,
           p_can_override_hierarchy: privileges.can_override_hierarchy,
         });
-        if (error) console.error('Error syncing privileges:', error);
+        if (error) {
+          console.error('Error syncing privileges:', error);
+          toast.error(error.message || 'שגיאה בעדכון הרשאות');
+        }
       }
 
       // Sync client scopes
