@@ -1,0 +1,1 @@
+ALTER TABLE public.projects ADD COLUMN IF NOT EXISTS billing_mode text DEFAULT 'proposal_based';

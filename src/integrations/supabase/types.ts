@@ -2378,6 +2378,45 @@ export type Database = {
           },
         ]
       }
+      project_team: {
+        Row: {
+          created_at: string | null
+          id: string
+          project_id: string
+          role: string | null
+          team_member_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          project_id: string
+          role?: string | null
+          team_member_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          project_id?: string
+          role?: string | null
+          team_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_team_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_team_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_templates: {
         Row: {
           created_at: string | null
@@ -2417,6 +2456,7 @@ export type Database = {
       projects: {
         Row: {
           at_risk: boolean | null
+          billing_mode: string | null
           budget_credits: number | null
           budget_hours: number | null
           client_id: string | null
@@ -2443,6 +2483,7 @@ export type Database = {
         }
         Insert: {
           at_risk?: boolean | null
+          billing_mode?: string | null
           budget_credits?: number | null
           budget_hours?: number | null
           client_id?: string | null
@@ -2469,6 +2510,7 @@ export type Database = {
         }
         Update: {
           at_risk?: boolean | null
+          billing_mode?: string | null
           budget_credits?: number | null
           budget_hours?: number | null
           client_id?: string | null
