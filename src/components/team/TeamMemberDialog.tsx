@@ -447,8 +447,8 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
             )}
           </div>
 
-          {/* Elevated Privileges */}
-          {hasSystemAccess && (
+          {/* Elevated Privileges - Admin only */}
+          {hasSystemAccess && isAdmin && (
             <Collapsible open={privilegesOpen} onOpenChange={setPrivilegesOpen}>
               <CollapsibleTrigger className="flex items-center gap-2 w-full text-right p-2 rounded-lg hover:bg-muted/50 transition-colors">
                 <ChevronDown className={`w-4 h-4 transition-transform ${privilegesOpen ? 'rotate-180' : ''}`} />
@@ -460,12 +460,27 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-2">
                 <div className="grid grid-cols-1 gap-2 p-3 rounded-lg border bg-muted/30">
-                  {(Object.keys(privilegeLabels) as (keyof Privileges)[]).map(key => (
-                    <div key={key} className="flex items-center justify-between">
-                      <label className="text-sm cursor-pointer">{privilegeLabels[key]}</label>
-                      <Switch checked={privileges[key]} onCheckedChange={() => togglePrivilege(key)} />
-                    </div>
-                  ))}
+                  {(Object.keys(privilegeLabels) as (keyof Privileges)[]).map(key => {
+                    // is_super_admin and can_override_hierarchy: only super_admin can toggle
+                    const requiresSuperAdmin = key === 'is_super_admin' || key === 'can_override_hierarchy';
+                    // is_admin: only super_admin can grant
+                    const requiresSuperAdminForAdmin = key === 'is_admin';
+                    const disabled = (requiresSuperAdmin && !isSuperAdmin) || (requiresSuperAdminForAdmin && !isSuperAdmin);
+                    
+                    return (
+                      <div key={key} className="flex items-center justify-between">
+                        <label className={`text-sm cursor-pointer ${disabled ? 'text-muted-foreground' : ''}`}>
+                          {privilegeLabels[key]}
+                          {disabled && <span className="text-[10px] mr-1">(סופר אדמין בלבד)</span>}
+                        </label>
+                        <Switch 
+                          checked={privileges[key]} 
+                          onCheckedChange={() => togglePrivilege(key)} 
+                          disabled={disabled}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               </CollapsibleContent>
             </Collapsible>
