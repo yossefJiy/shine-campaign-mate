@@ -452,7 +452,9 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
             <h4 className="text-sm font-semibold flex items-center gap-2">
               <FolderTree className="w-4 h-4 text-primary" />
               מיקום ארגוני
-              {!canEditOrgFields && <Badge variant="outline" className="text-[10px]">צפייה בלבד</Badge>}
+              {!canEditOrgFields && <Badge variant="outline" className="text-[10px]">
+                {isSelfEdit && isAdmin && !isSuperAdmin ? 'אדמין לא יכול לשנות מיקום עצמי' : 'צפייה בלבד'}
+              </Badge>}
             </h4>
 
             <div className="space-y-1.5">
