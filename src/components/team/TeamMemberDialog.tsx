@@ -151,9 +151,9 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
   }, [member, callerTeamRecord, teamMembers]);
 
   const canEditThisMember = isAdmin || isSelfEdit || isHierarchyManager;
-  const canEditOrgFields = isAdmin; // Only admin can change role, department, team, manager, system access
-  const canEditScopes = isAdmin || (isHierarchyManager && !isSelfEdit);
-  const canEditPrivileges = isAdmin && !isSelfEdit; // No self-escalation
+  const canEditOrgFields = isSuperAdmin || (isAdmin && !isSelfEdit); // super_admin can self-edit org, admin can edit others
+  const canEditScopes = isAdmin || (isHierarchyManager && !isSelfEdit); // admin CAN self-assign scopes
+  const canEditPrivileges = isAdmin && !isSelfEdit; // No self-privilege-escalation ever
 
   // Form state
   const [name, setName] = useState("");
