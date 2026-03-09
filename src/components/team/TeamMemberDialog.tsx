@@ -98,7 +98,7 @@ const privilegeLabels: Record<keyof Privileges, string> = {
   can_view_proposals: 'צפייה בהצעות מחיר',
   can_view_prices: 'צפייה במחירים',
   can_invite_users: 'הזמנת משתמשים',
-  can_create_teams: 'יצירת צוותות',
+  can_create_teams: 'יצירת צוותים',
   can_manage_project_assignments: 'שיוך לפרויקטים',
   can_manage_client_assignments: 'שיוך ללקוחות',
   can_override_hierarchy: 'דריסת היררכיה',
