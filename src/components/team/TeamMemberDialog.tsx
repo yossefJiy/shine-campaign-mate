@@ -305,7 +305,7 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
           rpcParams.p_client_scopes = clientScopes;
         }
 
-        const { data, error } = await supabase.rpc('update_team_member_secure', rpcParams);
+        const { data, error } = await supabase.rpc('update_team_member_secure', rpcParams as any);
         if (error) throw error;
 
         // Sync privileges via separate RPC (already has its own permission checks)
