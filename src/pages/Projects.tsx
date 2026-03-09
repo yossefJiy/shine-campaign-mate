@@ -223,8 +223,8 @@ export default function Projects() {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="outline" onClick={() => setShowInternalDialog(true)}>
-                        <Wrench className="w-4 h-4 ml-2" />
-                        פרויקט פנימי
+                        <Plus className="w-4 h-4 ml-2" />
+                        פרויקט ידני
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
