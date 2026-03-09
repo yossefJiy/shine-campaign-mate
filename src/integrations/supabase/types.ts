@@ -4180,6 +4180,24 @@ export type Database = {
         }
         Returns: undefined
       }
+      update_team_member_secure: {
+        Args: {
+          p_avatar_color?: string
+          p_client_scopes?: string[]
+          p_department_id?: string
+          p_departments?: string[]
+          p_email?: string
+          p_emails?: string[]
+          p_has_system_access?: boolean
+          p_manager_id?: string
+          p_name?: string
+          p_operational_role?: string
+          p_org_team_id?: string
+          p_phones?: string[]
+          p_team_member_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       ai_capability_category:
