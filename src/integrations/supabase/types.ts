@@ -2417,6 +2417,7 @@ export type Database = {
       projects: {
         Row: {
           at_risk: boolean | null
+          billing_mode: string | null
           budget_credits: number | null
           budget_hours: number | null
           client_id: string | null
@@ -2443,6 +2444,7 @@ export type Database = {
         }
         Insert: {
           at_risk?: boolean | null
+          billing_mode?: string | null
           budget_credits?: number | null
           budget_hours?: number | null
           client_id?: string | null
@@ -2469,6 +2471,7 @@ export type Database = {
         }
         Update: {
           at_risk?: boolean | null
+          billing_mode?: string | null
           budget_credits?: number | null
           budget_hours?: number | null
           client_id?: string | null
