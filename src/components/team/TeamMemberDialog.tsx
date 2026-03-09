@@ -116,6 +116,7 @@ interface Props {
 
 export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, departments, orgTeams }: Props) {
   const queryClient = useQueryClient();
+  const { isAdmin, isSuperAdmin } = usePermissions();
   const memberId = member?.id;
   const memberUserId = member?.user_id;
 
