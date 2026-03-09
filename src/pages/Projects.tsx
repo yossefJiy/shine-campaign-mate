@@ -228,7 +228,7 @@ export default function Projects() {
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>יצירת פרויקט ללא הצעת מחיר (Admin)</p>
+                      <p>פרויקט ריטיינר / פנימי ללא הצעת מחיר</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
