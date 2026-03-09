@@ -46,6 +46,7 @@ import { format, differenceInDays } from "date-fns";
 import { he } from "date-fns/locale";
 import { AddStageDialog } from "./AddStageDialog";
 import { ProjectEditDetailsDialog } from "./ProjectEditDetailsDialog";
+import { ProjectTeamManager } from "./ProjectTeamManager";
 
 interface ProjectDetailDialogProps {
   open: boolean;
