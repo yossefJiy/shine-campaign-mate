@@ -3726,6 +3726,7 @@ export type Database = {
           departments: string[]
           email: string | null
           emails: string[] | null
+          has_system_access: boolean | null
           id: string
           is_active: boolean | null
           manager_id: string | null
@@ -3744,6 +3745,7 @@ export type Database = {
           departments?: string[]
           email?: string | null
           emails?: string[] | null
+          has_system_access?: boolean | null
           id?: string
           is_active?: boolean | null
           manager_id?: string | null
@@ -3762,6 +3764,7 @@ export type Database = {
           departments?: string[]
           email?: string | null
           emails?: string[] | null
+          has_system_access?: boolean | null
           id?: string
           is_active?: boolean | null
           manager_id?: string | null
@@ -3792,6 +3795,41 @@ export type Database = {
             columns: ["org_team_id"]
             isOneToOne: false
             referencedRelation: "org_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_member_scopes: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          scope_id: string
+          scope_type: string
+          team_member_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          scope_id: string
+          scope_type: string
+          team_member_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          scope_id?: string
+          scope_type?: string
+          team_member_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_member_scopes_team_member_id_fkey"
+            columns: ["team_member_id"]
+            isOneToOne: false
+            referencedRelation: "team"
             referencedColumns: ["id"]
           },
         ]
@@ -4109,6 +4147,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_scope_access: {
+        Args: { _scope_id: string; _scope_type: string; _user_id: string }
+        Returns: boolean
+      }
       log_security_event: {
         Args: {
           p_action: string
@@ -4123,6 +4165,21 @@ export type Database = {
       }
       mark_overdue_payments: { Args: never; Returns: number }
       mark_projects_blocked_by_payment: { Args: never; Returns: number }
+      sync_team_member_privileges: {
+        Args: {
+          p_can_create_teams?: boolean
+          p_can_invite_users?: boolean
+          p_can_manage_client_assignments?: boolean
+          p_can_manage_project_assignments?: boolean
+          p_can_override_hierarchy?: boolean
+          p_can_view_prices?: boolean
+          p_can_view_proposals?: boolean
+          p_is_admin?: boolean
+          p_is_super_admin?: boolean
+          p_team_member_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       ai_capability_category:
