@@ -548,6 +548,11 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
             </ScrollArea>
           </TabsContent>
 
+          {/* Team Tab */}
+          <TabsContent value="team">
+            <ProjectTeamManager projectId={projectId} />
+          </TabsContent>
+
           {/* Client View Tab */}
           <TabsContent value="client">
             <ScrollArea className="h-[500px] pr-4">
