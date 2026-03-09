@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { usePermissions } from "@/hooks/useAuth";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -98,7 +99,7 @@ const privilegeLabels: Record<keyof Privileges, string> = {
   can_view_proposals: 'צפייה בהצעות מחיר',
   can_view_prices: 'צפייה במחירים',
   can_invite_users: 'הזמנת משתמשים',
-  can_create_teams: 'יצירת צוותות',
+  can_create_teams: 'יצירת צוותים',
   can_manage_project_assignments: 'שיוך לפרויקטים',
   can_manage_client_assignments: 'שיוך ללקוחות',
   can_override_hierarchy: 'דריסת היררכיה',
@@ -115,6 +116,7 @@ interface Props {
 
 export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, departments, orgTeams }: Props) {
   const queryClient = useQueryClient();
+  const { isAdmin, isSuperAdmin } = usePermissions();
   const memberId = member?.id;
   const memberUserId = member?.user_id;
 
@@ -267,8 +269,8 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
         teamMemberId = data.id;
       }
 
-      // Sync privileges if user_id exists
-      if (memberUserId && hasSystemAccess) {
+      // Sync privileges if user_id exists AND current user is admin
+      if (memberUserId && hasSystemAccess && isAdmin) {
         const { error } = await supabase.rpc('sync_team_member_privileges', {
           p_team_member_id: teamMemberId!,
           p_is_admin: privileges.is_admin,
@@ -281,7 +283,10 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
           p_can_manage_client_assignments: privileges.can_manage_client_assignments,
           p_can_override_hierarchy: privileges.can_override_hierarchy,
         });
-        if (error) console.error('Error syncing privileges:', error);
+        if (error) {
+          console.error('Error syncing privileges:', error);
+          toast.error(error.message || 'שגיאה בעדכון הרשאות');
+        }
       }
 
       // Sync client scopes
@@ -445,8 +450,8 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
             )}
           </div>
 
-          {/* Elevated Privileges */}
-          {hasSystemAccess && (
+          {/* Elevated Privileges - Admin only */}
+          {hasSystemAccess && isAdmin && (
             <Collapsible open={privilegesOpen} onOpenChange={setPrivilegesOpen}>
               <CollapsibleTrigger className="flex items-center gap-2 w-full text-right p-2 rounded-lg hover:bg-muted/50 transition-colors">
                 <ChevronDown className={`w-4 h-4 transition-transform ${privilegesOpen ? 'rotate-180' : ''}`} />
@@ -458,12 +463,27 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-2">
                 <div className="grid grid-cols-1 gap-2 p-3 rounded-lg border bg-muted/30">
-                  {(Object.keys(privilegeLabels) as (keyof Privileges)[]).map(key => (
-                    <div key={key} className="flex items-center justify-between">
-                      <label className="text-sm cursor-pointer">{privilegeLabels[key]}</label>
-                      <Switch checked={privileges[key]} onCheckedChange={() => togglePrivilege(key)} />
-                    </div>
-                  ))}
+                  {(Object.keys(privilegeLabels) as (keyof Privileges)[]).map(key => {
+                    // is_super_admin and can_override_hierarchy: only super_admin can toggle
+                    const requiresSuperAdmin = key === 'is_super_admin' || key === 'can_override_hierarchy';
+                    // is_admin: only super_admin can grant
+                    const requiresSuperAdminForAdmin = key === 'is_admin';
+                    const disabled = (requiresSuperAdmin && !isSuperAdmin) || (requiresSuperAdminForAdmin && !isSuperAdmin);
+                    
+                    return (
+                      <div key={key} className="flex items-center justify-between">
+                        <label className={`text-sm cursor-pointer ${disabled ? 'text-muted-foreground' : ''}`}>
+                          {privilegeLabels[key]}
+                          {disabled && <span className="text-[10px] mr-1">(סופר אדמין בלבד)</span>}
+                        </label>
+                        <Switch 
+                          checked={privileges[key]} 
+                          onCheckedChange={() => togglePrivilege(key)} 
+                          disabled={disabled}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               </CollapsibleContent>
             </Collapsible>

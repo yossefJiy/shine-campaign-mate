@@ -212,7 +212,7 @@ export default function Team() {
           <span className="font-semibold text-lg">{dept.name}</span>
           <Badge variant="outline" className="text-xs mr-2">{members.length}</Badge>
           {deptOrgTeams.length > 0 && (
-            <Badge variant="secondary" className="text-xs">{deptOrgTeams.length} צוותות</Badge>
+            <Badge variant="secondary" className="text-xs">{deptOrgTeams.length} צוותים</Badge>
           )}
         </CollapsibleTrigger>
         <CollapsibleContent>
