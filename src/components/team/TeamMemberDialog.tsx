@@ -151,9 +151,9 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
   }, [member, callerTeamRecord, teamMembers]);
 
   const canEditThisMember = isAdmin || isSelfEdit || isHierarchyManager;
-  const canEditOrgFields = isAdmin; // Only admin can change role, department, team, manager, system access
-  const canEditScopes = isAdmin || (isHierarchyManager && !isSelfEdit);
-  const canEditPrivileges = isAdmin && !isSelfEdit; // No self-escalation
+  const canEditOrgFields = isSuperAdmin || (isAdmin && !isSelfEdit); // super_admin can self-edit org, admin can edit others
+  const canEditScopes = isAdmin || (isHierarchyManager && !isSelfEdit); // admin CAN self-assign scopes
+  const canEditPrivileges = isAdmin && !isSelfEdit; // No self-privilege-escalation ever
 
   // Form state
   const [name, setName] = useState("");
@@ -452,7 +452,9 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
             <h4 className="text-sm font-semibold flex items-center gap-2">
               <FolderTree className="w-4 h-4 text-primary" />
               מיקום ארגוני
-              {!canEditOrgFields && <Badge variant="outline" className="text-[10px]">צפייה בלבד</Badge>}
+              {!canEditOrgFields && <Badge variant="outline" className="text-[10px]">
+                {isSelfEdit && isAdmin && !isSuperAdmin ? 'אדמין לא יכול לשנות מיקום עצמי' : 'צפייה בלבד'}
+              </Badge>}
             </h4>
 
             <div className="space-y-1.5">
