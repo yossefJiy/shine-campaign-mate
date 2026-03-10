@@ -60,6 +60,8 @@ interface Task {
   income_value: number | null;
   waiting_since: string | null;
   is_blocking: boolean | null;
+  task_type?: string | null;
+  ready_for_qa?: boolean | null;
   projects?: { id: string; name: string; color: string | null } | null;
   clients?: { name: string; is_master_account?: boolean } | null;
 }
