@@ -55,12 +55,12 @@ export function useSmartDashboard(clientId?: string) {
         .from("tasks")
         .select(`
           id, title, status, priority, due_date, task_tag, income_value, assignee, client_id,
-          clients!inner(name)
+          clients!tasks_client_id_fkey(name)
         `)
-        .eq("task_tag", "income_generating")
+        .in("task_tag", ["income_generating", "operational"])
         .neq("status", "completed")
-        .order("income_value", { ascending: false, nullsFirst: false })
-        .limit(3);
+        .order("priority", { ascending: true })
+        .limit(5);
       
       if (clientId) {
         incomeQuery = incomeQuery.eq("client_id", clientId);
@@ -73,9 +73,9 @@ export function useSmartDashboard(clientId?: string) {
         .from("tasks")
         .select(`
           id, title, status, priority, due_date, task_tag, income_value, assignee, client_id,
-          clients!inner(name)
+          clients!tasks_client_id_fkey(name)
         `)
-        .eq("task_tag", "client_dependent")
+        .in("status", ["waiting", "blocked"])
         .neq("status", "completed")
         .order("due_date", { ascending: true })
         .limit(10);
@@ -91,7 +91,7 @@ export function useSmartDashboard(clientId?: string) {
         .from("billing_records")
         .select(`
           id, client_id, total_amount, due_date,
-          clients!inner(name)
+          clients!billing_records_client_id_fkey(name)
         `)
         .eq("status", "pending")
         .lt("due_date", today);
@@ -109,7 +109,7 @@ export function useSmartDashboard(clientId?: string) {
         .from("projects")
         .select(`
           id, name, client_id, updated_at,
-          clients!inner(name)
+          clients(name)
         `)
         .neq("status", "completed")
         .lt("updated_at", sevenDaysAgo);
