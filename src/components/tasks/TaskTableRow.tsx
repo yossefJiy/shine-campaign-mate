@@ -11,8 +11,10 @@ import {
   Trash2, 
   RotateCcw,
   FolderKanban,
-  Pause
+  Pause,
+  ShieldCheck,
 } from "lucide-react";
+import { getTaskTypeConfig } from "./TaskTypeSelector";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -58,6 +60,8 @@ interface Task {
   income_value: number | null;
   waiting_since: string | null;
   is_blocking: boolean | null;
+  task_type?: string | null;
+  ready_for_qa?: boolean | null;
   projects?: { id: string; name: string; color: string | null } | null;
   clients?: { name: string; is_master_account?: boolean } | null;
 }
@@ -200,6 +204,22 @@ export function TaskTableRow({
               )}
               {task.category && ['revenue', 'growth', 'innovation', 'maintenance'].includes(task.category) && (
                 <PriorityCategoryBadge category={task.category as "revenue" | "growth" | "innovation" | "maintenance"} />
+              )}
+              {task.task_type && task.task_type !== 'operations' && (() => {
+                const typeConf = getTaskTypeConfig(task.task_type!);
+                const TypeIcon = typeConf.icon;
+                return (
+                  <Badge variant="outline" className="text-xs gap-1">
+                    <TypeIcon className="w-3 h-3" />
+                    {typeConf.label}
+                  </Badge>
+                );
+              })()}
+              {task.ready_for_qa && (
+                <Badge variant="outline" className="text-xs gap-1 bg-info/10 text-info border-info/30">
+                  <ShieldCheck className="w-3 h-3" />
+                  QA
+                </Badge>
               )}
             </div>
 

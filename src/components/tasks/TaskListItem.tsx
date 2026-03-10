@@ -17,8 +17,10 @@ import {
   DollarSign,
   Wrench,
   UserCheck,
-  Pause
+  Pause,
+  ShieldCheck,
 } from "lucide-react";
+import { getTaskTypeConfig } from "./TaskTypeSelector";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -54,6 +56,8 @@ export interface Task {
   stage_id?: string | null;
   task_tag?: string | null;
   income_value?: number | null;
+  task_type?: string | null;
+  ready_for_qa?: boolean | null;
   clients?: { name: string; is_master_account?: boolean } | null;
   projects?: { id: string; name: string; color: string | null } | null;
 }
@@ -218,6 +222,22 @@ export function TaskListItem({
               )}
               <TaskAttachmentsBadge taskId={task.id} />
               <TaskSubtaskProgress taskId={task.id} />
+              {task.task_type && task.task_type !== 'operations' && (() => {
+                const typeConf = getTaskTypeConfig(task.task_type!);
+                const TypeIcon = typeConf.icon;
+                return (
+                  <Badge variant="outline" className="text-xs gap-1">
+                    <TypeIcon className="w-3 h-3" />
+                    {typeConf.label}
+                  </Badge>
+                );
+              })()}
+              {task.ready_for_qa && (
+                <Badge variant="outline" className="text-xs gap-1 bg-info/10 text-info border-info/30">
+                  <ShieldCheck className="w-3 h-3" />
+                  QA
+                </Badge>
+              )}
             </div>
             
             {task.description && (
