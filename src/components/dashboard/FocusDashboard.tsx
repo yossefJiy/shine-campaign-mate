@@ -14,8 +14,6 @@ import {
 } from "lucide-react";
 import { useSmartDashboard } from "@/hooks/useSmartDashboard";
 import { microcopy, formatMessage } from "@/lib/microcopy";
-import { formatDistanceToNow } from "date-fns";
-import { he } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -43,7 +41,6 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
   };
 
   const handleSendReminder = async (clientId: string, message: string) => {
-    // TODO: Implement reminder sending via edge function
     toast.success(microcopy.messages.reminderSent);
   };
 
@@ -74,8 +71,8 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
     );
   }
 
-  const hasIncomeTasksToday = data?.incomeGeneratingTasks && data.incomeGeneratingTasks.length > 0;
-  const hasClientDelays = data?.clientDependentTasks && data.clientDependentTasks.length > 0;
+  const hasTopTasks = data?.topTasks && data.topTasks.length > 0;
+  const hasClientDelays = data?.clientDelayTasks && data.clientDelayTasks.length > 0;
   const hasOverduePayments = data?.overduePayments && data.overduePayments.length > 0;
   const hasStalledProjects = data?.stalledProjects && data.stalledProjects.length > 0;
 
@@ -92,10 +89,10 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        {/* Income Tasks Today */}
+        {/* Top Priority Tasks */}
         <Card className={cn(
           "focus-block",
-          hasIncomeTasksToday ? "focus-block-primary" : "focus-block-muted"
+          hasTopTasks ? "focus-block-primary" : "focus-block-muted"
         )}>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-section-title">
@@ -104,9 +101,9 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {hasIncomeTasksToday ? (
+            {hasTopTasks ? (
               <div className="space-y-3">
-                {data.incomeGeneratingTasks.slice(0, 3).map((task) => (
+                {data.topTasks.slice(0, 5).map((task) => (
                   <div
                     key={task.id}
                     className="flex items-center justify-between p-3 rounded-lg bg-card border"
@@ -115,10 +112,10 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
                       <p className="font-medium truncate text-body">{task.title}</p>
                       <div className="flex items-center gap-2 text-meta text-muted-foreground">
                         <span>{task.client_name}</span>
-                        {task.income_value && (
-                          <span className="tag-income">
-                            ₪{task.income_value.toLocaleString()}
-                          </span>
+                        {task.priority && (
+                          <Badge variant="outline" className="text-xs">
+                            {task.priority}
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -156,7 +153,7 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
           <CardContent>
             {hasClientDelays ? (
               <div className="space-y-3">
-                {data.clientDependentTasks.slice(0, 5).map((task) => (
+                {data.clientDelayTasks.slice(0, 5).map((task) => (
                   <div
                     key={task.id}
                     className="flex items-center justify-between p-3 rounded-lg bg-card border"
@@ -302,13 +299,6 @@ export function FocusDashboard({ clientId }: FocusDashboardProps) {
               <div>
                 <p className="text-page-title">{data.todayStats.totalTasks}</p>
                 <p className="text-meta text-muted-foreground">משימות היום</p>
-              </div>
-              <div className="h-10 w-px bg-border" />
-              <div>
-                <p className="text-page-title text-success">
-                  ₪{data.todayStats.incomeValue.toLocaleString()}
-                </p>
-                <p className="text-meta text-muted-foreground">ערך הכנסה</p>
               </div>
             </div>
           </CardContent>
