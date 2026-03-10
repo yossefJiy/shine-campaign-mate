@@ -11,8 +11,10 @@ import {
   Trash2, 
   RotateCcw,
   FolderKanban,
-  Pause
+  Pause,
+  ShieldCheck,
 } from "lucide-react";
+import { getTaskTypeConfig } from "./TaskTypeSelector";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
