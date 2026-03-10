@@ -4126,14 +4126,23 @@ export type Database = {
       }
     }
     Functions: {
-      calc_delivery_time: {
-        Args: {
-          p_recipient_id: string
-          p_recipient_type: string
-          p_severity?: string
-        }
-        Returns: string
-      }
+      calc_delivery_time:
+        | {
+            Args: {
+              p_recipient_id: string
+              p_recipient_type: string
+              p_severity: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_recipient_id: string
+              p_recipient_type: string
+              p_severity?: string
+            }
+            Returns: string
+          }
       cancel_approved_quote: {
         Args: { p_quote_id: string; p_reason: string }
         Returns: undefined
