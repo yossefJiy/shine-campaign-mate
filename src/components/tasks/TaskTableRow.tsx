@@ -205,6 +205,22 @@ export function TaskTableRow({
               {task.category && ['revenue', 'growth', 'innovation', 'maintenance'].includes(task.category) && (
                 <PriorityCategoryBadge category={task.category as "revenue" | "growth" | "innovation" | "maintenance"} />
               )}
+              {task.task_type && task.task_type !== 'operations' && (() => {
+                const typeConf = getTaskTypeConfig(task.task_type!);
+                const TypeIcon = typeConf.icon;
+                return (
+                  <Badge variant="outline" className="text-xs gap-1">
+                    <TypeIcon className="w-3 h-3" />
+                    {typeConf.label}
+                  </Badge>
+                );
+              })()}
+              {task.ready_for_qa && (
+                <Badge variant="outline" className="text-xs gap-1 bg-info/10 text-info border-info/30">
+                  <ShieldCheck className="w-3 h-3" />
+                  QA
+                </Badge>
+              )}
             </div>
 
             <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
