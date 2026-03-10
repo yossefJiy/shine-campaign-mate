@@ -544,7 +544,14 @@ export default function Tasks() {
       notification_email_address: taskForm.formData.notificationEmailAddress || null,
       reminder_sent: false,
       duration_minutes: 60,
-    });
+      task_type: taskForm.formData.taskType || 'operations',
+      expected_result: taskForm.formData.expectedResult || null,
+      reference_links: taskForm.formData.referenceLinks.length > 0 ? taskForm.formData.referenceLinks : null,
+      qa_result: taskForm.formData.qaResult || null,
+      completion_proof: taskForm.formData.completionProof || null,
+      completion_notes: taskForm.formData.completionNotes || null,
+      ready_for_qa: taskForm.formData.readyForQa,
+    } as any);
   };
 
   const toggleTaskSelection = (taskId: string) => {
