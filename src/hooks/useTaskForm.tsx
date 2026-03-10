@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { TeamMember, Project } from "@/types/domains/tasks";
 
+export type TaskType = 'development' | 'design' | 'qa' | 'seo' | 'content' | 'operations';
+
 export interface TaskFormData {
   title: string;
   description: string;
@@ -20,6 +22,14 @@ export interface TaskFormData {
   notificationSms: boolean;
   notificationPhone: string;
   notificationEmailAddress: string;
+  // New universal fields
+  taskType: TaskType;
+  expectedResult: string;
+  referenceLinks: string[];
+  qaResult: string;
+  completionProof: string;
+  completionNotes: string;
+  readyForQa: boolean;
 }
 
 export type ReminderOption = 'at_time' | 'hour_before' | 'day_before' | 'custom';
@@ -60,6 +70,13 @@ const initialFormData: TaskFormData = {
   notificationSms: false,
   notificationPhone: "",
   notificationEmailAddress: "",
+  taskType: "operations",
+  expectedResult: "",
+  referenceLinks: [],
+  qaResult: "",
+  completionProof: "",
+  completionNotes: "",
+  readyForQa: false,
 };
 
 export function useTaskForm(): UseTaskFormReturn {
@@ -99,6 +116,13 @@ export function useTaskForm(): UseTaskFormReturn {
       notificationSms: task.notificationSms || false,
       notificationPhone: task.notificationPhone || "",
       notificationEmailAddress: task.notificationEmailAddress || "",
+      taskType: task.taskType || "operations",
+      expectedResult: task.expectedResult || "",
+      referenceLinks: task.referenceLinks || [],
+      qaResult: task.qaResult || "",
+      completionProof: task.completionProof || "",
+      completionNotes: task.completionNotes || "",
+      readyForQa: task.readyForQa || false,
     });
     setExpandedSections(new Set(task.id ? ["title", "subtasks"] : ["title"]));
     setSelectedReminders([]);
@@ -127,31 +151,22 @@ export function useTaskForm(): UseTaskFormReturn {
 
   const getSmartAssignee = useCallback((category: string, department: string, teamMembers: TeamMember[]): string => {
     if (!category && !department) return "";
-    
     const matchingMembers = teamMembers.filter(m =>
       m.departments.includes(department) ||
       (category && m.departments.some(d => d.toLowerCase().includes(category.toLowerCase())))
     );
-    
-    if (matchingMembers.length > 0) {
-      return matchingMembers[0].name;
-    }
-    
+    if (matchingMembers.length > 0) return matchingMembers[0].name;
     return "";
   }, []);
 
   const handleAssigneeChange = useCallback((name: string, teamMembers: TeamMember[]) => {
     const member = teamMembers.find(m => m.name === name);
-    
     setFormData(prev => {
       const updates: Partial<TaskFormData> = { assignee: name };
-      
       if (member) {
         if (!prev.notificationEmailAddress) {
           const primaryEmail = member.emails?.[0] || member.email;
-          if (primaryEmail) {
-            updates.notificationEmailAddress = primaryEmail;
-          }
+          if (primaryEmail) updates.notificationEmailAddress = primaryEmail;
         }
         if (!prev.notificationPhone && member.phones?.[0]) {
           updates.notificationPhone = member.phones[0];
@@ -160,7 +175,6 @@ export function useTaskForm(): UseTaskFormReturn {
           updates.department = member.departments[0];
         }
       }
-      
       return { ...prev, ...updates };
     });
   }, []);
@@ -169,33 +183,19 @@ export function useTaskForm(): UseTaskFormReturn {
     if (!dueDate) return null;
     const baseDate = new Date(`${dueDate}T${scheduledTime || '09:00'}:00`);
     switch (option) {
-      case 'at_time':
-        return baseDate.toISOString();
-      case 'hour_before':
-        return new Date(baseDate.getTime() - 60 * 60 * 1000).toISOString();
-      case 'day_before':
-        return new Date(baseDate.getTime() - 24 * 60 * 60 * 1000).toISOString();
-      case 'custom':
-        return formData.reminderAt ? new Date(formData.reminderAt).toISOString() : null;
-      default:
-        return null;
+      case 'at_time': return baseDate.toISOString();
+      case 'hour_before': return new Date(baseDate.getTime() - 60 * 60 * 1000).toISOString();
+      case 'day_before': return new Date(baseDate.getTime() - 24 * 60 * 60 * 1000).toISOString();
+      case 'custom': return formData.reminderAt ? new Date(formData.reminderAt).toISOString() : null;
+      default: return null;
     }
   }, [formData.reminderAt]);
 
   return {
-    formData,
-    setFormData,
-    updateField,
-    resetForm,
-    initFromTask,
-    expandedSections,
-    toggleSection,
-    selectedReminders,
-    toggleReminderOption,
-    showReminderPreview,
-    setShowReminderPreview,
-    handleAssigneeChange,
-    getSmartAssignee,
-    calculateReminderTime,
+    formData, setFormData, updateField, resetForm, initFromTask,
+    expandedSections, toggleSection,
+    selectedReminders, toggleReminderOption,
+    showReminderPreview, setShowReminderPreview,
+    handleAssigneeChange, getSmartAssignee, calculateReminderTime,
   };
 }
