@@ -15,13 +15,13 @@ export interface SmartTask {
   assignee: string | null;
   client_id: string;
   client_name?: string;
-  project_name?: string;
-  stage_name?: string;
 }
 
 export interface DashboardStats {
-  incomeGeneratingTasks: SmartTask[];
-  clientDependentTasks: SmartTask[];
+  /** Top priority tasks to work on now (any tag) */
+  topTasks: SmartTask[];
+  /** Tasks in waiting/blocked status (client delays) */
+  clientDelayTasks: SmartTask[];
   overduePayments: {
     id: string;
     client_id: string;
@@ -40,80 +40,95 @@ export interface DashboardStats {
   todayStats: {
     totalTasks: number;
     completedTasks: number;
-    incomeValue: number;
   };
 }
 
+// Priority sort order for dashboard display
+const PRIORITY_ORDER: Record<string, number> = {
+  urgent: 0,
+  high: 1,
+  medium: 2,
+  low: 3,
+};
+
 export function useSmartDashboard(clientId?: string) {
   const today = startOfDay(new Date()).toISOString();
-  
+
   return useQuery({
     queryKey: ["smart-dashboard", clientId],
     queryFn: async (): Promise<DashboardStats> => {
-      // 1. Get top income-generating tasks for today
-      let incomeQuery = supabase
+      // 1. Top priority non-completed tasks
+      //    NOTE: task_tag is currently uniformly 'operational'.
+      //    When tags are properly assigned, filter can be refined to prioritize income_generating.
+      let topQuery = supabase
         .from("tasks")
         .select(`
           id, title, status, priority, due_date, task_tag, income_value, assignee, client_id,
-          clients!tasks_client_id_fkey(name)
+          clients:clients!tasks_client_id_fkey(name)
         `)
-        .in("task_tag", ["income_generating", "operational"])
-        .neq("status", "completed")
-        .order("priority", { ascending: true })
+        .not("status", "in", '("completed","cancelled")')
+        .not("status", "in", '("waiting","blocked")')
+        .order("due_date", { ascending: true, nullsFirst: false })
         .limit(5);
-      
+
       if (clientId) {
-        incomeQuery = incomeQuery.eq("client_id", clientId);
+        topQuery = topQuery.eq("client_id", clientId);
       }
 
-      const { data: incomeTasks } = await incomeQuery;
+      const { data: topTasksRaw } = await topQuery;
 
-      // 2. Get client-dependent (waiting) tasks
-      let clientDepQuery = supabase
+      // Sort by priority in JS since DB doesn't know priority ordering
+      const sortedTopTasks = (topTasksRaw || []).sort((a: any, b: any) => {
+        const aPri = PRIORITY_ORDER[a.priority] ?? 99;
+        const bPri = PRIORITY_ORDER[b.priority] ?? 99;
+        return aPri - bPri;
+      });
+
+      // 2. Client delay tasks (waiting/blocked status)
+      let delayQuery = supabase
         .from("tasks")
         .select(`
           id, title, status, priority, due_date, task_tag, income_value, assignee, client_id,
-          clients!tasks_client_id_fkey(name)
+          clients:clients!tasks_client_id_fkey(name)
         `)
         .in("status", ["waiting", "blocked"])
-        .neq("status", "completed")
-        .order("due_date", { ascending: true })
+        .order("due_date", { ascending: true, nullsFirst: false })
         .limit(10);
-      
+
       if (clientId) {
-        clientDepQuery = clientDepQuery.eq("client_id", clientId);
+        delayQuery = delayQuery.eq("client_id", clientId);
       }
 
-      const { data: clientDepTasks } = await clientDepQuery;
+      const { data: delayTasksRaw } = await delayQuery;
 
-      // 3. Get overdue payments
+      // 3. Overdue payments
       let paymentsQuery = supabase
         .from("billing_records")
         .select(`
           id, client_id, total_amount, due_date,
-          clients!billing_records_client_id_fkey(name)
+          clients:clients!billing_records_client_id_fkey(name)
         `)
         .eq("status", "pending")
         .lt("due_date", today);
-      
+
       if (clientId) {
         paymentsQuery = paymentsQuery.eq("client_id", clientId);
       }
 
       const { data: overduePaymentsRaw } = await paymentsQuery;
 
-      // 4. Get stalled projects (no activity in 7+ days)
+      // 4. Stalled projects (no activity in 7+ days)
       const sevenDaysAgo = subDays(new Date(), 7).toISOString();
-      
+
       let projectsQuery = supabase
         .from("projects")
         .select(`
           id, name, client_id, updated_at,
-          clients(name)
+          clients:clients!projects_client_id_fkey(name)
         `)
         .neq("status", "completed")
         .lt("updated_at", sevenDaysAgo);
-      
+
       if (clientId) {
         projectsQuery = projectsQuery.eq("client_id", clientId);
       }
@@ -121,25 +136,26 @@ export function useSmartDashboard(clientId?: string) {
       const { data: stalledProjectsRaw } = await projectsQuery;
 
       // 5. Today's stats
+      const todayEnd = today.replace("T00:00:00.000Z", "T23:59:59.999Z");
       let todayQuery = supabase
         .from("tasks")
-        .select("id, status, income_value, task_tag")
+        .select("id, status")
         .gte("due_date", today)
-        .lte("due_date", today + "T23:59:59");
-      
+        .lte("due_date", todayEnd);
+
       if (clientId) {
         todayQuery = todayQuery.eq("client_id", clientId);
       }
 
       const { data: todayTasks } = await todayQuery;
 
-      // Transform data
-      const incomeGeneratingTasks: SmartTask[] = (incomeTasks || []).map((t: any) => ({
+      // Transform
+      const topTasks: SmartTask[] = sortedTopTasks.slice(0, 5).map((t: any) => ({
         ...t,
         client_name: t.clients?.name,
       }));
 
-      const clientDependentTasks: SmartTask[] = (clientDepTasks || []).map((t: any) => ({
+      const clientDelayTasks: SmartTask[] = (delayTasksRaw || []).map((t: any) => ({
         ...t,
         client_name: t.clients?.name,
       }));
@@ -162,22 +178,18 @@ export function useSmartDashboard(clientId?: string) {
       }));
 
       const completedToday = (todayTasks || []).filter((t: any) => t.status === "completed");
-      const incomeToday = completedToday
-        .filter((t: any) => t.task_tag === "income_generating")
-        .reduce((sum: number, t: any) => sum + (t.income_value || 0), 0);
 
       return {
-        incomeGeneratingTasks,
-        clientDependentTasks,
+        topTasks,
+        clientDelayTasks,
         overduePayments,
         stalledProjects,
         todayStats: {
           totalTasks: (todayTasks || []).length,
           completedTasks: completedToday.length,
-          incomeValue: incomeToday,
         },
       };
     },
-    staleTime: 1000 * 60 * 2, // 2 minutes
+    staleTime: 1000 * 60 * 2,
   });
 }

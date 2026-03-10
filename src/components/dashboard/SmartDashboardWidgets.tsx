@@ -8,7 +8,6 @@ import {
   Clock, 
   AlertTriangle, 
   PauseCircle,
-  DollarSign,
   ChevronLeft,
   CheckCircle2
 } from "lucide-react";
@@ -65,12 +64,12 @@ export function SmartDashboardWidgets({ clientId }: Props) {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600 dark:text-blue-400">הכנסה פוטנציאלית היום</p>
+                <p className="text-sm text-blue-600 dark:text-blue-400">משימות בעדיפות עליונה</p>
                 <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">
-                  ₪{data.todayStats.incomeValue.toLocaleString()}
+                  {data.topTasks.length}
                 </p>
               </div>
-              <DollarSign className="h-10 w-10 text-blue-500/50" />
+              <TrendingUp className="h-10 w-10 text-blue-500/50" />
             </div>
           </CardContent>
         </Card>
@@ -92,24 +91,24 @@ export function SmartDashboardWidgets({ clientId }: Props) {
 
       {/* Main Widgets Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Income Generating Tasks */}
+        {/* Top Priority Tasks */}
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-emerald-500" />
-                משימות מניבות הכנסה
+                משימות בעדיפות עליונה
               </CardTitle>
-              <Badge variant="secondary">{data.incomeGeneratingTasks.length}</Badge>
+              <Badge variant="secondary">{data.topTasks.length}</Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-2">
-            {data.incomeGeneratingTasks.length === 0 ? (
+            {data.topTasks.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                אין משימות מניבות הכנסה פתוחות
+                אין משימות פתוחות
               </p>
             ) : (
-              data.incomeGeneratingTasks.map((task) => (
+              data.topTasks.map((task) => (
                 <div 
                   key={task.id} 
                   className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
@@ -119,9 +118,9 @@ export function SmartDashboardWidgets({ clientId }: Props) {
                     <p className="font-medium truncate">{task.title}</p>
                     <p className="text-sm text-muted-foreground">{task.client_name}</p>
                   </div>
-                  {task.income_value && (
-                    <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-                      ₪{task.income_value.toLocaleString()}
+                  {task.priority && (
+                    <Badge variant="outline" className="text-xs">
+                      {task.priority}
                     </Badge>
                   )}
                   <ChevronLeft className="h-4 w-4 text-muted-foreground mr-2" />
@@ -131,7 +130,7 @@ export function SmartDashboardWidgets({ clientId }: Props) {
           </CardContent>
         </Card>
 
-        {/* Client Dependent Tasks */}
+        {/* Client Delay Tasks */}
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
@@ -139,16 +138,16 @@ export function SmartDashboardWidgets({ clientId }: Props) {
                 <Clock className="h-5 w-5 text-amber-500" />
                 ממתין ללקוח
               </CardTitle>
-              <Badge variant="secondary">{data.clientDependentTasks.length}</Badge>
+              <Badge variant="secondary">{data.clientDelayTasks.length}</Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-2">
-            {data.clientDependentTasks.length === 0 ? (
+            {data.clientDelayTasks.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
                 אין משימות שממתינות ללקוח
               </p>
             ) : (
-              data.clientDependentTasks.slice(0, 5).map((task) => (
+              data.clientDelayTasks.slice(0, 5).map((task) => (
                 <div 
                   key={task.id} 
                   className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
@@ -221,7 +220,7 @@ export function SmartDashboardWidgets({ clientId }: Props) {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
-                <PauseCircle className="h-5 w-5 text-gray-500" />
+                <PauseCircle className="h-5 w-5 text-muted-foreground" />
                 פרויקטים ללא התקדמות
               </CardTitle>
               <Badge variant="outline">{data.stalledProjects.length}</Badge>
