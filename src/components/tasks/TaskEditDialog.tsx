@@ -568,6 +568,33 @@ export function TaskEditDialog({
             )}
           </CollapsibleField>
 
+          {/* Expected Result & References */}
+          <CollapsibleField
+            label="תוצאה מצופה וקישורים"
+            icon={<Target className="w-4 h-4" />}
+            isExpanded={expandedSections.has('references')}
+            onToggle={() => toggleSection('references')}
+            hasValue={!!formData.expectedResult || formData.referenceLinks.length > 0}
+          >
+            <TaskReferencesSection formData={formData} updateField={updateField} />
+          </CollapsibleField>
+
+          {/* QA & Completion */}
+          <CollapsibleField
+            label="QA והשלמה"
+            icon={<ShieldCheck className="w-4 h-4" />}
+            isExpanded={expandedSections.has('completion')}
+            onToggle={() => toggleSection('completion')}
+            hasValue={formData.readyForQa || !!formData.completionProof || !!formData.qaResult}
+          >
+            <TaskCompletionSection
+              formData={formData}
+              updateField={updateField}
+              taskId={selectedTaskId}
+              isCompleted={formData.status === 'completed'}
+            />
+          </CollapsibleField>
+
           {/* Microcopy Hint */}
           <Card className="border-muted bg-muted/20">
             <CardContent className="p-3">
