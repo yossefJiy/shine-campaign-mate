@@ -2287,9 +2287,11 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          interface_language: string
           job_title: string | null
           notification_policy: string | null
           phone: string | null
+          preferred_task_language: string
           preferred_timezone: string | null
           timezone: string | null
           updated_at: string
@@ -2304,9 +2306,11 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          interface_language?: string
           job_title?: string | null
           notification_policy?: string | null
           phone?: string | null
+          preferred_task_language?: string
           preferred_timezone?: string | null
           timezone?: string | null
           updated_at?: string
@@ -2321,9 +2325,11 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          interface_language?: string
           job_title?: string | null
           notification_policy?: string | null
           phone?: string | null
+          preferred_task_language?: string
           preferred_timezone?: string | null
           timezone?: string | null
           updated_at?: string
@@ -3612,6 +3618,7 @@ export type Database = {
           scheduled_time: string | null
           stage_id: string | null
           status: string
+          task_language: string
           task_tag: string | null
           task_type: string | null
           title: string
@@ -3656,6 +3663,7 @@ export type Database = {
           scheduled_time?: string | null
           stage_id?: string | null
           status?: string
+          task_language?: string
           task_tag?: string | null
           task_type?: string | null
           title: string
@@ -3700,6 +3708,7 @@ export type Database = {
           scheduled_time?: string | null
           stage_id?: string | null
           status?: string
+          task_language?: string
           task_tag?: string | null
           task_type?: string | null
           title?: string
@@ -3755,12 +3764,14 @@ export type Database = {
           emails: string[] | null
           has_system_access: boolean | null
           id: string
+          interface_language: string
           is_active: boolean | null
           manager_id: string | null
           name: string
           operational_role: string | null
           org_team_id: string | null
           phones: string[] | null
+          preferred_task_language: string
           updated_at: string
           user_id: string | null
         }
@@ -3774,12 +3785,14 @@ export type Database = {
           emails?: string[] | null
           has_system_access?: boolean | null
           id?: string
+          interface_language?: string
           is_active?: boolean | null
           manager_id?: string | null
           name: string
           operational_role?: string | null
           org_team_id?: string | null
           phones?: string[] | null
+          preferred_task_language?: string
           updated_at?: string
           user_id?: string | null
         }
@@ -3793,12 +3806,14 @@ export type Database = {
           emails?: string[] | null
           has_system_access?: boolean | null
           id?: string
+          interface_language?: string
           is_active?: boolean | null
           manager_id?: string | null
           name?: string
           operational_role?: string | null
           org_team_id?: string | null
           phones?: string[] | null
+          preferred_task_language?: string
           updated_at?: string
           user_id?: string | null
         }

@@ -28,6 +28,7 @@ export interface TaskRow {
   credits_cost: number | null;
   recurrence_type: string | null;
   recurrence_end_date: string | null;
+  task_language: string;
 }
 
 export interface CreateTaskInput {
