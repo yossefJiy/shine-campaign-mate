@@ -242,35 +242,49 @@ export function TaskEditDialog({
             </div>
           </CollapsibleField>
 
-          {/* Area B: Task Type - Core/Add-on Tags */}
+          {/* Area B: Task Type & Tags */}
           <CollapsibleField
-            label={microcopy.tasks.taskType}
-            icon={<DollarSign className="w-4 h-4" />}
+            label="סוג משימה ותג"
+            icon={<Code2 className="w-4 h-4" />}
             isExpanded={expandedSections.has('taskType')}
             onToggle={() => toggleSection('taskType')}
-            hasValue={!!formData.taskTag}
+            hasValue={!!formData.taskTag || formData.taskType !== 'operations'}
           >
-            <div className="space-y-3">
-              <div className="flex flex-wrap gap-2">
-                {taskTagOptions.map((tag) => {
-                  const IconComponent = tag.icon;
-                  const isSelected = formData.taskTag === tag.value;
-                  return (
-                    <Button
-                      key={tag.value}
-                      type="button"
-                      variant={isSelected ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => updateField('taskTag', tag.value as 'income_generating' | 'operational' | 'client_dependent')}
-                      className={`gap-2 ${isSelected ? '' : tag.color}`}
-                    >
-                      <IconComponent className="w-4 h-4" />
-                      {tag.label}
-                    </Button>
-                  );
-                })}
+            <div className="space-y-4">
+              {/* Task Type */}
+              <div className="space-y-2">
+                <span className="text-xs font-medium text-muted-foreground">סוג משימה</span>
+                <TaskTypeSelector
+                  value={formData.taskType}
+                  onChange={(v) => updateField('taskType', v)}
+                  compact
+                />
               </div>
-              {/* Hint based on selection */}
+
+              {/* Revenue tag */}
+              <div className="space-y-2">
+                <span className="text-xs font-medium text-muted-foreground">תג עסקי</span>
+                <div className="flex flex-wrap gap-2">
+                  {taskTagOptions.map((tag) => {
+                    const IconComponent = tag.icon;
+                    const isSelected = formData.taskTag === tag.value;
+                    return (
+                      <Button
+                        key={tag.value}
+                        type="button"
+                        variant={isSelected ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => updateField('taskTag', tag.value as 'income_generating' | 'operational' | 'client_dependent')}
+                        className={`gap-2 ${isSelected ? '' : tag.color}`}
+                      >
+                        <IconComponent className="w-4 h-4" />
+                        {tag.label}
+                      </Button>
+                    );
+                  })}
+                </div>
+              </div>
+              
               {formData.taskTag && (
                 <Card className="border-muted bg-muted/30">
                   <CardContent className="p-3 flex items-start gap-2">
