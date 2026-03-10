@@ -60,8 +60,8 @@ export function EmployeeDashboard() {
         .from("tasks")
         .select(`
           id, title, status, priority, due_date,
-          projects(name),
-          clients(name)
+          projects:projects!tasks_project_id_fkey(name),
+          clients:clients!tasks_client_id_fkey(name)
         `)
         .eq("assignee", teamMember.id)
         .neq("status", "completed")
