@@ -91,7 +91,7 @@ export function useSmartDashboard(clientId?: string) {
         .from("billing_records")
         .select(`
           id, client_id, total_amount, due_date,
-          clients!inner(name)
+          clients!billing_records_client_id_fkey(name)
         `)
         .eq("status", "pending")
         .lt("due_date", today);
