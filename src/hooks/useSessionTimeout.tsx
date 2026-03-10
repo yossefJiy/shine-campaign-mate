@@ -15,9 +15,9 @@ export const useSessionTimeout = (): UseSessionTimeoutReturn => {
   const { role } = useAuth();
   const [showWarning, setShowWarning] = useState(false);
   const [remainingTime, setRemainingTime] = useState(60);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warningTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
 
   // Admin users are exempt from session timeout
