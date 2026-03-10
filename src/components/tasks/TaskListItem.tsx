@@ -56,6 +56,8 @@ export interface Task {
   stage_id?: string | null;
   task_tag?: string | null;
   income_value?: number | null;
+  task_type?: string | null;
+  ready_for_qa?: boolean | null;
   clients?: { name: string; is_master_account?: boolean } | null;
   projects?: { id: string; name: string; color: string | null } | null;
 }
