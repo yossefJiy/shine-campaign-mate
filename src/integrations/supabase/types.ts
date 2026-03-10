@@ -3579,6 +3579,10 @@ export type Database = {
           campaign_id: string | null
           category: string | null
           client_id: string | null
+          completed_at: string | null
+          completed_by: string | null
+          completion_notes: string | null
+          completion_proof: string | null
           created_at: string
           credit_weight: number | null
           credits_cost: number | null
@@ -3586,6 +3590,7 @@ export type Database = {
           description: string | null
           due_date: string | null
           duration_minutes: number
+          expected_result: string | null
           id: string
           income_value: number | null
           is_blocking: boolean | null
@@ -3597,14 +3602,18 @@ export type Database = {
           priority: string
           priority_category: string | null
           project_id: string | null
+          qa_result: string | null
+          ready_for_qa: boolean | null
           recurrence_end_date: string | null
           recurrence_type: string | null
+          reference_links: string[] | null
           reminder_at: string | null
           reminder_sent: boolean | null
           scheduled_time: string | null
           stage_id: string | null
           status: string
           task_tag: string | null
+          task_type: string | null
           title: string
           updated_at: string
           waiting_since: string | null
@@ -3614,6 +3623,10 @@ export type Database = {
           campaign_id?: string | null
           category?: string | null
           client_id?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          completion_notes?: string | null
+          completion_proof?: string | null
           created_at?: string
           credit_weight?: number | null
           credits_cost?: number | null
@@ -3621,6 +3634,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           duration_minutes?: number
+          expected_result?: string | null
           id?: string
           income_value?: number | null
           is_blocking?: boolean | null
@@ -3632,14 +3646,18 @@ export type Database = {
           priority?: string
           priority_category?: string | null
           project_id?: string | null
+          qa_result?: string | null
+          ready_for_qa?: boolean | null
           recurrence_end_date?: string | null
           recurrence_type?: string | null
+          reference_links?: string[] | null
           reminder_at?: string | null
           reminder_sent?: boolean | null
           scheduled_time?: string | null
           stage_id?: string | null
           status?: string
           task_tag?: string | null
+          task_type?: string | null
           title: string
           updated_at?: string
           waiting_since?: string | null
@@ -3649,6 +3667,10 @@ export type Database = {
           campaign_id?: string | null
           category?: string | null
           client_id?: string | null
+          completed_at?: string | null
+          completed_by?: string | null
+          completion_notes?: string | null
+          completion_proof?: string | null
           created_at?: string
           credit_weight?: number | null
           credits_cost?: number | null
@@ -3656,6 +3678,7 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           duration_minutes?: number
+          expected_result?: string | null
           id?: string
           income_value?: number | null
           is_blocking?: boolean | null
@@ -3667,14 +3690,18 @@ export type Database = {
           priority?: string
           priority_category?: string | null
           project_id?: string | null
+          qa_result?: string | null
+          ready_for_qa?: boolean | null
           recurrence_end_date?: string | null
           recurrence_type?: string | null
+          reference_links?: string[] | null
           reminder_at?: string | null
           reminder_sent?: boolean | null
           scheduled_time?: string | null
           stage_id?: string | null
           status?: string
           task_tag?: string | null
+          task_type?: string | null
           title?: string
           updated_at?: string
           waiting_since?: string | null
