@@ -28,6 +28,8 @@ export function ProfileSection() {
     phone: profile?.phone || "",
     bio: profile?.bio || "",
     timezone: profile?.timezone || "Asia/Jerusalem",
+    interface_language: (profile as any)?.interface_language || "he",
+    preferred_task_language: (profile as any)?.preferred_task_language || "he",
   });
 
   // Update form when profile loads
@@ -39,6 +41,8 @@ export function ProfileSection() {
         phone: profile.phone || "",
         bio: profile.bio || "",
         timezone: profile.timezone || "Asia/Jerusalem",
+        interface_language: (profile as any)?.interface_language || "he",
+        preferred_task_language: (profile as any)?.preferred_task_language || "he",
       });
     }
   });
