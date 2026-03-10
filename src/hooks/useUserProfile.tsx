@@ -13,6 +13,8 @@ export interface UserProfile {
   job_title: string | null;
   bio: string | null;
   timezone: string | null;
+  interface_language: string;
+  preferred_task_language: string;
   created_at: string;
   updated_at: string;
 }
