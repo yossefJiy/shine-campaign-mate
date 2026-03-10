@@ -189,6 +189,47 @@ export function ProfileSection() {
           </div>
         </div>
 
+        {/* Language preferences */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="interface_language" className="flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              שפת ממשק
+            </Label>
+            <Select
+              value={formData.interface_language}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, interface_language: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="he">עברית</SelectItem>
+                <SelectItem value="en">English</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="preferred_task_language" className="flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              שפת משימות מועדפת
+            </Label>
+            <Select
+              value={formData.preferred_task_language}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, preferred_task_language: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="he">עברית</SelectItem>
+                <SelectItem value="en">English</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="bio" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
