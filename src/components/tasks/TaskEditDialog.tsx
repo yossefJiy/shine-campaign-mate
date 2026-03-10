@@ -52,6 +52,9 @@ import { CollapsibleField } from "./CollapsibleField";
 import { TaskAttachments } from "./TaskAttachments";
 import { NewTaskAttachments, PendingAttachment } from "./NewTaskAttachments";
 import { SubtaskList } from "./SubtaskList";
+import { TaskTypeSelector } from "./TaskTypeSelector";
+import { TaskReferencesSection } from "./TaskReferencesSection";
+import { TaskCompletionSection } from "./TaskCompletionSection";
 import { TaskFormData, ReminderOption } from "@/hooks/useTaskForm";
 import { microcopy } from "@/lib/microcopy";
 
