@@ -73,9 +73,9 @@ export function useSmartDashboard(clientId?: string) {
         .from("tasks")
         .select(`
           id, title, status, priority, due_date, task_tag, income_value, assignee, client_id,
-          clients!inner(name)
+          clients!tasks_client_id_fkey(name)
         `)
-        .eq("task_tag", "client_dependent")
+        .in("status", ["waiting", "blocked"])
         .neq("status", "completed")
         .order("due_date", { ascending: true })
         .limit(10);
