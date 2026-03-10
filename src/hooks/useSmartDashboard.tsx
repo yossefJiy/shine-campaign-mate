@@ -109,7 +109,7 @@ export function useSmartDashboard(clientId?: string) {
         .from("projects")
         .select(`
           id, name, client_id, updated_at,
-          clients!inner(name)
+          clients(name)
         `)
         .neq("status", "completed")
         .lt("updated_at", sevenDaysAgo);
