@@ -3595,6 +3595,7 @@ export type Database = {
           credits_cost: number | null
           department: string | null
           department_id: string | null
+          depends_on: string[] | null
           description: string | null
           due_date: string | null
           duration_minutes: number
@@ -3603,6 +3604,7 @@ export type Database = {
           income_value: number | null
           is_blocking: boolean | null
           is_client_visible: boolean | null
+          notes: string | null
           notification_email: boolean | null
           notification_email_address: string | null
           notification_phone: string | null
@@ -3643,6 +3645,7 @@ export type Database = {
           credits_cost?: number | null
           department?: string | null
           department_id?: string | null
+          depends_on?: string[] | null
           description?: string | null
           due_date?: string | null
           duration_minutes?: number
@@ -3651,6 +3654,7 @@ export type Database = {
           income_value?: number | null
           is_blocking?: boolean | null
           is_client_visible?: boolean | null
+          notes?: string | null
           notification_email?: boolean | null
           notification_email_address?: string | null
           notification_phone?: string | null
@@ -3691,6 +3695,7 @@ export type Database = {
           credits_cost?: number | null
           department?: string | null
           department_id?: string | null
+          depends_on?: string[] | null
           description?: string | null
           due_date?: string | null
           duration_minutes?: number
@@ -3699,6 +3704,7 @@ export type Database = {
           income_value?: number | null
           is_blocking?: boolean | null
           is_client_visible?: boolean | null
+          notes?: string | null
           notification_email?: boolean | null
           notification_email_address?: string | null
           notification_phone?: string | null
