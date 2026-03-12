@@ -169,7 +169,7 @@ const Auth = () => {
               >
                 {resettingPassword ? "שולח..." : "שכחתי סיסמה"}
               </button>
-            
+            </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <>
