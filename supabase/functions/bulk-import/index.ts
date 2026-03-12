@@ -106,12 +106,23 @@ Deno.serve(async (req) => {
       clientId = clientData.id;
     }
 
-    // === Resolve team members (name → id) ===
+    // === Resolve team members (name → id) with alias support ===
     const { data: allTeam } = await supabase.from('team').select('id, name');
     const teamMap: Record<string, string> = {};
+    const nameAliases: Record<string, string[]> = {
+      'yosef': ['יוסף', 'yosef', 'yossef'],
+      'alex': ['אלכס', 'alex'],
+      'milan': ['מילן', 'milan'],
+    };
     if (allTeam) {
       for (const m of allTeam) {
         teamMap[m.name.toLowerCase()] = m.id;
+        // Also map first-name aliases
+        for (const [alias, variants] of Object.entries(nameAliases)) {
+          if (variants.some(v => m.name.toLowerCase().includes(v))) {
+            teamMap[alias] = m.id;
+          }
+        }
       }
     }
 
