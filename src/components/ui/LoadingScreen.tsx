@@ -1,4 +1,4 @@
-import logoIcon from "@/assets/logo-icon.svg";
+import tasksLogo from "@/assets/tasks-logo.svg";
 
 interface LoadingScreenProps {
   message?: string;
