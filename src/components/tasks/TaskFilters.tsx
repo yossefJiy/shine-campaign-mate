@@ -162,6 +162,10 @@ export function TaskFilters({
                 filter === "assignee" ? "בחר עובד" : 
                 filter === "department" ? "בחר מחלקה" : 
                 filter === "client" ? "בחר לקוח" :
+                filter === "project" ? "בחר פרויקט" :
+                filter === "team" ? "בחר צוות" :
+                "בחר שפה"
+              } />
                 "בחר פרויקט"
               } />
             </SelectTrigger>
