@@ -174,6 +174,10 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
   const [scopesOpen, setScopesOpen] = useState(false);
   const [clientScopes, setClientScopes] = useState<string[]>([]);
   const [initialized, setInitialized] = useState(false);
+  const [responsibilityDomains, setResponsibilityDomains] = useState<string[]>([]);
+  const [newDomain, setNewDomain] = useState("");
+  const [interfaceLanguage, setInterfaceLanguage] = useState("he");
+  const [preferredTaskLanguage, setPreferredTaskLanguage] = useState("he");
 
   // Fetch existing privileges
   const { data: existingPrivileges } = useQuery({
