@@ -498,6 +498,10 @@ export default function Tasks() {
         completionProof: (task as any).completion_proof || "",
         completionNotes: (task as any).completion_notes || "",
         readyForQa: (task as any).ready_for_qa || false,
+        assignmentScope: (task as any).assignment_scope || "individual",
+        orgTeamId: (task as any).org_team_id || "",
+        departmentId: (task as any).department_id || "",
+        taskLanguage: (task as any).task_language || "he",
         id: task.id,
       }, projectFilterId || undefined);
     } else {

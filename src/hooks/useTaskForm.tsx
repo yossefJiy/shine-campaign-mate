@@ -134,6 +134,10 @@ export function useTaskForm(): UseTaskFormReturn {
       completionProof: task.completionProof || "",
       completionNotes: task.completionNotes || "",
       readyForQa: task.readyForQa || false,
+      assignmentScope: task.assignmentScope || "individual",
+      orgTeamId: task.orgTeamId || "",
+      departmentId: task.departmentId || "",
+      taskLanguage: task.taskLanguage || "he",
     });
     setExpandedSections(new Set(task.id ? ["title", "subtasks"] : ["title"]));
     setSelectedReminders([]);
