@@ -134,6 +134,8 @@ export function useTaskForm(): UseTaskFormReturn {
       taskType: task.taskType || "operations",
       expectedResult: task.expectedResult || "",
       referenceLinks: task.referenceLinks || [],
+      notes: task.notes || "",
+      dependsOn: task.dependsOn || [],
       qaResult: task.qaResult || "",
       completionProof: task.completionProof || "",
       completionNotes: task.completionNotes || "",
