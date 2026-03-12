@@ -316,6 +316,15 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
         const { data, error } = await supabase.rpc('update_team_member_secure', rpcParams as any);
         if (error) throw error;
 
+        // Update fields not covered by the RPC (responsibility_domains, languages)
+        const directUpdate: Record<string, any> = {
+          responsibility_domains: responsibilityDomains,
+          interface_language: interfaceLanguage,
+          preferred_task_language: preferredTaskLanguage,
+        };
+        const { error: directError } = await supabase.from("team").update(directUpdate).eq("id", memberId);
+        if (directError) console.error('Error updating extra fields:', directError);
+
         // Sync privileges via separate RPC (already has its own permission checks)
         if (memberUserId && hasSystemAccess && canEditPrivileges) {
           const { error: privError } = await supabase.rpc('sync_team_member_privileges', {
