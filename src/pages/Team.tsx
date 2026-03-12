@@ -183,6 +183,26 @@ export default function Team() {
           </div>
           {(isAdmin || canCreateTeams) && (
             <div className="flex gap-0.5 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0">
+              {member.has_system_access && member.email && !member.user_id && (
+                <Button 
+                  variant="ghost" size="icon" className="h-7 w-7 text-primary"
+                  onClick={() => inviteMutation.mutate(member)}
+                  disabled={inviteMutation.isPending}
+                  title="שלח הזמנה"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                </Button>
+              )}
+              {member.has_system_access && member.email && member.user_id && (
+                <Button 
+                  variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground"
+                  onClick={() => inviteMutation.mutate(member)}
+                  disabled={inviteMutation.isPending}
+                  title="שלח מחדש לינק סיסמה"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                </Button>
+              )}
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openDialog(member)}>
                 <Edit2 className="w-3.5 h-3.5" />
               </Button>
