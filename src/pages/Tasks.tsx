@@ -540,6 +540,8 @@ export default function Tasks() {
         taskType: ((task as any).task_type as any) || "operations",
         expectedResult: (task as any).expected_result || "",
         referenceLinks: (task as any).reference_links || [],
+        notes: (task as any).notes || "",
+        dependsOn: (task as any).depends_on || [],
         qaResult: (task as any).qa_result || "",
         completionProof: (task as any).completion_proof || "",
         completionNotes: (task as any).completion_notes || "",
