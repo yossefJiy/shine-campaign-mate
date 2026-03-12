@@ -52,6 +52,7 @@ interface TaskFiltersProps {
   departments: string[];
   clients: Client[];
   projects: Project[];
+  orgTeams?: { id: string; name: string }[];
 }
 
 export function TaskFilters({
