@@ -84,6 +84,10 @@ const initialFormData: TaskFormData = {
   completionProof: "",
   completionNotes: "",
   readyForQa: false,
+  assignmentScope: "individual",
+  orgTeamId: "",
+  departmentId: "",
+  taskLanguage: "he",
 };
 
 export function useTaskForm(): UseTaskFormReturn {
