@@ -133,6 +133,26 @@ export function TaskFilters({
             <FolderKanban className="w-3 h-3" />
             פרויקט
           </button>
+          <button
+            onClick={() => onFilterChange("team")}
+            className={cn(
+              "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1",
+              filter === "team" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+            )}
+          >
+            <Users className="w-3 h-3" />
+            צוות
+          </button>
+          <button
+            onClick={() => onFilterChange("language")}
+            className={cn(
+              "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1",
+              filter === "language" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+            )}
+          >
+            <Globe className="w-3 h-3" />
+            שפה
+          </button>
         </div>
 
         {(filter === "assignee" || filter === "department" || filter === "client" || filter === "project") && (
