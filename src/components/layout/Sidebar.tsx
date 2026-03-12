@@ -97,11 +97,10 @@ export function Sidebar() {
       {/* Logo & Toggle */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-border shrink-0">
         <Link to="/dashboard" className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-            <CheckSquare className="w-5 h-5 text-primary-foreground" />
-          </div>
-          {!isCollapsed && (
-            <span className="font-semibold text-lg">Tasks</span>
+          {!isCollapsed ? (
+            <img src={tasksLogo} alt="Tasks" className="h-8" />
+          ) : (
+            <img src={logoIcon} alt="Tasks" className="w-9 h-9" />
           )}
         </Link>
         <button
