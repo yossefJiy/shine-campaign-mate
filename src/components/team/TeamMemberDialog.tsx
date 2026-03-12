@@ -531,6 +531,69 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Language Settings */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>שפת ממשק</Label>
+                <Select value={interfaceLanguage} onValueChange={setInterfaceLanguage} disabled={!canEditThisMember}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="he">עברית</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>שפת משימות</Label>
+                <Select value={preferredTaskLanguage} onValueChange={setPreferredTaskLanguage} disabled={!canEditThisMember}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="he">עברית</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Responsibility Domains */}
+            <div className="space-y-1.5">
+              <Label>תחומי אחריות</Label>
+              <div className="flex flex-wrap gap-1.5 mb-1.5">
+                {responsibilityDomains.map(d => (
+                  <div key={d} className="flex items-center gap-1 bg-muted px-2 py-0.5 rounded-md text-xs">
+                    <span>{d}</span>
+                    <button type="button" onClick={() => setResponsibilityDomains(prev => prev.filter(x => x !== d))} disabled={!canEditThisMember}>
+                      <X className="w-3 h-3 text-destructive" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={newDomain}
+                  onChange={e => setNewDomain(e.target.value)}
+                  placeholder="הוסף תחום אחריות"
+                  className="text-sm"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (newDomain.trim() && !responsibilityDomains.includes(newDomain.trim())) {
+                        setResponsibilityDomains(prev => [...prev, newDomain.trim()]);
+                        setNewDomain("");
+                      }
+                    }
+                  }}
+                  disabled={!canEditThisMember}
+                />
+                <Button type="button" variant="outline" size="icon" onClick={() => {
+                  if (newDomain.trim() && !responsibilityDomains.includes(newDomain.trim())) {
+                    setResponsibilityDomains(prev => [...prev, newDomain.trim()]);
+                    setNewDomain("");
+                  }
+                }} disabled={!canEditThisMember}><Plus className="w-4 h-4" /></Button>
+              </div>
+            </div>
           </div>
 
           <Separator />
