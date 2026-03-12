@@ -294,8 +294,22 @@ export default function Tasks() {
       baseTasks = baseTasks.filter(task => task.project_id === projectFilterId);
     }
 
+    // Apply additional filters
+    if (filterAssignee) {
+      baseTasks = baseTasks.filter(task => task.assignee === filterAssignee);
+    }
+    if (filterDepartment) {
+      baseTasks = baseTasks.filter(task => task.department_id === filterDepartment || task.department === filterDepartment);
+    }
+    if (filterTeam) {
+      baseTasks = baseTasks.filter(task => task.org_team_id === filterTeam);
+    }
+    if (filterLanguage) {
+      baseTasks = baseTasks.filter(task => task.task_language === filterLanguage);
+    }
+
     return baseTasks;
-  }, [currentTab, inboxTasks, activeTasks, waitingTasks, doneTasks, projectFilterId]);
+  }, [currentTab, inboxTasks, activeTasks, waitingTasks, doneTasks, projectFilterId, filterAssignee, filterDepartment, filterTeam, filterLanguage]);
 
   // Assignee helpers
   const assigneeIdToName: Record<string, string> = {};
