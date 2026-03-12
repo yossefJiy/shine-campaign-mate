@@ -319,6 +319,10 @@ export default function Tasks() {
         notification_email_address: task.notification_email_address || null,
         reminder_sent: false,
         duration_minutes: task.duration_minutes || 60,
+        assignment_scope: (task as any).assignment_scope || 'individual',
+        org_team_id: (task as any).org_team_id || null,
+        department_id: (task as any).department_id || null,
+        task_language: (task as any).task_language || 'he',
       };
 
       if (task.id) {
