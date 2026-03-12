@@ -155,7 +155,7 @@ export function TaskFilters({
           </button>
         </div>
 
-        {(filter === "assignee" || filter === "department" || filter === "client" || filter === "project") && (
+        {(filter === "assignee" || filter === "department" || filter === "client" || filter === "project" || filter === "team" || filter === "language") && (
           <Select value={selectedValue} onValueChange={onSelectedValueChange}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder={
