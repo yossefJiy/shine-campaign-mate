@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
     }
 
     // === Resolve team members (name → id) with alias support ===
-    const { data: allTeam } = await supabase.from('team').select('id, name');
+    const { data: allTeam } = await supabase.from('team').select('id, name, user_id').eq('has_system_access', true);
     const teamMap: Record<string, string> = {};
     const nameAliases: Record<string, string[]> = {
       'yosef': ['יוסף', 'yosef', 'yossef'],
