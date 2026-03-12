@@ -22,6 +22,7 @@ import Team from "./pages/Team";
 import Settings from "./pages/Settings";
 import Billing from "./pages/Billing";
 import ClientProposalView from "./pages/ClientProposalView";
+import SetPassword from "./pages/SetPassword";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
                 {/* Redirect root to dashboard */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/set-password" element={<SetPassword />} />
                 
                 {/* Public client views */}
                 <Route path="/p/:token" element={<ClientProposalView />} />
