@@ -290,7 +290,7 @@ Deno.serve(async (req) => {
           task_language: taskLang,
           status,
           task_tag: taskTag,
-          task_type: task.task_type || null,
+          task_type: task.task_type?.toLowerCase() || 'operational',
           notes: task.notes || null,
           ready_for_qa: task.ready_for_qa || false,
           qa_result: task.qa_result || null,
