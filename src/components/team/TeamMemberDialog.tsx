@@ -353,6 +353,9 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
           org_team_id: orgTeamId && orgTeamId !== 'none' ? orgTeamId : null,
           operational_role: operationalRole,
           has_system_access: hasSystemAccess,
+          responsibility_domains: responsibilityDomains,
+          interface_language: interfaceLanguage,
+          preferred_task_language: preferredTaskLanguage,
           updated_at: new Date().toISOString(),
         };
 
