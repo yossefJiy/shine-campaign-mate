@@ -87,6 +87,10 @@ interface Task {
   created_at?: string;
   clients?: { name: string; is_master_account?: boolean } | null;
   projects?: Project | null;
+  task_language?: string | null;
+  department_id?: string | null;
+  org_team_id?: string | null;
+  assignment_scope?: string | null;
 }
 
 const categoryOptions = [
