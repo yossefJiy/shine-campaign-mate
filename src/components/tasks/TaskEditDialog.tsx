@@ -57,6 +57,7 @@ import { SubtaskList } from "./SubtaskList";
 import { TaskTypeSelector } from "./TaskTypeSelector";
 import { TaskReferencesSection } from "./TaskReferencesSection";
 import { TaskCompletionSection } from "./TaskCompletionSection";
+import { TaskDependencySection } from "./TaskDependencySection";
 import { TaskFormData, ReminderOption } from "@/hooks/useTaskForm";
 import { microcopy } from "@/lib/microcopy";
 
