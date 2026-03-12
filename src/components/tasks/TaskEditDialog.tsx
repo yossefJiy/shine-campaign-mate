@@ -609,6 +609,41 @@ export function TaskEditDialog({
             <TaskReferencesSection formData={formData} updateField={updateField} />
           </CollapsibleField>
 
+          {/* Notes */}
+          <CollapsibleField
+            label="הערות"
+            icon={<StickyNote className="w-4 h-4" />}
+            isExpanded={expandedSections.has('notes')}
+            onToggle={() => toggleSection('notes')}
+            hasValue={!!formData.notes}
+          >
+            <Textarea
+              placeholder="הערות פנימיות למשימה..."
+              value={formData.notes}
+              onChange={(e) => updateField('notes', e.target.value)}
+              rows={3}
+            />
+          </CollapsibleField>
+
+          {/* Dependencies */}
+          <CollapsibleField
+            label="תלויות"
+            icon={<GitBranch className="w-4 h-4" />}
+            isExpanded={expandedSections.has('dependencies')}
+            onToggle={() => toggleSection('dependencies')}
+            hasValue={formData.dependsOn.length > 0}
+          >
+            <TaskDependencySection
+              formData={formData}
+              updateField={updateField}
+              onNavigateToTask={(taskId) => {
+                onOpenChange(false);
+                // Navigate via URL to open that task
+                window.dispatchEvent(new CustomEvent('navigate-to-task', { detail: taskId }));
+              }}
+            />
+          </CollapsibleField>
+
           {/* QA & Completion */}
           <CollapsibleField
             label="QA והשלמה"
