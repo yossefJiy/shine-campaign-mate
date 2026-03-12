@@ -18,6 +18,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   useEffect(() => {
@@ -139,8 +140,36 @@ const Auth = () => {
                 className="text-left"
               />
               {errors.password && <p className="text-destructive text-sm">{errors.password}</p>}
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!email) {
+                    toast.error("הזן אימייל קודם");
+                    return;
+                  }
+                  try {
+                    emailSchema.parse(email);
+                  } catch {
+                    toast.error("אימייל לא תקין");
+                    return;
+                  }
+                  setResettingPassword(true);
+                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/set-password',
+                  });
+                  setResettingPassword(false);
+                  if (error) {
+                    toast.error(error.message);
+                  } else {
+                    toast.success("קישור לאיפוס סיסמה נשלח לאימייל שלך");
+                  }
+                }}
+                disabled={resettingPassword}
+                className="text-sm text-primary hover:underline underline-offset-4 self-start"
+              >
+                {resettingPassword ? "שולח..." : "שכחתי סיסמה"}
+              </button>
             </div>
-            
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <>
