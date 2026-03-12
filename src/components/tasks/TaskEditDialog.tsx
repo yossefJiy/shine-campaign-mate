@@ -341,21 +341,48 @@ export function TaskEditDialog({
             onToggle={() => toggleSection('assignee')}
             hasValue={!!formData.assignee || !!formData.department}
           >
-            <div className="grid grid-cols-2 gap-3">
-              <Select value={formData.assignee || "none"} onValueChange={(v) => handleAssigneeChange(v === "none" ? "" : v)}>
-                <SelectTrigger><SelectValue placeholder="בחר אחראי" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">-</SelectItem>
-                  {teamMembers.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Select value={formData.department || "none"} onValueChange={(v) => handleDepartmentChange(v === "none" ? "" : v)}>
-                <SelectTrigger><SelectValue placeholder="בחר מחלקה" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">-</SelectItem>
-                  {departments.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                </SelectContent>
-              </Select>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <Select value={formData.assignee || "none"} onValueChange={(v) => handleAssigneeChange(v === "none" ? "" : v)}>
+                  <SelectTrigger><SelectValue placeholder="בחר אחראי" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">-</SelectItem>
+                    {teamMembers.map((m) => <SelectItem key={m.id} value={m.name}>{m.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={formData.department || "none"} onValueChange={(v) => handleDepartmentChange(v === "none" ? "" : v)}>
+                  <SelectTrigger><SelectValue placeholder="בחר מחלקה" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">-</SelectItem>
+                    {departments.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Assignment Scope & Language */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">סוג שיוך</Label>
+                  <Select value={formData.assignmentScope || "individual"} onValueChange={(v) => updateField('assignmentScope', v as any)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="individual">אישי</SelectItem>
+                      <SelectItem value="team">צוות</SelectItem>
+                      <SelectItem value="department">מחלקה</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">שפת משימה</Label>
+                  <Select value={formData.taskLanguage || "he"} onValueChange={(v) => updateField('taskLanguage', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="he">עברית</SelectItem>
+                      <SelectItem value="en">English</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
           </CollapsibleField>
 
