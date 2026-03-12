@@ -174,6 +174,13 @@ export function TaskFilters({
               {filter === "department" && departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
               {filter === "client" && clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               {filter === "project" && projects.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+              {filter === "team" && orgTeams.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              {filter === "language" && (
+                <>
+                  <SelectItem value="he">עברית</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
         )}
