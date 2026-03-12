@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/useAuth";
 import {
   Mail, Plus, Loader2, Users, Edit2, Trash2,
-  Crown, ChevronDown, Shield, FolderTree, Key,
+  Crown, ChevronDown, Shield, FolderTree, Key, Globe, Languages,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,9 @@ interface TeamMember {
   org_team_id: string | null;
   operational_role: string | null;
   has_system_access: boolean;
+  interface_language: string;
+  preferred_task_language: string;
+  responsibility_domains: string[] | null;
 }
 
 interface Department {
@@ -187,12 +190,28 @@ export default function Team() {
               ← {getManagerName(member.manager_id)}
             </Badge>
           )}
+          <Badge variant="outline" className="text-[10px] gap-1">
+            <Globe className="w-2.5 h-2.5" />
+            {member.interface_language === 'en' ? 'EN' : 'HE'}
+          </Badge>
+          <Badge variant="outline" className="text-[10px] gap-1">
+            <Languages className="w-2.5 h-2.5" />
+            {member.preferred_task_language === 'en' ? 'EN' : 'HE'}
+          </Badge>
         </div>
 
-        {member.departments.length > 0 && (
+        {member.responsibility_domains && member.responsibility_domains.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
+            {member.responsibility_domains.map(domain => (
+              <Badge key={domain} variant="secondary" className="text-[10px]">{domain}</Badge>
+            ))}
+          </div>
+        )}
+
+        {member.departments.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1">
             {member.departments.map(dept => (
-              <Badge key={dept} variant="secondary" className="text-[10px]">{dept}</Badge>
+              <Badge key={dept} variant="outline" className="text-[10px] text-muted-foreground">{dept}</Badge>
             ))}
           </div>
         )}
