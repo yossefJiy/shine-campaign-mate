@@ -319,6 +319,10 @@ export default function Tasks() {
         notification_email_address: task.notification_email_address || null,
         reminder_sent: false,
         duration_minutes: task.duration_minutes || 60,
+        assignment_scope: (task as any).assignment_scope || 'individual',
+        org_team_id: (task as any).org_team_id || null,
+        department_id: (task as any).department_id || null,
+        task_language: (task as any).task_language || 'he',
       };
 
       if (task.id) {
@@ -498,6 +502,10 @@ export default function Tasks() {
         completionProof: (task as any).completion_proof || "",
         completionNotes: (task as any).completion_notes || "",
         readyForQa: (task as any).ready_for_qa || false,
+        assignmentScope: (task as any).assignment_scope || "individual",
+        orgTeamId: (task as any).org_team_id || "",
+        departmentId: (task as any).department_id || "",
+        taskLanguage: (task as any).task_language || "he",
         id: task.id,
       }, projectFilterId || undefined);
     } else {
@@ -551,6 +559,10 @@ export default function Tasks() {
       completion_proof: taskForm.formData.completionProof || null,
       completion_notes: taskForm.formData.completionNotes || null,
       ready_for_qa: taskForm.formData.readyForQa,
+      assignment_scope: taskForm.formData.assignmentScope || 'individual',
+      org_team_id: taskForm.formData.orgTeamId || null,
+      department_id: taskForm.formData.departmentId || null,
+      task_language: taskForm.formData.taskLanguage || 'he',
     } as any);
   };
 

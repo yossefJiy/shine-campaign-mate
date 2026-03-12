@@ -174,6 +174,10 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
   const [scopesOpen, setScopesOpen] = useState(false);
   const [clientScopes, setClientScopes] = useState<string[]>([]);
   const [initialized, setInitialized] = useState(false);
+  const [responsibilityDomains, setResponsibilityDomains] = useState<string[]>([]);
+  const [newDomain, setNewDomain] = useState("");
+  const [interfaceLanguage, setInterfaceLanguage] = useState("he");
+  const [preferredTaskLanguage, setPreferredTaskLanguage] = useState("he");
 
   // Fetch existing privileges
   const { data: existingPrivileges } = useQuery({
@@ -238,8 +242,12 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
     setOrgTeamId(member?.org_team_id || "");
     setOperationalRole(member?.operational_role || "team_employee");
     setHasSystemAccess(member?.has_system_access || false);
+    setResponsibilityDomains((member as any)?.responsibility_domains || []);
+    setInterfaceLanguage((member as any)?.interface_language || "he");
+    setPreferredTaskLanguage((member as any)?.preferred_task_language || "he");
     setNewEmail("");
     setNewPhone("");
+    setNewDomain("");
     setPrivilegesOpen(false);
     setScopesOpen(false);
     setInitialized(false);
@@ -308,6 +316,15 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
         const { data, error } = await supabase.rpc('update_team_member_secure', rpcParams as any);
         if (error) throw error;
 
+        // Update fields not covered by the RPC (responsibility_domains, languages)
+        const directUpdate: Record<string, any> = {
+          responsibility_domains: responsibilityDomains,
+          interface_language: interfaceLanguage,
+          preferred_task_language: preferredTaskLanguage,
+        };
+        const { error: directError } = await supabase.from("team").update(directUpdate).eq("id", memberId);
+        if (directError) console.error('Error updating extra fields:', directError);
+
         // Sync privileges via separate RPC (already has its own permission checks)
         if (memberUserId && hasSystemAccess && canEditPrivileges) {
           const { error: privError } = await supabase.rpc('sync_team_member_privileges', {
@@ -345,6 +362,9 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
           org_team_id: orgTeamId && orgTeamId !== 'none' ? orgTeamId : null,
           operational_role: operationalRole,
           has_system_access: hasSystemAccess,
+          responsibility_domains: responsibilityDomains,
+          interface_language: interfaceLanguage,
+          preferred_task_language: preferredTaskLanguage,
           updated_at: new Date().toISOString(),
         };
 
@@ -510,6 +530,69 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
                     ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Language Settings */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>שפת ממשק</Label>
+                <Select value={interfaceLanguage} onValueChange={setInterfaceLanguage} disabled={!canEditThisMember}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="he">עברית</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>שפת משימות</Label>
+                <Select value={preferredTaskLanguage} onValueChange={setPreferredTaskLanguage} disabled={!canEditThisMember}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="he">עברית</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Responsibility Domains */}
+            <div className="space-y-1.5">
+              <Label>תחומי אחריות</Label>
+              <div className="flex flex-wrap gap-1.5 mb-1.5">
+                {responsibilityDomains.map(d => (
+                  <div key={d} className="flex items-center gap-1 bg-muted px-2 py-0.5 rounded-md text-xs">
+                    <span>{d}</span>
+                    <button type="button" onClick={() => setResponsibilityDomains(prev => prev.filter(x => x !== d))} disabled={!canEditThisMember}>
+                      <X className="w-3 h-3 text-destructive" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={newDomain}
+                  onChange={e => setNewDomain(e.target.value)}
+                  placeholder="הוסף תחום אחריות"
+                  className="text-sm"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (newDomain.trim() && !responsibilityDomains.includes(newDomain.trim())) {
+                        setResponsibilityDomains(prev => [...prev, newDomain.trim()]);
+                        setNewDomain("");
+                      }
+                    }
+                  }}
+                  disabled={!canEditThisMember}
+                />
+                <Button type="button" variant="outline" size="icon" onClick={() => {
+                  if (newDomain.trim() && !responsibilityDomains.includes(newDomain.trim())) {
+                    setResponsibilityDomains(prev => [...prev, newDomain.trim()]);
+                    setNewDomain("");
+                  }
+                }} disabled={!canEditThisMember}><Plus className="w-4 h-4" /></Button>
+              </div>
             </div>
           </div>
 

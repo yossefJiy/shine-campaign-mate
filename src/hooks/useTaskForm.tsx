@@ -3,6 +3,8 @@ import { TeamMember, Project } from "@/types/domains/tasks";
 
 export type TaskType = 'development' | 'design' | 'qa' | 'seo' | 'content' | 'operations';
 
+export type AssignmentScope = 'individual' | 'team' | 'department';
+
 export interface TaskFormData {
   title: string;
   description: string;
@@ -22,7 +24,7 @@ export interface TaskFormData {
   notificationSms: boolean;
   notificationPhone: string;
   notificationEmailAddress: string;
-  // New universal fields
+  // Universal execution fields
   taskType: TaskType;
   expectedResult: string;
   referenceLinks: string[];
@@ -30,6 +32,11 @@ export interface TaskFormData {
   completionProof: string;
   completionNotes: string;
   readyForQa: boolean;
+  // Operational ownership fields
+  assignmentScope: AssignmentScope;
+  orgTeamId: string;
+  departmentId: string;
+  taskLanguage: string;
 }
 
 export type ReminderOption = 'at_time' | 'hour_before' | 'day_before' | 'custom';
@@ -77,6 +84,10 @@ const initialFormData: TaskFormData = {
   completionProof: "",
   completionNotes: "",
   readyForQa: false,
+  assignmentScope: "individual",
+  orgTeamId: "",
+  departmentId: "",
+  taskLanguage: "he",
 };
 
 export function useTaskForm(): UseTaskFormReturn {
@@ -123,6 +134,10 @@ export function useTaskForm(): UseTaskFormReturn {
       completionProof: task.completionProof || "",
       completionNotes: task.completionNotes || "",
       readyForQa: task.readyForQa || false,
+      assignmentScope: task.assignmentScope || "individual",
+      orgTeamId: task.orgTeamId || "",
+      departmentId: task.departmentId || "",
+      taskLanguage: task.taskLanguage || "he",
     });
     setExpandedSections(new Set(task.id ? ["title", "subtasks"] : ["title"]));
     setSelectedReminders([]);

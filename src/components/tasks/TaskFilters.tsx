@@ -4,7 +4,9 @@ import {
   Calendar, 
   List, 
   LayoutGrid,
-  FolderKanban
+  FolderKanban,
+  Users,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,7 +25,7 @@ import {
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 
-export type FilterType = "all" | "assignee" | "department" | "date" | "client" | "project";
+export type FilterType = "all" | "assignee" | "department" | "date" | "client" | "project" | "team" | "language";
 export type ViewMode = "list" | "grid";
 
 interface Project {
@@ -50,6 +52,7 @@ interface TaskFiltersProps {
   departments: string[];
   clients: Client[];
   projects: Project[];
+  orgTeams?: { id: string; name: string }[];
 }
 
 export function TaskFilters({
@@ -65,6 +68,7 @@ export function TaskFilters({
   departments,
   clients,
   projects,
+  orgTeams = [],
 }: TaskFiltersProps) {
   return (
     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
@@ -129,16 +133,38 @@ export function TaskFilters({
             <FolderKanban className="w-3 h-3" />
             פרויקט
           </button>
+          <button
+            onClick={() => onFilterChange("team")}
+            className={cn(
+              "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1",
+              filter === "team" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+            )}
+          >
+            <Users className="w-3 h-3" />
+            צוות
+          </button>
+          <button
+            onClick={() => onFilterChange("language")}
+            className={cn(
+              "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1",
+              filter === "language" ? "bg-primary text-primary-foreground" : "hover:bg-muted"
+            )}
+          >
+            <Globe className="w-3 h-3" />
+            שפה
+          </button>
         </div>
 
-        {(filter === "assignee" || filter === "department" || filter === "client" || filter === "project") && (
+        {(filter === "assignee" || filter === "department" || filter === "client" || filter === "project" || filter === "team" || filter === "language") && (
           <Select value={selectedValue} onValueChange={onSelectedValueChange}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder={
                 filter === "assignee" ? "בחר עובד" : 
                 filter === "department" ? "בחר מחלקה" : 
                 filter === "client" ? "בחר לקוח" :
-                "בחר פרויקט"
+                filter === "project" ? "בחר פרויקט" :
+                filter === "team" ? "בחר צוות" :
+                "בחר שפה"
               } />
             </SelectTrigger>
             <SelectContent>
@@ -146,6 +172,13 @@ export function TaskFilters({
               {filter === "department" && departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
               {filter === "client" && clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               {filter === "project" && projects.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
+              {filter === "team" && orgTeams.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              {filter === "language" && (
+                <>
+                  <SelectItem value="he">עברית</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
         )}
