@@ -242,8 +242,12 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
     setOrgTeamId(member?.org_team_id || "");
     setOperationalRole(member?.operational_role || "team_employee");
     setHasSystemAccess(member?.has_system_access || false);
+    setResponsibilityDomains((member as any)?.responsibility_domains || []);
+    setInterfaceLanguage((member as any)?.interface_language || "he");
+    setPreferredTaskLanguage((member as any)?.preferred_task_language || "he");
     setNewEmail("");
     setNewPhone("");
+    setNewDomain("");
     setPrivilegesOpen(false);
     setScopesOpen(false);
     setInitialized(false);
