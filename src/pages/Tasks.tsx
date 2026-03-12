@@ -707,27 +707,92 @@ export default function Tasks() {
             </div>
           )}
 
-          {/* Status Tabs & View Toggle */}
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
-            <TaskStatusTabs
-              currentTab={currentTab}
-              onTabChange={setCurrentTab}
-              counts={tabCounts}
-            />
+          {/* Status Tabs & View Toggle & Filters */}
+          <div className="flex flex-col gap-4 mb-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <TaskStatusTabs
+                currentTab={currentTab}
+                onTabChange={setCurrentTab}
+                counts={tabCounts}
+              />
 
-            <div className="flex items-center gap-1 bg-secondary rounded-lg p-1">
-              <button
-                onClick={() => setViewMode("list")}
-                className={cn("p-2 rounded-md transition-colors", viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
+              <div className="flex items-center gap-1 bg-secondary rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={cn("p-2 rounded-md transition-colors", viewMode === "list" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
+                >
+                  <List className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={cn("p-2 rounded-md transition-colors", viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Filters Row */}
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={filterAssignee}
+                onChange={(e) => setFilterAssignee(e.target.value)}
+                className="h-8 rounded-md border border-input bg-background px-3 text-xs"
               >
-                <List className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode("grid")}
-                className={cn("p-2 rounded-md transition-colors", viewMode === "grid" ? "bg-primary text-primary-foreground" : "hover:bg-muted")}
+                <option value="">כל העובדים</option>
+                {teamMembers.map(m => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+
+              <select
+                value={filterDepartment}
+                onChange={(e) => setFilterDepartment(e.target.value)}
+                className="h-8 rounded-md border border-input bg-background px-3 text-xs"
               >
-                <LayoutGrid className="w-4 h-4" />
-              </button>
+                <option value="">כל המחלקות</option>
+                {depts.map(d => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
+
+              <select
+                value={filterTeam}
+                onChange={(e) => setFilterTeam(e.target.value)}
+                className="h-8 rounded-md border border-input bg-background px-3 text-xs"
+              >
+                <option value="">כל הצוותים</option>
+                {orgTeams.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+
+              <select
+                value={filterLanguage}
+                onChange={(e) => setFilterLanguage(e.target.value)}
+                className="h-8 rounded-md border border-input bg-background px-3 text-xs"
+              >
+                <option value="">כל השפות</option>
+                <option value="he">עברית</option>
+                <option value="en">English</option>
+              </select>
+
+              {(filterAssignee || filterDepartment || filterTeam || filterLanguage) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => {
+                    setFilterAssignee("");
+                    setFilterDepartment("");
+                    setFilterTeam("");
+                    setFilterLanguage("");
+                  }}
+                >
+                  <X className="w-3 h-3 ml-1" />
+                  נקה פילטרים
+                </Button>
+              )}
             </div>
           </div>
 
