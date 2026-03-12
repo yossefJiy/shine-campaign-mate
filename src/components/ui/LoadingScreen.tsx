@@ -10,11 +10,11 @@ export function LoadingScreen({ message }: LoadingScreenProps) {
       <div className="flex flex-col items-center gap-6 animate-fade-in">
         {/* Logo with pulse animation */}
         <div className="relative">
-          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center animate-pulse">
+          <div className="w-32 h-24 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center animate-pulse">
             <img 
-              src={logoIcon} 
-              alt="Converto Logo" 
-              className="w-16 h-16 animate-fade-in"
+              src={tasksLogo} 
+              alt="Tasks Logo" 
+              className="h-12 animate-fade-in"
               style={{ animationDelay: "0.2s", animationFillMode: "both" }}
             />
           </div>

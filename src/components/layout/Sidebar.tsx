@@ -1,4 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import tasksLogo from "@/assets/tasks-logo.svg";
+import logoIcon from "@/assets/logo-icon.svg";
 import { 
   LayoutDashboard, 
   CheckSquare, 
