@@ -559,6 +559,10 @@ export default function Tasks() {
       completion_proof: taskForm.formData.completionProof || null,
       completion_notes: taskForm.formData.completionNotes || null,
       ready_for_qa: taskForm.formData.readyForQa,
+      assignment_scope: taskForm.formData.assignmentScope || 'individual',
+      org_team_id: taskForm.formData.orgTeamId || null,
+      department_id: taskForm.formData.departmentId || null,
+      task_language: taskForm.formData.taskLanguage || 'he',
     } as any);
   };
 
