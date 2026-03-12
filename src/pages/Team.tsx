@@ -39,6 +39,9 @@ interface TeamMember {
   org_team_id: string | null;
   operational_role: string | null;
   has_system_access: boolean;
+  interface_language: string;
+  preferred_task_language: string;
+  responsibility_domains: string[] | null;
 }
 
 interface Department {
