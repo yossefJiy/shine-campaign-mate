@@ -225,6 +225,24 @@ export default function Tasks() {
     },
   });
 
+  const { data: orgTeams = [] } = useQuery({
+    queryKey: ["org-teams"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("org_teams").select("id, name").order("name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: depts = [] } = useQuery({
+    queryKey: ["departments"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("departments").select("id, name").order("name");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   // Derived state - Task categorization based on status tabs
   const departments = [...new Set([
     ...tasks.map(t => t.department).filter(Boolean),
