@@ -25,7 +25,7 @@ import {
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { format } from "date-fns";
 
-export type FilterType = "all" | "assignee" | "department" | "date" | "client" | "project";
+export type FilterType = "all" | "assignee" | "department" | "date" | "client" | "project" | "team" | "language";
 export type ViewMode = "list" | "grid";
 
 interface Project {
