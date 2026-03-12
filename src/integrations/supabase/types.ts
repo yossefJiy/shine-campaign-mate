@@ -3582,6 +3582,7 @@ export type Database = {
       tasks: {
         Row: {
           assignee: string | null
+          assignment_scope: string
           campaign_id: string | null
           category: string | null
           client_id: string | null
@@ -3593,6 +3594,7 @@ export type Database = {
           credit_weight: number | null
           credits_cost: number | null
           department: string | null
+          department_id: string | null
           description: string | null
           due_date: string | null
           duration_minutes: number
@@ -3605,6 +3607,7 @@ export type Database = {
           notification_email_address: string | null
           notification_phone: string | null
           notification_sms: boolean | null
+          org_team_id: string | null
           priority: string
           priority_category: string | null
           project_id: string | null
@@ -3627,6 +3630,7 @@ export type Database = {
         }
         Insert: {
           assignee?: string | null
+          assignment_scope?: string
           campaign_id?: string | null
           category?: string | null
           client_id?: string | null
@@ -3638,6 +3642,7 @@ export type Database = {
           credit_weight?: number | null
           credits_cost?: number | null
           department?: string | null
+          department_id?: string | null
           description?: string | null
           due_date?: string | null
           duration_minutes?: number
@@ -3650,6 +3655,7 @@ export type Database = {
           notification_email_address?: string | null
           notification_phone?: string | null
           notification_sms?: boolean | null
+          org_team_id?: string | null
           priority?: string
           priority_category?: string | null
           project_id?: string | null
@@ -3672,6 +3678,7 @@ export type Database = {
         }
         Update: {
           assignee?: string | null
+          assignment_scope?: string
           campaign_id?: string | null
           category?: string | null
           client_id?: string | null
@@ -3683,6 +3690,7 @@ export type Database = {
           credit_weight?: number | null
           credits_cost?: number | null
           department?: string | null
+          department_id?: string | null
           description?: string | null
           due_date?: string | null
           duration_minutes?: number
@@ -3695,6 +3703,7 @@ export type Database = {
           notification_email_address?: string | null
           notification_phone?: string | null
           notification_sms?: boolean | null
+          org_team_id?: string | null
           priority?: string
           priority_category?: string | null
           project_id?: string | null
@@ -3738,6 +3747,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tasks_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_org_team_id_fkey"
+            columns: ["org_team_id"]
+            isOneToOne: false
+            referencedRelation: "org_teams"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tasks_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
@@ -3772,6 +3795,7 @@ export type Database = {
           org_team_id: string | null
           phones: string[] | null
           preferred_task_language: string
+          responsibility_domains: string[] | null
           updated_at: string
           user_id: string | null
         }
@@ -3793,6 +3817,7 @@ export type Database = {
           org_team_id?: string | null
           phones?: string[] | null
           preferred_task_language?: string
+          responsibility_domains?: string[] | null
           updated_at?: string
           user_id?: string | null
         }
@@ -3814,6 +3839,7 @@ export type Database = {
           org_team_id?: string | null
           phones?: string[] | null
           preferred_task_language?: string
+          responsibility_domains?: string[] | null
           updated_at?: string
           user_id?: string | null
         }
