@@ -22,6 +22,7 @@ import Team from "./pages/Team";
 import Settings from "./pages/Settings";
 import Billing from "./pages/Billing";
 import ClientProposalView from "./pages/ClientProposalView";
+import SetPassword from "./pages/SetPassword";
 
 const queryClient = new QueryClient();
 
