@@ -25,6 +25,8 @@ import {
   Link2,
   ShieldCheck,
   Code2,
+  StickyNote,
+  GitBranch,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";

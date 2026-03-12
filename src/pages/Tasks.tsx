@@ -599,6 +599,8 @@ export default function Tasks() {
       task_type: taskForm.formData.taskType || 'operations',
       expected_result: taskForm.formData.expectedResult || null,
       reference_links: taskForm.formData.referenceLinks.length > 0 ? taskForm.formData.referenceLinks : null,
+      notes: taskForm.formData.notes || null,
+      depends_on: taskForm.formData.dependsOn.length > 0 ? taskForm.formData.dependsOn : null,
       qa_result: taskForm.formData.qaResult || null,
       completion_proof: taskForm.formData.completionProof || null,
       completion_notes: taskForm.formData.completionNotes || null,
