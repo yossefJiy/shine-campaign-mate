@@ -109,6 +109,32 @@ export default function Team() {
     onError: () => toast.error("שגיאה במחיקה"),
   });
 
+  const inviteMutation = useMutation({
+    mutationFn: async (member: TeamMember) => {
+      if (!member.email) throw new Error("אין אימייל לחבר צוות זה");
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await supabase.functions.invoke("invite-team-member", {
+        body: {
+          email: member.email,
+          name: member.name,
+          role: member.operational_role,
+          teamMemberId: member.id,
+        },
+      });
+
+      if (response.error) throw response.error;
+      if (response.data?.error) throw new Error(response.data.error);
+      return response.data;
+    },
+    onSuccess: (_, member) => {
+      toast.success(`הזמנה נשלחה ל-${member.name} (${member.email})`);
+    },
+    onError: (error: Error) => toast.error(error.message || "שגיאה בשליחת הזמנה"),
+  });
+
   const openDialog = (member?: TeamMember) => {
     setSelectedMember(member || null);
     setDialogOpen(true);
