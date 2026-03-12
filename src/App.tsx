@@ -6,8 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ClientProvider } from "@/hooks/useClient";
 import { RoleSimulationProvider } from "@/hooks/useRoleSimulation";
-// Auth protection temporarily disabled
-// import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Core pages
 import Auth from "./pages/Auth";
