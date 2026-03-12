@@ -25,6 +25,8 @@ import {
   Link2,
   ShieldCheck,
   Code2,
+  StickyNote,
+  GitBranch,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -55,6 +57,7 @@ import { SubtaskList } from "./SubtaskList";
 import { TaskTypeSelector } from "./TaskTypeSelector";
 import { TaskReferencesSection } from "./TaskReferencesSection";
 import { TaskCompletionSection } from "./TaskCompletionSection";
+import { TaskDependencySection } from "./TaskDependencySection";
 import { TaskFormData, ReminderOption } from "@/hooks/useTaskForm";
 import { microcopy } from "@/lib/microcopy";
 
@@ -604,6 +607,41 @@ export function TaskEditDialog({
             hasValue={!!formData.expectedResult || formData.referenceLinks.length > 0}
           >
             <TaskReferencesSection formData={formData} updateField={updateField} />
+          </CollapsibleField>
+
+          {/* Notes */}
+          <CollapsibleField
+            label="הערות"
+            icon={<StickyNote className="w-4 h-4" />}
+            isExpanded={expandedSections.has('notes')}
+            onToggle={() => toggleSection('notes')}
+            hasValue={!!formData.notes}
+          >
+            <Textarea
+              placeholder="הערות פנימיות למשימה..."
+              value={formData.notes}
+              onChange={(e) => updateField('notes', e.target.value)}
+              rows={3}
+            />
+          </CollapsibleField>
+
+          {/* Dependencies */}
+          <CollapsibleField
+            label="תלויות"
+            icon={<GitBranch className="w-4 h-4" />}
+            isExpanded={expandedSections.has('dependencies')}
+            onToggle={() => toggleSection('dependencies')}
+            hasValue={formData.dependsOn.length > 0}
+          >
+            <TaskDependencySection
+              formData={formData}
+              updateField={updateField}
+              onNavigateToTask={(taskId) => {
+                onOpenChange(false);
+                // Navigate via URL to open that task
+                window.dispatchEvent(new CustomEvent('navigate-to-task', { detail: taskId }));
+              }}
+            />
           </CollapsibleField>
 
           {/* QA & Completion */}

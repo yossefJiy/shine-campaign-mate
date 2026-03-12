@@ -28,6 +28,8 @@ export interface TaskFormData {
   taskType: TaskType;
   expectedResult: string;
   referenceLinks: string[];
+  notes: string;
+  dependsOn: string[];
   qaResult: string;
   completionProof: string;
   completionNotes: string;
@@ -80,6 +82,8 @@ const initialFormData: TaskFormData = {
   taskType: "operations",
   expectedResult: "",
   referenceLinks: [],
+  notes: "",
+  dependsOn: [],
   qaResult: "",
   completionProof: "",
   completionNotes: "",
@@ -130,6 +134,8 @@ export function useTaskForm(): UseTaskFormReturn {
       taskType: task.taskType || "operations",
       expectedResult: task.expectedResult || "",
       referenceLinks: task.referenceLinks || [],
+      notes: task.notes || "",
+      dependsOn: task.dependsOn || [],
       qaResult: task.qaResult || "",
       completionProof: task.completionProof || "",
       completionNotes: task.completionNotes || "",
