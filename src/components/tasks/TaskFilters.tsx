@@ -4,7 +4,9 @@ import {
   Calendar, 
   List, 
   LayoutGrid,
-  FolderKanban
+  FolderKanban,
+  Users,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
