@@ -82,6 +82,8 @@ const initialFormData: TaskFormData = {
   taskType: "operations",
   expectedResult: "",
   referenceLinks: [],
+  notes: "",
+  dependsOn: [],
   qaResult: "",
   completionProof: "",
   completionNotes: "",
