@@ -28,6 +28,8 @@ export interface TaskFormData {
   taskType: TaskType;
   expectedResult: string;
   referenceLinks: string[];
+  notes: string;
+  dependsOn: string[];
   qaResult: string;
   completionProof: string;
   completionNotes: string;
