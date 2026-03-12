@@ -117,10 +117,16 @@ export default function Tasks() {
   const [searchParams, setSearchParams] = useSearchParams();
   const projectFilterId = searchParams.get("project");
 
-  // View state - simplified to status tabs only
+  // View state
   const [currentTab, setCurrentTab] = useState<TaskStatusTab>("active");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
+
+  // Filter state
+  const [filterAssignee, setFilterAssignee] = useState<string>("");
+  const [filterDepartment, setFilterDepartment] = useState<string>("");
+  const [filterTeam, setFilterTeam] = useState<string>("");
+  const [filterLanguage, setFilterLanguage] = useState<string>("");
 
   // Dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
