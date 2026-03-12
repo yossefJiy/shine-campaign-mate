@@ -166,8 +166,6 @@ export function TaskFilters({
                 filter === "team" ? "בחר צוות" :
                 "בחר שפה"
               } />
-                "בחר פרויקט"
-              } />
             </SelectTrigger>
             <SelectContent>
               {filter === "assignee" && assignees.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
