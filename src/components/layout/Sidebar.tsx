@@ -98,7 +98,7 @@ export function Sidebar() {
     >
       {/* Logo & Toggle */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-border shrink-0">
-        <Link to="/dashboard" className="flex items-center gap-3">
+        <Link to="/projects" className="flex items-center gap-3">
           {!isCollapsed ? (
             <img src={tasksLogo} alt="Tasks" className="h-8" />
           ) : (
