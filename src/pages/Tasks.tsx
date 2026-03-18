@@ -697,9 +697,50 @@ export default function Tasks() {
                 assignee: t.assignee,
                 priority: t.priority,
                 client_name: t.clients?.name,
+                client_id: t.client_id || undefined,
               }))}
               projects={projects}
-              onAssignToProject={(taskId, projectId) => assignToProjectMutation.mutate({ taskId, projectId })}
+              stages={projectStages}
+              onAssignToProject={(taskId, projectId, stageId) => assignToProjectMutation.mutate({ taskId, projectId, stageId })}
+              onMarkComplete={(taskId) => updateStatusMutation.mutate({ id: taskId, status: "completed" })}
+              onDelete={(taskId) => {
+                const task = tasks.find(t => t.id === taskId);
+                if (task) { setTaskToDelete(task); setDeleteDialogOpen(true); }
+              }}
+              onCreateProject={async (name, clientId) => {
+                const targetClientId = clientId || effectiveClient?.id;
+                if (!targetClientId) { toast.error("יש לבחור לקוח"); return null; }
+                const { data, error } = await supabase
+                  .from("projects")
+                  .insert({ name, client_id: targetClientId, status: "active", work_state: "work_ok", source: "manual_retainer", last_activity_at: new Date().toISOString() })
+                  .select("id")
+                  .single();
+                if (error) { toast.error("שגיאה ביצירת פרויקט"); return null; }
+                queryClient.invalidateQueries({ queryKey: ["projects"] });
+                return data.id;
+              }}
+              onCreateStage={async (projectId, name) => {
+                const { data: maxOrder } = await supabase
+                  .from("project_stages")
+                  .select("sort_order")
+                  .eq("project_id", projectId)
+                  .order("sort_order", { ascending: false })
+                  .limit(1)
+                  .single();
+                const nextOrder = (maxOrder?.sort_order ?? -1) + 1;
+                const { data, error } = await supabase
+                  .from("project_stages")
+                  .insert({ project_id: projectId, name, sort_order: nextOrder, status: "in_progress" })
+                  .select("id")
+                  .single();
+                if (error) { toast.error("שגיאה ביצירת שלב"); return null; }
+                queryClient.invalidateQueries({ queryKey: ["project-stages"] });
+                return data.id;
+              }}
+              onClickTask={(taskId) => {
+                const task = tasks.find(t => t.id === taskId);
+                if (task) openDialog(task);
+              }}
               isAssigning={assignToProjectMutation.isPending}
             />
           )}
