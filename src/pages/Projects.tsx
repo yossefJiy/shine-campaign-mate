@@ -218,7 +218,7 @@ export default function Projects() {
             />
             <div className="flex items-center gap-2">
               {/* Admin-only: Create Internal Project */}
-              {isAdmin && (
+              {isManager && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>

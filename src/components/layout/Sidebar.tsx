@@ -48,15 +48,15 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "דשבורד", path: "/dashboard" },
-  { icon: FileText, label: "הצעות מחיר", path: "/proposals" },
   { icon: FolderKanban, label: "פרויקטים", path: "/projects" },
   { icon: CheckSquare, label: "משימות", path: "/tasks" },
-  { icon: CreditCard, label: "חיובים", path: "/billing" },
   { icon: Users, label: "צוות", path: "/team" },
 ];
 
-// Legacy modules - preserved but inactive
-const legacyModules: MenuItem[] = [
+// Archived modules - functional but deprioritized
+const archivedModules: MenuItem[] = [
+  { icon: FileText, label: "הצעות מחיר", path: "/proposals" },
+  { icon: CreditCard, label: "חיובים", path: "/billing" },
   { icon: UserPlus, label: "לידים", path: "/leads" },
   { icon: Bot, label: "סוכני AI", path: "/ai-agents" },
 ];
