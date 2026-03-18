@@ -135,7 +135,7 @@ export function ClientTeamManager({ clientId, clientName }: ClientTeamManagerPro
 
   const openDialog = () => {
     // Pre-select already assigned members
-    const assigned = new Set(assignedTeam.map(a => a.team_member_id));
+    const assigned = new Set<string>(assignedTeam.map(a => a.team_member_id));
     setSelectedMembers(assigned);
     
     // Pre-fill roles
