@@ -47,7 +47,6 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { icon: LayoutDashboard, label: "דשבורד", path: "/dashboard" },
   { icon: FolderKanban, label: "פרויקטים", path: "/projects" },
   { icon: CheckSquare, label: "משימות", path: "/tasks" },
   { icon: Users, label: "צוות", path: "/team" },
