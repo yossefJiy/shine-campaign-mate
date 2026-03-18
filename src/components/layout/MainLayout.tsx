@@ -5,7 +5,7 @@ import { SessionTimeoutDialog } from "@/components/SessionTimeoutDialog";
 import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 import { GlobalSearch } from "@/components/ai/GlobalSearch";
 // AI Chat removed - not in current flow
-import { ClientSwitcher } from "./ClientSwitcher";
+// ClientSwitcher removed - filtering is done within each page
 import { SmartAlertsPanel } from "@/components/notifications/SmartAlertsPanel";
 import { cn } from "@/lib/utils";
 
@@ -30,12 +30,9 @@ function MainLayoutContent({ children }: MainLayoutProps) {
         <div className="flex items-center">
           <SmartAlertsPanel />
         </div>
-        {/* Right side (visually in RTL) - ClientSwitcher then Search */}
+        {/* Right side (visually in RTL) - Search */}
         <div className="flex items-center gap-4">
           <GlobalSearch />
-          <div className="w-64">
-            <ClientSwitcher />
-          </div>
         </div>
       </header>
       

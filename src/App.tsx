@@ -36,7 +36,7 @@ const App = () => (
             <BrowserRouter>
               <Routes>
                 {/* Redirect root to dashboard */}
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/" element={<Navigate to="/projects" replace />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/set-password" element={<SetPassword />} />
                 

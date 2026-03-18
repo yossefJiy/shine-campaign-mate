@@ -47,7 +47,6 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { icon: LayoutDashboard, label: "דשבורד", path: "/dashboard" },
   { icon: FolderKanban, label: "פרויקטים", path: "/projects" },
   { icon: CheckSquare, label: "משימות", path: "/tasks" },
   { icon: Users, label: "צוות", path: "/team" },
@@ -55,6 +54,7 @@ const menuItems: MenuItem[] = [
 
 // Archived modules - functional but deprioritized
 const archivedModules: MenuItem[] = [
+  { icon: LayoutDashboard, label: "דשבורד", path: "/dashboard" },
   { icon: FileText, label: "הצעות מחיר", path: "/proposals" },
   { icon: CreditCard, label: "חיובים", path: "/billing" },
   { icon: UserPlus, label: "לידים", path: "/leads" },
@@ -98,7 +98,7 @@ export function Sidebar() {
     >
       {/* Logo & Toggle */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-border shrink-0">
-        <Link to="/dashboard" className="flex items-center gap-3">
+        <Link to="/projects" className="flex items-center gap-3">
           {!isCollapsed ? (
             <img src={tasksLogo} alt="Tasks" className="h-8" />
           ) : (
