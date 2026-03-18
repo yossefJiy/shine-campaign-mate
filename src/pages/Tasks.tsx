@@ -234,6 +234,15 @@ export default function Tasks() {
     },
   });
 
+  const { data: projectStages = [] } = useQuery({
+    queryKey: ["project-stages-all"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("project_stages").select("id, name, project_id").order("sort_order");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
   const { data: depts = [] } = useQuery({
     queryKey: ["departments"],
     queryFn: async () => {
