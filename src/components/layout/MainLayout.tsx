@@ -5,7 +5,7 @@ import { SessionTimeoutDialog } from "@/components/SessionTimeoutDialog";
 import { SidebarProvider, useSidebar } from "@/contexts/SidebarContext";
 import { GlobalSearch } from "@/components/ai/GlobalSearch";
 // AI Chat removed - not in current flow
-import { ClientSwitcher } from "./ClientSwitcher";
+// ClientSwitcher removed - filtering is done within each page
 import { SmartAlertsPanel } from "@/components/notifications/SmartAlertsPanel";
 import { cn } from "@/lib/utils";
 
