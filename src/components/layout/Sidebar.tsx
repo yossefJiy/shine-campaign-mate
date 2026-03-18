@@ -54,6 +54,7 @@ const menuItems: MenuItem[] = [
 
 // Archived modules - functional but deprioritized
 const archivedModules: MenuItem[] = [
+  { icon: LayoutDashboard, label: "דשבורד", path: "/dashboard" },
   { icon: FileText, label: "הצעות מחיר", path: "/proposals" },
   { icon: CreditCard, label: "חיובים", path: "/billing" },
   { icon: UserPlus, label: "לידים", path: "/leads" },
