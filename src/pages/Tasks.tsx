@@ -488,10 +488,13 @@ export default function Tasks() {
   });
 
   const assignToProjectMutation = useMutation({
-    mutationFn: async ({ taskId, projectId }: { taskId: string; projectId: string }) => {
+    mutationFn: async ({ taskId, projectId, stageId }: { taskId: string; projectId: string; stageId?: string }) => {
+      const updateData: Record<string, unknown> = { project_id: projectId };
+      if (stageId) updateData.stage_id = stageId;
+      
       const { error } = await supabase
         .from("tasks")
-        .update({ project_id: projectId })
+        .update(updateData)
         .eq("id", taskId);
       if (error) throw error;
 
@@ -504,6 +507,7 @@ export default function Tasks() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
+      queryClient.invalidateQueries({ queryKey: ["project-stages"] });
       toast.success("המשימה שויכה לפרויקט");
     },
     onError: () => toast.error("שגיאה בשיוך משימה"),
