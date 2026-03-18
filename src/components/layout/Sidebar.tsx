@@ -48,15 +48,15 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { icon: LayoutDashboard, label: "דשבורד", path: "/dashboard" },
-  { icon: FileText, label: "הצעות מחיר", path: "/proposals" },
   { icon: FolderKanban, label: "פרויקטים", path: "/projects" },
   { icon: CheckSquare, label: "משימות", path: "/tasks" },
-  { icon: CreditCard, label: "חיובים", path: "/billing" },
   { icon: Users, label: "צוות", path: "/team" },
 ];
 
-// Legacy modules - preserved but inactive
-const legacyModules: MenuItem[] = [
+// Archived modules - functional but deprioritized
+const archivedModules: MenuItem[] = [
+  { icon: FileText, label: "הצעות מחיר", path: "/proposals" },
+  { icon: CreditCard, label: "חיובים", path: "/billing" },
   { icon: UserPlus, label: "לידים", path: "/leads" },
   { icon: Bot, label: "סוכני AI", path: "/ai-agents" },
 ];
@@ -145,7 +145,7 @@ export function Sidebar() {
         })}
 
         {/* Legacy Modules - Preserved but inactive */}
-        {legacyModules.length > 0 && (
+        {archivedModules.length > 0 && (
           <>
             <div className="my-3 mx-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground/50">
@@ -154,28 +154,49 @@ export function Sidebar() {
                 <div className="h-px flex-1 bg-border/50" />
               </div>
             </div>
-            {legacyModules.map((item) => (
-              <TooltipProvider key={item.path}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200",
-                        "text-muted-foreground/40 cursor-not-allowed opacity-60"
+            {archivedModules.map((item) => {
+              const isActive = location.pathname === item.path;
+              const isDisabled = item.path === "/leads" || item.path === "/ai-agents";
+              return (
+                <TooltipProvider key={item.path}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      {isDisabled ? (
+                        <div
+                          className={cn(
+                            "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200",
+                            "text-muted-foreground/40 cursor-not-allowed opacity-60"
+                          )}
+                        >
+                          <item.icon className="w-4 h-4 shrink-0" />
+                          {!isCollapsed && (
+                            <span className="font-medium text-xs">{item.label}</span>
+                          )}
+                        </div>
+                      ) : (
+                        <Link
+                          to={item.path}
+                          className={cn(
+                            "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200",
+                            isActive
+                              ? "bg-muted text-foreground"
+                              : "text-muted-foreground/60 hover:bg-muted/50 hover:text-muted-foreground"
+                          )}
+                        >
+                          <item.icon className="w-4 h-4 shrink-0" />
+                          {!isCollapsed && (
+                            <span className="font-medium text-xs">{item.label}</span>
+                          )}
+                        </Link>
                       )}
-                    >
-                      <item.icon className="w-4 h-4 shrink-0" />
-                      {!isCollapsed && (
-                        <span className="font-medium text-xs">{item.label}</span>
-                      )}
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="left">
-                    <p className="text-xs">{item.label} - מודול לא פעיל</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            ))}
+                    </TooltipTrigger>
+                    <TooltipContent side="left">
+                      <p className="text-xs">{item.label}{isDisabled ? " - מודול לא פעיל" : ""}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              );
+            })}
           </>
         )}
       </nav>

@@ -71,7 +71,7 @@ type FilterStatus = "all" | "active" | "waiting_client" | "waiting_payment" | "a
 export default function Projects() {
   const navigate = useNavigate();
   const { selectedClient, effectiveClient, isAgencyView, clients } = useClient();
-  const { isAdmin } = usePermissions();
+  const { isAdmin, isManager } = usePermissions();
   const { duplicateProject, deleteProject, archiveProject } = useProjectMutations();
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [showInternalDialog, setShowInternalDialog] = useState(false);
@@ -218,7 +218,7 @@ export default function Projects() {
             />
             <div className="flex items-center gap-2">
               {/* Admin-only: Create Internal Project */}
-              {isAdmin && (
+              {isManager && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
