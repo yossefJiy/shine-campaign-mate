@@ -441,12 +441,6 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
                               <Badge className={cn("text-xs", statusColors[stage.status])}>
                                 {stageStatusLabels[stage.status] || stage.status}
                               </Badge>
-                              {stage.requires_client_approval && (
-                                <Badge variant="outline" className="text-xs">
-                                  <UserCheck className="h-3 w-3 ml-1" />
-                                  דורש אישור
-                                </Badge>
-                              )}
                             </div>
                           </div>
                         </AccordionTrigger>
