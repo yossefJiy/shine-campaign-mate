@@ -27,6 +27,8 @@ import {
   Code2,
   StickyNote,
   GitBranch,
+  Pencil,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
