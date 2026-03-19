@@ -111,6 +111,8 @@ interface TaskEditDialogProps {
   clients?: ClientOption[];
   selectedClientId?: string | null;
   onClientChange?: (clientId: string | null) => void;
+  // View mode - opens in read-only first
+  initialViewOnly?: boolean;
 }
 
 const statusOptions = [
