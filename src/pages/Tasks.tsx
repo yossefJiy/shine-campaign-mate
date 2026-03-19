@@ -960,6 +960,7 @@ export default function Tasks() {
 
         {/* Edit Task Dialog */}
         <TaskEditDialog
+          initialViewOnly={!!selectedTask}
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           selectedTaskId={selectedTask?.id || null}

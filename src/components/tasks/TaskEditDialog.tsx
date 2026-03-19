@@ -323,7 +323,7 @@ export function TaskEditDialog({
             {selectedTaskId && (
               <div className="space-y-1">
                 <span className="text-xs font-medium text-muted-foreground">תתי-משימות</span>
-                <SubtaskList taskId={selectedTaskId} />
+                <SubtaskList parentTaskId={selectedTaskId} />
               </div>
             )}
 
