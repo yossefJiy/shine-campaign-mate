@@ -230,42 +230,75 @@ export function TaskAttachments({ taskId, compact = false, onCountChange }: Task
             <div className="space-y-4">
               {/* Existing attachments */}
               {attachments.length > 0 && (
-                <ScrollArea className="h-[200px]">
-                  <div className="space-y-2">
+                <ScrollArea className="h-[300px]">
+                  <div className="space-y-3">
                     {attachments.map((attachment) => {
                       const Icon = attachmentTypeIcons[attachment.attachment_type];
+                      const isImage = attachment.attachment_type === "image" || 
+                        (attachment.mime_type && attachment.mime_type.startsWith("image/"));
+                      const isPdf = attachment.mime_type === "application/pdf";
+                      const isVideo = attachment.attachment_type === "video" || 
+                        (attachment.mime_type && attachment.mime_type.startsWith("video/"));
+                      
                       return (
                         <div
                           key={attachment.id}
-                          className="flex items-center gap-3 p-2 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors"
+                          className="rounded-lg border border-border bg-card overflow-hidden"
                         >
-                          <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Icon className="w-4 h-4 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{attachment.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {attachmentTypeLabels[attachment.attachment_type]}
-                              {attachment.file_size && ` • ${formatFileSize(attachment.file_size)}`}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={() => window.open(attachment.url, "_blank")}
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-destructive hover:text-destructive"
-                              onClick={() => deleteAttachmentMutation.mutate(attachment.id)}
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
+                          {/* Inline preview */}
+                          {isImage && (
+                            <div className="p-2 bg-background">
+                              <img 
+                                src={attachment.url} 
+                                alt={attachment.name} 
+                                className="max-h-40 w-auto rounded object-contain mx-auto"
+                              />
+                            </div>
+                          )}
+                          {isPdf && (
+                            <div className="bg-background">
+                              <iframe 
+                                src={attachment.url} 
+                                className="w-full h-48 border-0"
+                                title={attachment.name}
+                              />
+                            </div>
+                          )}
+                          {isVideo && (
+                            <div className="p-2 bg-background">
+                              <video src={attachment.url} controls className="max-h-40 w-full rounded" />
+                            </div>
+                          )}
+                          {/* File info */}
+                          <div className="flex items-center gap-3 p-2 hover:bg-muted/50 transition-colors">
+                            <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <Icon className="w-4 h-4 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{attachment.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {attachmentTypeLabels[attachment.attachment_type]}
+                                {attachment.file_size && ` • ${formatFileSize(attachment.file_size)}`}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => window.open(attachment.url, "_blank")}
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive hover:text-destructive"
+                                onClick={() => deleteAttachmentMutation.mutate(attachment.id)}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       );
