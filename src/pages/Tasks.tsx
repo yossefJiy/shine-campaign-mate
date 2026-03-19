@@ -304,6 +304,11 @@ export default function Tasks() {
       baseTasks = baseTasks.filter(task => task.project_id === projectFilterId);
     }
 
+    // Apply client filter
+    if (filterClientId) {
+      baseTasks = baseTasks.filter(task => task.client_id === filterClientId);
+    }
+
     // Apply additional filters
     if (filterAssignee) {
       baseTasks = baseTasks.filter(task => task.assignee === filterAssignee);
@@ -319,7 +324,7 @@ export default function Tasks() {
     }
 
     return baseTasks;
-  }, [currentTab, inboxTasks, activeTasks, waitingTasks, doneTasks, projectFilterId, filterAssignee, filterDepartment, filterTeam, filterLanguage]);
+  }, [currentTab, inboxTasks, activeTasks, waitingTasks, doneTasks, projectFilterId, filterClientId, filterAssignee, filterDepartment, filterTeam, filterLanguage]);
 
   // Assignee helpers
   const assigneeIdToName: Record<string, string> = {};
