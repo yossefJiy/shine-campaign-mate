@@ -254,38 +254,67 @@ export default function Projects() {
             </div>
           </div>
 
-          {/* Status Filter Chips */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {[
-              { value: "all", label: "הכל" },
-              { value: "active", label: "פעיל" },
-              { value: "waiting_client", label: "ממתין ללקוח" },
-              { value: "waiting_payment", label: "ממתין לתשלום" },
-              { value: "at_risk", label: "בסיכון" },
-              { value: "completed", label: "הושלם" },
-            ].map((filter) => (
-              <Button
-                key={filter.value}
-                variant={filterStatus === filter.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterStatus(filter.value as FilterStatus)}
-                className={cn(
-                  "gap-2",
-                  filter.value === "at_risk" && statusCounts.at_risk > 0 && filterStatus !== "at_risk" && "border-destructive text-destructive"
-                )}
-              >
-                {filter.label}
-                <Badge 
-                  variant="secondary" 
+          {/* Filters Row */}
+          <div className="flex flex-wrap items-center gap-3 mb-6">
+            {/* Client Filter */}
+            <select
+              value={filterClientId}
+              onChange={(e) => setFilterClientId(e.target.value)}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm min-w-[160px]"
+            >
+              <option value="">כל הלקוחות</option>
+              {clients
+                .filter((c: any) => !c.is_master_account)
+                .map((c: any) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+            </select>
+
+            {/* Status Filter Chips */}
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: "all", label: "הכל" },
+                { value: "active", label: "פעיל" },
+                { value: "waiting_client", label: "ממתין ללקוח" },
+                { value: "waiting_payment", label: "ממתין לתשלום" },
+                { value: "at_risk", label: "בסיכון" },
+                { value: "completed", label: "הושלם" },
+              ].map((filter) => (
+                <Button
+                  key={filter.value}
+                  variant={filterStatus === filter.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilterStatus(filter.value as FilterStatus)}
                   className={cn(
-                    "text-xs px-1.5",
-                    filterStatus === filter.value && "bg-primary-foreground text-primary"
+                    "gap-2",
+                    filter.value === "at_risk" && statusCounts.at_risk > 0 && filterStatus !== "at_risk" && "border-destructive text-destructive"
                   )}
                 >
-                  {statusCounts[filter.value as keyof typeof statusCounts]}
-                </Badge>
+                  {filter.label}
+                  <Badge 
+                    variant="secondary" 
+                    className={cn(
+                      "text-xs px-1.5",
+                      filterStatus === filter.value && "bg-primary-foreground text-primary"
+                    )}
+                  >
+                    {statusCounts[filter.value as keyof typeof statusCounts]}
+                  </Badge>
+                </Button>
+              ))}
+            </div>
+
+            {filterClientId && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={() => setFilterClientId("")}
+              >
+                <X className="w-3 h-3 ml-1" />
+                נקה סינון
               </Button>
-            ))}
+            )}
           </div>
 
           {filteredProjects.length === 0 ? (
