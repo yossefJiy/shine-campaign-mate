@@ -805,7 +805,7 @@ export default function Tasks() {
               >
                 <option value="">כל הלקוחות</option>
                 {allClients
-                  .filter((c: any) => !c.is_master_account)
+                  .filter((c: any) => !c.is_master_account && tasks.some(t => t.client_id === c.id))
                   .map((c: any) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
