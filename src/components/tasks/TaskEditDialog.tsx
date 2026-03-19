@@ -201,6 +201,15 @@ export function TaskEditDialog({
     const currentTag = taskTagOptions.find(t => t.value === formData.taskTag);
     const assignedProject = projects.find(p => p.id === formData.projectId);
     const clientName = clients.find(c => c.id === selectedClientId)?.name;
+    // Resolve assignee: could be a name or a UUID
+    const assigneeName = (() => {
+      if (!formData.assignee) return null;
+      // Check if it's a UUID by trying to find a team member by id (user_id)
+      const memberById = teamMembers.find(m => (m as any).user_id === formData.assignee || m.id === formData.assignee);
+      if (memberById) return memberById.name;
+      // Otherwise it's already a name
+      return formData.assignee;
+    })();
 
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
