@@ -447,27 +447,37 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
                         </AccordionTrigger>
                         <AccordionContent>
                           <div className="py-2 space-y-3">
-                            {/* Stage Actions */}
-                            <div className="flex gap-2 pb-2 border-b">
-                              {stage.status !== "waiting_client" && stage.status !== "completed" && (
+                            {/* Stage Actions - all status options available */}
+                            <div className="flex gap-2 pb-2 border-b flex-wrap">
+                              {stage.status !== "pending" && (
                                 <Button 
                                   variant="outline" 
                                   size="sm"
-                                  onClick={() => updateStageMutation.mutate({ 
-                                    stageId: stage.id, 
-                                    status: "waiting_client" 
-                                  })}
+                                  onClick={() => updateStageMutation.mutate({ stageId: stage.id, status: "pending" })}
+                                  disabled={updateStageMutation.isPending}
                                 >
-                                  {microcopy.buttons.waitingForClient}
+                                  ממתין
                                 </Button>
                               )}
-                              {stage.requires_client_approval && stage.status !== "approved" && stage.status !== "completed" && (
+                              {stage.status !== "in_progress" && (
                                 <Button 
                                   variant="outline" 
                                   size="sm"
-                                  className="text-primary"
+                                  onClick={() => updateStageMutation.mutate({ stageId: stage.id, status: "in_progress" })}
+                                  disabled={updateStageMutation.isPending}
                                 >
-                                  בקש אישור לקוח
+                                  בעבודה
+                                </Button>
+                              )}
+                              {stage.status !== "waiting_client" && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="text-orange-600"
+                                  onClick={() => updateStageMutation.mutate({ stageId: stage.id, status: "waiting_client" })}
+                                  disabled={updateStageMutation.isPending}
+                                >
+                                  {microcopy.buttons.waitingForClient}
                                 </Button>
                               )}
                               {stage.status !== "completed" && (
@@ -475,10 +485,8 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
                                   variant="outline" 
                                   size="sm"
                                   className="text-green-600"
-                                  onClick={() => updateStageMutation.mutate({ 
-                                    stageId: stage.id, 
-                                    status: "completed" 
-                                  })}
+                                  onClick={() => updateStageMutation.mutate({ stageId: stage.id, status: "completed" })}
+                                  disabled={updateStageMutation.isPending}
                                 >
                                   סמן כהושלם
                                 </Button>
