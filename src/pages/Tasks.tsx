@@ -127,6 +127,7 @@ export default function Tasks() {
   const [filterDepartment, setFilterDepartment] = useState<string>("");
   const [filterTeam, setFilterTeam] = useState<string>("");
   const [filterLanguage, setFilterLanguage] = useState<string>("");
+  const [filterClientId, setFilterClientId] = useState<string>("");
 
   // Dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
