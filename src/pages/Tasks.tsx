@@ -127,6 +127,7 @@ export default function Tasks() {
   const [filterDepartment, setFilterDepartment] = useState<string>("");
   const [filterTeam, setFilterTeam] = useState<string>("");
   const [filterLanguage, setFilterLanguage] = useState<string>("");
+  const [filterClientId, setFilterClientId] = useState<string>("");
 
   // Dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -303,6 +304,11 @@ export default function Tasks() {
       baseTasks = baseTasks.filter(task => task.project_id === projectFilterId);
     }
 
+    // Apply client filter
+    if (filterClientId) {
+      baseTasks = baseTasks.filter(task => task.client_id === filterClientId);
+    }
+
     // Apply additional filters
     if (filterAssignee) {
       baseTasks = baseTasks.filter(task => task.assignee === filterAssignee);
@@ -318,7 +324,7 @@ export default function Tasks() {
     }
 
     return baseTasks;
-  }, [currentTab, inboxTasks, activeTasks, waitingTasks, doneTasks, projectFilterId, filterAssignee, filterDepartment, filterTeam, filterLanguage]);
+  }, [currentTab, inboxTasks, activeTasks, waitingTasks, doneTasks, projectFilterId, filterClientId, filterAssignee, filterDepartment, filterTeam, filterLanguage]);
 
   // Assignee helpers
   const assigneeIdToName: Record<string, string> = {};
@@ -793,6 +799,19 @@ export default function Tasks() {
             {/* Filters Row */}
             <div className="flex flex-wrap items-center gap-2">
               <select
+                value={filterClientId}
+                onChange={(e) => setFilterClientId(e.target.value)}
+                className="h-8 rounded-md border border-input bg-background px-3 text-xs min-w-[140px]"
+              >
+                <option value="">כל הלקוחות</option>
+                {allClients
+                  .filter((c: any) => !c.is_master_account)
+                  .map((c: any) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+              </select>
+
+              <select
                 value={filterAssignee}
                 onChange={(e) => setFilterAssignee(e.target.value)}
                 className="h-8 rounded-md border border-input bg-background px-3 text-xs"
@@ -835,12 +854,13 @@ export default function Tasks() {
                 <option value="en">English</option>
               </select>
 
-              {(filterAssignee || filterDepartment || filterTeam || filterLanguage) && (
+              {(filterClientId || filterAssignee || filterDepartment || filterTeam || filterLanguage) && (
                 <Button
                   variant="ghost"
                   size="sm"
                   className="h-8 text-xs"
                   onClick={() => {
+                    setFilterClientId("");
                     setFilterAssignee("");
                     setFilterDepartment("");
                     setFilterTeam("");
