@@ -27,6 +27,8 @@ import {
   Code2,
   StickyNote,
   GitBranch,
+  Pencil,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -111,6 +113,8 @@ interface TaskEditDialogProps {
   clients?: ClientOption[];
   selectedClientId?: string | null;
   onClientChange?: (clientId: string | null) => void;
+  // View mode - opens in read-only first
+  initialViewOnly?: boolean;
 }
 
 const statusOptions = [
@@ -160,16 +164,203 @@ export function TaskEditDialog({
   clients = [],
   selectedClientId,
   onClientChange,
+  initialViewOnly = false,
 }: TaskEditDialogProps) {
   const [addContactDialogOpen, setAddContactDialogOpen] = useState(false);
   const [addContactType, setAddContactType] = useState<'email' | 'phone'>('email');
   const [newContactValue, setNewContactValue] = useState("");
+  const [isViewOnly, setIsViewOnly] = useState(initialViewOnly);
+
+  // Reset view mode when dialog opens/closes or task changes
+  const prevOpen = useState(open)[0];
+  if (open && initialViewOnly && !isViewOnly && selectedTaskId) {
+    // Don't auto-reset here, let the user toggle
+  }
+  
+  // Reset to view mode when a different task is opened
+  const [prevTaskId, setPrevTaskId] = useState(selectedTaskId);
+  if (selectedTaskId !== prevTaskId) {
+    setPrevTaskId(selectedTaskId);
+    if (selectedTaskId && initialViewOnly) {
+      setIsViewOnly(true);
+    } else if (!selectedTaskId) {
+      setIsViewOnly(false);
+    }
+  }
 
   const openAddContactDialog = (type: 'email' | 'phone') => {
     setAddContactType(type);
     setNewContactValue("");
     setAddContactDialogOpen(true);
   };
+
+  // View-only mode: show task details without edit controls
+  if (isViewOnly && selectedTaskId) {
+    const currentStatus = statusOptions.find(s => s.value === formData.status);
+    const currentPriority = priorityOptions.find(p => p.value === formData.priority);
+    const currentTag = taskTagOptions.find(t => t.value === formData.taskTag);
+    const assignedProject = projects.find(p => p.id === formData.projectId);
+    const clientName = clients.find(c => c.id === selectedClientId)?.name;
+
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b">
+            <div className="flex items-center gap-3">
+              <DialogTitle className="text-lg">{formData.title || "משימה"}</DialogTitle>
+              {currentStatus && (
+                <Badge variant="secondary" className={currentStatus.color}>
+                  {currentStatus.label}
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setIsViewOnly(false)}>
+                <Pencil className="w-4 h-4 ml-1" />
+                עריכה
+              </Button>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Description */}
+            {formData.description && (
+              <div className="space-y-1">
+                <span className="text-xs font-medium text-muted-foreground">תיאור</span>
+                <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.description}</p>
+              </div>
+            )}
+
+            {/* Status & Priority row */}
+            <div className="flex flex-wrap gap-3">
+              {currentPriority && (
+                <div className="space-y-1">
+                  <span className="text-xs text-muted-foreground">עדיפות</span>
+                  <Badge variant="secondary" className={currentPriority.color}>{currentPriority.label}</Badge>
+                </div>
+              )}
+              {currentTag && (
+                <div className="space-y-1">
+                  <span className="text-xs text-muted-foreground">תג</span>
+                  <Badge variant="outline" className={currentTag.color}>
+                    <currentTag.icon className="w-3 h-3 ml-1" />
+                    {currentTag.label}
+                  </Badge>
+                </div>
+              )}
+            </div>
+
+            {/* Info grid */}
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              {clientName && (
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">לקוח:</span>
+                  <span className="font-medium">{clientName}</span>
+                </div>
+              )}
+              {formData.assignee && (
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">אחראי:</span>
+                  <span className="font-medium">{formData.assignee}</span>
+                </div>
+              )}
+              {formData.department && (
+                <div className="flex items-center gap-2">
+                  <ListTree className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">מחלקה:</span>
+                  <span className="font-medium">{formData.department}</span>
+                </div>
+              )}
+              {assignedProject && (
+                <div className="flex items-center gap-2">
+                  <FolderKanban className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">פרויקט:</span>
+                  <span className="font-medium">{assignedProject.name}</span>
+                </div>
+              )}
+              {formData.dueDate && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">תאריך:</span>
+                  <span className="font-medium">{format(parseISO(formData.dueDate), "dd/MM/yyyy")}</span>
+                </div>
+              )}
+              {formData.scheduledTime && (
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">שעה:</span>
+                  <span className="font-medium">{formData.scheduledTime}</span>
+                </div>
+              )}
+              {formData.category && (
+                <div className="flex items-center gap-2">
+                  <Target className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">קטגוריה:</span>
+                  <span className="font-medium">{formData.category}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Notes */}
+            {formData.notes && (
+              <div className="space-y-1">
+                <span className="text-xs font-medium text-muted-foreground">הערות</span>
+                <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.notes}</p>
+              </div>
+            )}
+
+            {/* Expected Result */}
+            {formData.expectedResult && (
+              <div className="space-y-1">
+                <span className="text-xs font-medium text-muted-foreground">תוצאה מצופה</span>
+                <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.expectedResult}</p>
+              </div>
+            )}
+
+            {/* Subtasks */}
+            {selectedTaskId && (
+              <div className="space-y-1">
+                <span className="text-xs font-medium text-muted-foreground">תתי-משימות</span>
+                <SubtaskList parentTaskId={selectedTaskId} />
+              </div>
+            )}
+
+            {/* Attachments */}
+            {selectedTaskId && (
+              <div className="space-y-1">
+                <span className="text-xs font-medium text-muted-foreground">קבצים</span>
+                <TaskAttachments taskId={selectedTaskId} />
+              </div>
+            )}
+
+            {/* Status change buttons */}
+            <div className="border-t pt-4 space-y-2">
+              <span className="text-xs font-medium text-muted-foreground">שנה סטטוס</span>
+              <div className="flex flex-wrap gap-2">
+                {statusOptions.map(s => (
+                  <Button
+                    key={s.value}
+                    variant={formData.status === s.value ? "default" : "outline"}
+                    size="sm"
+                    className={formData.status === s.value ? "" : s.color}
+                    onClick={() => {
+                      updateField('status', s.value);
+                      onSave();
+                    }}
+                    disabled={formData.status === s.value || isSaving}
+                  >
+                    {s.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

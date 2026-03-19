@@ -960,6 +960,7 @@ export default function Tasks() {
 
         {/* Edit Task Dialog */}
         <TaskEditDialog
+          initialViewOnly={!!selectedTask}
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           selectedTaskId={selectedTask?.id || null}
@@ -1001,7 +1002,7 @@ export default function Tasks() {
           }}
           pendingAttachments={pendingAttachments}
           setPendingAttachments={setPendingAttachments}
-          showClientSelector={isAgencyView}
+          showClientSelector={true}
           clients={clients}
           selectedClientId={newTaskClientId || effectiveClient?.id}
           onClientChange={setNewTaskClientId}
