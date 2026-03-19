@@ -549,7 +549,8 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
             <ProjectTeamManager projectId={projectId} />
           </TabsContent>
 
-          {/* Client View Tab */}
+          {/* Client View Tab - hidden for now */}
+          {/*
           <TabsContent value="client">
             <ScrollArea className="h-[500px] pr-4">
               <Card className="mb-4 border-dashed border-2">
