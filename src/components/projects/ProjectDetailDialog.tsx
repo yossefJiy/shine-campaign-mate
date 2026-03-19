@@ -341,7 +341,7 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
         </DialogHeader>
 
         <Tabs defaultValue="stages" className="mt-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="stages" className="gap-2">
               <CheckCircle2 className="h-4 w-4" />
               שלבים ומשימות
@@ -350,17 +350,9 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
               <UserCheck className="h-4 w-4" />
               צוות
             </TabsTrigger>
-            <TabsTrigger value="client" className="gap-2">
-              <Eye className="h-4 w-4" />
-              תצוגת לקוח
-            </TabsTrigger>
             <TabsTrigger value="activity" className="gap-2">
               <History className="h-4 w-4" />
               פעילות
-            </TabsTrigger>
-            <TabsTrigger value="billing" className="gap-2">
-              <DollarSign className="h-4 w-4" />
-              כספים
             </TabsTrigger>
           </TabsList>
 
