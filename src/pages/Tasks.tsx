@@ -1001,7 +1001,7 @@ export default function Tasks() {
           }}
           pendingAttachments={pendingAttachments}
           setPendingAttachments={setPendingAttachments}
-          showClientSelector={isAgencyView}
+          showClientSelector={true}
           clients={clients}
           selectedClientId={newTaskClientId || effectiveClient?.id}
           onClientChange={setNewTaskClientId}
