@@ -336,10 +336,6 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
                 <Plus className="h-4 w-4 ml-1" />
                 הוסף שלב
               </Button>
-              <Button variant="outline" size="sm">
-                <Share2 className="h-4 w-4 ml-1" />
-                שתף עם לקוח
-              </Button>
             </div>
           </DialogTitle>
         </DialogHeader>
