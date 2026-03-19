@@ -76,6 +76,7 @@ export default function Projects() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [showInternalDialog, setShowInternalDialog] = useState(false);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+  const [filterClientId, setFilterClientId] = useState<string>("");
 
   // Fetch projects with stages count
   const { data: projects = [], isLoading } = useQuery({
