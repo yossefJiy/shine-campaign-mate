@@ -180,7 +180,7 @@ export function TaskTableRow({
             </button>
           )}
 
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 cursor-pointer" onClick={() => onEdit(task)}>
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               {isSubtask && <ListTree className="w-4 h-4 text-muted-foreground" />}
               <h3 className={cn("font-medium", task.status === "completed" && "line-through text-muted-foreground")}>

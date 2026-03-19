@@ -1,0 +1,1 @@
+UPDATE tasks SET status = 'todo', completed_at = NULL, completed_by = NULL, project_id = NULL, stage_id = NULL, assignee = NULL WHERE status = 'completed';
