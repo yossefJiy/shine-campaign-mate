@@ -212,13 +212,19 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
       
       if (status === "completed") {
         updateData.completed_at = new Date().toISOString();
+      } else {
+        updateData.completed_at = null;
       }
+      
       if (status === "approved") {
         updateData.approved_at = new Date().toISOString();
         updateData.approved_by_client = true;
+      } else {
+        updateData.approved_at = null;
+        updateData.approved_by_client = false;
       }
+
       if (status === "waiting_client") {
-        // Update project status as well
         await supabase
           .from("projects")
           .update({ status: "waiting_client" })
@@ -232,7 +238,6 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
       
       if (error) throw error;
 
-      // Update project last_activity_at
       await supabase
         .from("projects")
         .update({ last_activity_at: new Date().toISOString() })
@@ -336,16 +341,12 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
                 <Plus className="h-4 w-4 ml-1" />
                 הוסף שלב
               </Button>
-              <Button variant="outline" size="sm">
-                <Share2 className="h-4 w-4 ml-1" />
-                שתף עם לקוח
-              </Button>
             </div>
           </DialogTitle>
         </DialogHeader>
 
         <Tabs defaultValue="stages" className="mt-4">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="stages" className="gap-2">
               <CheckCircle2 className="h-4 w-4" />
               שלבים ומשימות
@@ -354,17 +355,9 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
               <UserCheck className="h-4 w-4" />
               צוות
             </TabsTrigger>
-            <TabsTrigger value="client" className="gap-2">
-              <Eye className="h-4 w-4" />
-              תצוגת לקוח
-            </TabsTrigger>
             <TabsTrigger value="activity" className="gap-2">
               <History className="h-4 w-4" />
               פעילות
-            </TabsTrigger>
-            <TabsTrigger value="billing" className="gap-2">
-              <DollarSign className="h-4 w-4" />
-              כספים
             </TabsTrigger>
           </TabsList>
 
@@ -459,27 +452,37 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
                         </AccordionTrigger>
                         <AccordionContent>
                           <div className="py-2 space-y-3">
-                            {/* Stage Actions */}
-                            <div className="flex gap-2 pb-2 border-b">
-                              {stage.status !== "waiting_client" && stage.status !== "completed" && (
+                            {/* Stage Actions - all status options available */}
+                            <div className="flex gap-2 pb-2 border-b flex-wrap">
+                              {stage.status !== "pending" && (
                                 <Button 
                                   variant="outline" 
                                   size="sm"
-                                  onClick={() => updateStageMutation.mutate({ 
-                                    stageId: stage.id, 
-                                    status: "waiting_client" 
-                                  })}
+                                  onClick={() => updateStageMutation.mutate({ stageId: stage.id, status: "pending" })}
+                                  disabled={updateStageMutation.isPending}
                                 >
-                                  {microcopy.buttons.waitingForClient}
+                                  ממתין
                                 </Button>
                               )}
-                              {stage.requires_client_approval && stage.status !== "approved" && stage.status !== "completed" && (
+                              {stage.status !== "in_progress" && (
                                 <Button 
                                   variant="outline" 
                                   size="sm"
-                                  className="text-primary"
+                                  onClick={() => updateStageMutation.mutate({ stageId: stage.id, status: "in_progress" })}
+                                  disabled={updateStageMutation.isPending}
                                 >
-                                  בקש אישור לקוח
+                                  בעבודה
+                                </Button>
+                              )}
+                              {stage.status !== "waiting_client" && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  className="text-orange-600"
+                                  onClick={() => updateStageMutation.mutate({ stageId: stage.id, status: "waiting_client" })}
+                                  disabled={updateStageMutation.isPending}
+                                >
+                                  {microcopy.buttons.waitingForClient}
                                 </Button>
                               )}
                               {stage.status !== "completed" && (
@@ -487,10 +490,8 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
                                   variant="outline" 
                                   size="sm"
                                   className="text-green-600"
-                                  onClick={() => updateStageMutation.mutate({ 
-                                    stageId: stage.id, 
-                                    status: "completed" 
-                                  })}
+                                  onClick={() => updateStageMutation.mutate({ stageId: stage.id, status: "completed" })}
+                                  disabled={updateStageMutation.isPending}
                                 >
                                   סמן כהושלם
                                 </Button>
@@ -553,88 +554,7 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
             <ProjectTeamManager projectId={projectId} />
           </TabsContent>
 
-          {/* Client View Tab */}
-          <TabsContent value="client">
-            <ScrollArea className="h-[500px] pr-4">
-              <Card className="mb-4 border-dashed border-2">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Eye className="h-4 w-4" />
-                    תצוגה מקדימה - מה הלקוח רואה
-                  </CardTitle>
-                  <p className="text-xs text-muted-foreground">
-                    הלקוח לא רואה: משימות, צוות, כספים מפורטים, הערות פנימיות
-                  </p>
-                </CardHeader>
-                <CardContent className="pt-2">
-                  {/* Client View Header */}
-                  <div className="text-center p-4 bg-muted/50 rounded-lg mb-4">
-                    <p className="font-medium text-lg">{microcopy.clientPortal.projectStatus}</p>
-                    <p className="text-sm text-muted-foreground">{project?.name}</p>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    {stages.length === 0 ? (
-                      <p className="text-center text-muted-foreground py-6">אין שלבים להצגה</p>
-                    ) : (
-                      stages.map((stage: any, idx: number) => {
-                        const needsApproval = stage.requires_client_approval && 
-                                              !stage.approved_by_client && 
-                                              stage.status !== "completed";
-                        const isWaitingClient = stage.status === "waiting_client";
-                        
-                        return (
-                          <div 
-                            key={stage.id} 
-                            className={cn(
-                              "p-4 border rounded-lg",
-                              (needsApproval || isWaitingClient) && "border-warning bg-warning/5"
-                            )}
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <span className="text-xs text-muted-foreground">{idx + 1}</span>
-                                {stage.status === "completed" || stage.approved_by_client ? (
-                                  <CheckCircle2 className="h-4 w-4 text-success" />
-                                ) : isWaitingClient ? (
-                                  <AlertTriangle className="h-4 w-4 text-warning" />
-                                ) : (
-                                  <Clock className="h-4 w-4 text-muted-foreground" />
-                                )}
-                                <span className="font-medium">{stage.name}</span>
-                              </div>
-                              <Badge className={cn("text-xs", statusColors[stage.status])}>
-                                {isWaitingClient ? "ממתין לאישור שלך" : stageStatusLabels[stage.status] || stage.status}
-                              </Badge>
-                            </div>
-                            
-                            {(needsApproval || isWaitingClient) && (
-                              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-warning/30">
-                                <Button size="sm" className="gap-1">
-                                  <CheckCircle2 className="h-3 w-3" />
-                                  {microcopy.buttons.approve}
-                                </Button>
-                                <Button variant="outline" size="sm">
-                                  {microcopy.buttons.iHaveComment}
-                                </Button>
-                              </div>
-                            )}
-                            
-                            {stage.approved_by_client && (
-                              <Badge variant="outline" className="mt-2 text-xs text-success">
-                                <CheckCircle2 className="h-3 w-3 ml-1" />
-                                אושר על ידי הלקוח
-                              </Badge>
-                            )}
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </ScrollArea>
-          </TabsContent>
+          {/* Client View Tab - hidden for now */}
 
           {/* Activity Tab */}
           <TabsContent value="activity">
@@ -719,85 +639,7 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
             </ScrollArea>
           </TabsContent>
 
-          {/* Billing Tab */}
-          <TabsContent value="billing">
-            <ScrollArea className="h-[500px] pr-4">
-              {/* Work Status Banner */}
-              <div className={cn(
-                "mb-4 p-4 rounded-lg flex items-center gap-3",
-                project?.work_state === "blocked_payment" 
-                  ? "bg-destructive/10 border border-destructive/30" 
-                  : "bg-success/10 border border-success/30"
-              )}>
-                {project?.work_state === "blocked_payment" ? (
-                  <>
-                    <AlertTriangle className="h-6 w-6 text-destructive" />
-                    <div>
-                      <p className="font-medium text-destructive">⛔ עבודה חסומה</p>
-                      <p className="text-sm text-muted-foreground">ממתין לתשלום ריטיינר</p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="h-6 w-6 text-success" />
-                    <div>
-                      <p className="font-medium text-success">✅ Work OK</p>
-                      <p className="text-sm text-muted-foreground">אפשר לעבוד</p>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <Card>
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-2xl font-bold">₪{totalBilled.toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">סה"כ חויב</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-2xl font-bold text-success">₪{totalPaid.toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">שולם</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="pt-4 text-center">
-                    <p className="text-2xl font-bold text-warning">₪{(totalBilled - totalPaid).toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">פתוח</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {billingRecords.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <DollarSign className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>אין רשומות חיוב</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {billingRecords.map((record: any) => (
-                    <div key={record.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">
-                          {format(new Date(record.period_start), "MMMM yyyy", { locale: he })}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {record.notes || "חיוב חודשי"}
-                        </p>
-                      </div>
-                      <div className="text-left">
-                        <p className="font-bold">₪{(record.total_amount || 0).toLocaleString()}</p>
-                        <Badge variant={record.status === "paid" ? "default" : "secondary"}>
-                          {record.status === "paid" ? "שולם" : record.status === "overdue" ? "באיחור" : "ממתין"}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
-          </TabsContent>
+          {/* Billing Tab - hidden for now */}
         </Tabs>
 
         {/* Add Stage Dialog */}
