@@ -174,6 +174,9 @@ export default function Projects() {
 
   // Filter projects
   const filteredProjects = projects.filter((project: any) => {
+    // Client filter
+    if (filterClientId && project.client_id !== filterClientId) return false;
+    
     if (filterStatus === "all") return true;
     
     const stats = getProjectStats(project);
