@@ -212,13 +212,19 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
       
       if (status === "completed") {
         updateData.completed_at = new Date().toISOString();
+      } else {
+        updateData.completed_at = null;
       }
+      
       if (status === "approved") {
         updateData.approved_at = new Date().toISOString();
         updateData.approved_by_client = true;
+      } else {
+        updateData.approved_at = null;
+        updateData.approved_by_client = false;
       }
+
       if (status === "waiting_client") {
-        // Update project status as well
         await supabase
           .from("projects")
           .update({ status: "waiting_client" })
@@ -232,7 +238,6 @@ export function ProjectDetailDialog({ open, onOpenChange, projectId }: ProjectDe
       
       if (error) throw error;
 
-      // Update project last_activity_at
       await supabase
         .from("projects")
         .update({ last_activity_at: new Date().toISOString() })
