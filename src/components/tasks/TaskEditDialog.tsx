@@ -268,11 +268,11 @@ export function TaskEditDialog({
                   <span className="font-medium">{clientName}</span>
                 </div>
               )}
-              {formData.assignee && (
+              {assigneeName && (
                 <div className="flex items-center gap-2">
                   <User className="w-4 h-4 text-muted-foreground" />
                   <span className="text-muted-foreground">אחראי:</span>
-                  <span className="font-medium">{formData.assignee}</span>
+                  <span className="font-medium">{assigneeName}</span>
                 </div>
               )}
               {formData.department && (
