@@ -192,6 +192,132 @@ export function TaskAttachments({ taskId, compact = false, onCountChange }: Task
     });
   };
 
+  // Upload a File object directly (used by paste and capture)
+  const uploadFile = useCallback(async (file: File) => {
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop() || "png";
+      const fileName = `${taskId}/${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("task-attachments")
+        .upload(fileName, file);
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("task-attachments")
+        .getPublicUrl(fileName);
+
+      const attachmentType = file.type.startsWith("image/")
+        ? "image"
+        : file.type.startsWith("video/")
+        ? "video"
+        : "file";
+
+      await addAttachmentMutation.mutateAsync({
+        task_id: taskId,
+        attachment_type: attachmentType,
+        name: file.name,
+        url: publicUrl,
+        file_size: file.size,
+        mime_type: file.type,
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("שגיאה בהעלאת קובץ");
+    } finally {
+      setIsUploading(false);
+    }
+  }, [taskId, addAttachmentMutation]);
+
+  // Paste handler - listen for Ctrl+V
+  const handlePaste = useCallback(async (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of Array.from(items)) {
+      if (item.kind === "file") {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          const name = file.name === "image.png" 
+            ? `paste-${Date.now()}.png` 
+            : file.name;
+          const renamedFile = new File([file], name, { type: file.type });
+          await uploadFile(renamedFile);
+        }
+        return;
+      }
+    }
+  }, [uploadFile]);
+
+  // Drag & Drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files);
+    for (const file of files) {
+      await uploadFile(file);
+    }
+  }, [uploadFile]);
+
+  // Screen capture
+  const handleScreenCapture = useCallback(async () => {
+    try {
+      setIsCapturing(true);
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { displaySurface: "monitor" } as any,
+      });
+      
+      // Capture a single frame
+      const track = stream.getVideoTracks()[0];
+      const imageCapture = new (window as any).ImageCapture(track);
+      const bitmap = await imageCapture.grabFrame();
+      
+      // Stop the stream
+      stream.getTracks().forEach(t => t.stop());
+      
+      // Convert to blob
+      const canvas = document.createElement("canvas");
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(bitmap, 0, 0);
+      
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((b) => resolve(b!), "image/png");
+      });
+      
+      const file = new File([blob], `screenshot-${Date.now()}.png`, { type: "image/png" });
+      await uploadFile(file);
+      toast.success("צילום מסך הועלה בהצלחה");
+    } catch (error: any) {
+      if (error.name !== "AbortError") {
+        console.error("Screen capture error:", error);
+        toast.error("שגיאה בצילום מסך");
+      }
+    } finally {
+      setIsCapturing(false);
+    }
+  }, [uploadFile]);
+
+  // Register paste listener when dialog is open
+  useEffect(() => {
+    if (addDialogOpen || !compact) {
+      document.addEventListener("paste", handlePaste);
+      return () => document.removeEventListener("paste", handlePaste);
+    }
+  }, [addDialogOpen, compact, handlePaste]);
+
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return "";
     if (bytes < 1024) return `${bytes} B`;
