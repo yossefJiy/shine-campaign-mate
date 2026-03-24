@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -26,6 +26,9 @@ import {
   ExternalLink,
   Loader2,
   X,
+  Camera,
+  MonitorUp,
+  Clipboard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -63,10 +66,13 @@ const attachmentTypeLabels = {
 export function TaskAttachments({ taskId, compact = false, onCountChange }: TaskAttachmentsProps) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkName, setLinkName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
 
   const { data: attachments = [], isLoading } = useQuery({
     queryKey: ["task-attachments", taskId],
@@ -185,6 +191,132 @@ export function TaskAttachments({ taskId, compact = false, onCountChange }: Task
       mime_type: null,
     });
   };
+
+  // Upload a File object directly (used by paste and capture)
+  const uploadFile = useCallback(async (file: File) => {
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop() || "png";
+      const fileName = `${taskId}/${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("task-attachments")
+        .upload(fileName, file);
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("task-attachments")
+        .getPublicUrl(fileName);
+
+      const attachmentType = file.type.startsWith("image/")
+        ? "image"
+        : file.type.startsWith("video/")
+        ? "video"
+        : "file";
+
+      await addAttachmentMutation.mutateAsync({
+        task_id: taskId,
+        attachment_type: attachmentType,
+        name: file.name,
+        url: publicUrl,
+        file_size: file.size,
+        mime_type: file.type,
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("שגיאה בהעלאת קובץ");
+    } finally {
+      setIsUploading(false);
+    }
+  }, [taskId, addAttachmentMutation]);
+
+  // Paste handler - listen for Ctrl+V
+  const handlePaste = useCallback(async (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of Array.from(items)) {
+      if (item.kind === "file") {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) {
+          const name = file.name === "image.png" 
+            ? `paste-${Date.now()}.png` 
+            : file.name;
+          const renamedFile = new File([file], name, { type: file.type });
+          await uploadFile(renamedFile);
+        }
+        return;
+      }
+    }
+  }, [uploadFile]);
+
+  // Drag & Drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files);
+    for (const file of files) {
+      await uploadFile(file);
+    }
+  }, [uploadFile]);
+
+  // Screen capture
+  const handleScreenCapture = useCallback(async () => {
+    try {
+      setIsCapturing(true);
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { displaySurface: "monitor" } as any,
+      });
+      
+      // Capture a single frame
+      const track = stream.getVideoTracks()[0];
+      const imageCapture = new (window as any).ImageCapture(track);
+      const bitmap = await imageCapture.grabFrame();
+      
+      // Stop the stream
+      stream.getTracks().forEach(t => t.stop());
+      
+      // Convert to blob
+      const canvas = document.createElement("canvas");
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(bitmap, 0, 0);
+      
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((b) => resolve(b!), "image/png");
+      });
+      
+      const file = new File([blob], `screenshot-${Date.now()}.png`, { type: "image/png" });
+      await uploadFile(file);
+      toast.success("צילום מסך הועלה בהצלחה");
+    } catch (error: any) {
+      if (error.name !== "AbortError") {
+        console.error("Screen capture error:", error);
+        toast.error("שגיאה בצילום מסך");
+      }
+    } finally {
+      setIsCapturing(false);
+    }
+  }, [uploadFile]);
+
+  // Register paste listener when dialog is open
+  useEffect(() => {
+    if (addDialogOpen || !compact) {
+      document.addEventListener("paste", handlePaste);
+      return () => document.removeEventListener("paste", handlePaste);
+    }
+  }, [addDialogOpen, compact, handlePaste]);
 
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return "";
@@ -309,29 +441,75 @@ export function TaskAttachments({ taskId, compact = false, onCountChange }: Task
 
               {/* Add new */}
               <div className="space-y-3 pt-2 border-t border-border">
-                <div className="grid grid-cols-2 gap-2">
+                {/* Drop zone */}
+                <div
+                  ref={dropZoneRef}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={cn(
+                    "border-2 border-dashed rounded-lg p-4 text-center transition-colors",
+                    isDragging ? "border-primary bg-primary/5" : "border-border",
+                    isUploading && "opacity-50 pointer-events-none"
+                  )}
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" />
+                  ) : (
+                    <>
+                      <Clipboard className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">
+                        גרור קבצים לכאן או הדבק (Ctrl+V)
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
                   <Button
                     variant="outline"
-                    className="gap-2"
+                    size="sm"
+                    className="gap-1.5 text-xs"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
                   >
-                    {isUploading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Upload className="w-4 h-4" />
-                    )}
-                    העלאת קובץ
+                    <Upload className="w-3.5 h-3.5" />
+                    קובץ
                   </Button>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="הדבק קישור..."
-                      value={linkUrl}
-                      onChange={(e) => setLinkUrl(e.target.value)}
-                      className="flex-1 text-right"
-                      dir="rtl"
-                    />
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 text-xs"
+                    onClick={handleScreenCapture}
+                    disabled={isCapturing || isUploading}
+                  >
+                    {isCapturing ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <MonitorUp className="w-3.5 h-3.5" />
+                    )}
+                    צילום מסך
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 text-xs"
+                    onClick={() => {/* link input is below */}}
+                    disabled={isUploading}
+                  >
+                    <LinkIcon className="w-3.5 h-3.5" />
+                    קישור
+                  </Button>
+                </div>
+
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="הדבק קישור..."
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    className="flex-1 text-right text-sm"
+                    dir="rtl"
+                  />
                 </div>
 
                 {linkUrl && (
@@ -377,12 +555,26 @@ export function TaskAttachments({ taskId, compact = false, onCountChange }: Task
             <Badge variant="secondary" className="text-xs">{attachments.length}</Badge>
           )}
         </Label>
-        <div className="flex gap-2">
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleScreenCapture}
+            disabled={isCapturing || isUploading}
+            title="צילום מסך"
+          >
+            {isCapturing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <MonitorUp className="w-4 h-4" />
+            )}
+          </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
+            title="העלאת קובץ"
           >
             {isUploading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -399,7 +591,25 @@ export function TaskAttachments({ taskId, compact = false, onCountChange }: Task
         className="hidden"
         onChange={handleFileUpload}
         accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
+        multiple
       />
+
+      {/* Drop zone */}
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={cn(
+          "border-2 border-dashed rounded-lg p-3 text-center transition-colors",
+          isDragging ? "border-primary bg-primary/5" : "border-border",
+          isUploading && "opacity-50"
+        )}
+      >
+        <Clipboard className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
+        <p className="text-xs text-muted-foreground">
+          גרור קבצים או הדבק (Ctrl+V)
+        </p>
+      </div>
 
       {attachments.length > 0 ? (
         <div className="space-y-3">
@@ -419,7 +629,8 @@ export function TaskAttachments({ taskId, compact = false, onCountChange }: Task
                     <img 
                       src={attachment.url} 
                       alt={attachment.name} 
-                      className="max-h-48 w-auto rounded object-contain mx-auto"
+                      className="max-h-48 w-auto rounded object-contain mx-auto cursor-pointer"
+                      onClick={() => window.open(attachment.url, "_blank")}
                     />
                   </div>
                 )}
@@ -476,12 +687,7 @@ export function TaskAttachments({ taskId, compact = false, onCountChange }: Task
             );
           })}
         </div>
-      ) : (
-        <div className="text-center py-4 text-sm text-muted-foreground border border-dashed border-border rounded-lg">
-          <Paperclip className="w-6 h-6 mx-auto mb-2 opacity-50" />
-          אין נספחים
-        </div>
-      )}
+      ) : null}
 
       {/* Add link inline */}
       <div className="flex gap-2">

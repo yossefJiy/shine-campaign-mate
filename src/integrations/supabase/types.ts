@@ -3260,6 +3260,44 @@ export type Database = {
           },
         ]
       }
+      task_activity: {
+        Row: {
+          activity_type: string
+          content: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          task_id: string
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          task_id: string
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          task_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_activity_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_attachments: {
         Row: {
           attachment_type: string
