@@ -42,11 +42,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -66,6 +66,7 @@ import { TaskDependencySection } from "./TaskDependencySection";
 import { TaskActivityTimeline } from "./TaskActivityTimeline";
 import { TaskFormData, ReminderOption } from "@/hooks/useTaskForm";
 import { microcopy } from "@/lib/microcopy";
+import { Separator } from "@/components/ui/separator";
 
 interface TeamMember {
   id: string;
@@ -117,7 +118,6 @@ interface TaskEditDialogProps {
   selectedClientId?: string | null;
   onClientChange?: (clientId: string | null) => void;
   initialViewOnly?: boolean;
-  // Task metadata for timeline
   taskCreatedBy?: string | null;
   taskAssignee?: string | null;
   taskCreatedAt?: string | null;
@@ -180,13 +180,6 @@ export function TaskEditDialog({
   const [newContactValue, setNewContactValue] = useState("");
   const [isViewOnly, setIsViewOnly] = useState(initialViewOnly);
 
-  // Reset view mode when dialog opens/closes or task changes
-  const prevOpen = useState(open)[0];
-  if (open && initialViewOnly && !isViewOnly && selectedTaskId) {
-    // Don't auto-reset here, let the user toggle
-  }
-  
-  // Reset to view mode when a different task is opened
   const [prevTaskId, setPrevTaskId] = useState(selectedTaskId);
   if (selectedTaskId !== prevTaskId) {
     setPrevTaskId(selectedTaskId);
@@ -203,233 +196,230 @@ export function TaskEditDialog({
     setAddContactDialogOpen(true);
   };
 
-  // View-only mode: show task details without edit controls
+  // View-only mode
   if (isViewOnly && selectedTaskId) {
     const currentStatus = statusOptions.find(s => s.value === formData.status);
     const currentPriority = priorityOptions.find(p => p.value === formData.priority);
     const currentTag = taskTagOptions.find(t => t.value === formData.taskTag);
     const assignedProject = projects.find(p => p.id === formData.projectId);
     const clientName = clients.find(c => c.id === selectedClientId)?.name;
-    // Resolve assignee: could be a name or a UUID
     const assigneeName = (() => {
       if (!formData.assignee) return null;
-      // Check if it's a UUID by trying to find a team member by id (user_id)
       const memberById = teamMembers.find(m => (m as any).user_id === formData.assignee || m.id === formData.assignee);
       if (memberById) return memberById.name;
-      // Otherwise it's already a name
       return formData.assignee;
     })();
 
     return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b">
-            <div className="flex items-center gap-3">
-              <DialogTitle className="text-lg">{formData.title || "משימה"}</DialogTitle>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
+          {/* Header with edit button */}
+          <div className="sticky top-0 z-10 bg-background border-b px-6 py-4">
+            <div className="flex items-center justify-between">
+              <SheetTitle className="text-lg font-semibold">{formData.title || "משימה"}</SheetTitle>
+              <Button variant="outline" size="sm" onClick={() => setIsViewOnly(false)} className="gap-1.5">
+                <Pencil className="w-4 h-4" />
+                עריכה
+              </Button>
+            </div>
+            <Separator className="mt-3" />
+            {/* Status & Priority badges */}
+            <div className="flex items-center gap-2 mt-3">
               {currentStatus && (
                 <Badge variant="secondary" className={currentStatus.color}>
                   {currentStatus.label}
                 </Badge>
               )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => setIsViewOnly(false)}>
-                <Pencil className="w-4 h-4 ml-1" />
-                עריכה
-              </Button>
-            </div>
-          </DialogHeader>
-
-          {/* Title & Description between header and content */}
-          {formData.description && (
-            <div className="py-2 border-b">
-              <p className="text-sm whitespace-pre-wrap text-muted-foreground">{formData.description}</p>
-            </div>
-          )}
-
-          {/* Status & Priority & Tag row */}
-          <div className="flex flex-wrap gap-3 py-2 border-b">
-            {currentPriority && (
-              <div className="space-y-1">
-                <span className="text-xs text-muted-foreground">עדיפות</span>
+              {currentPriority && (
                 <Badge variant="secondary" className={currentPriority.color}>{currentPriority.label}</Badge>
-              </div>
-            )}
-            {currentTag && (
-              <div className="space-y-1">
-                <span className="text-xs text-muted-foreground">תג</span>
+              )}
+              {currentTag && (
                 <Badge variant="outline" className={currentTag.color}>
                   <currentTag.icon className="w-3 h-3 ml-1" />
                   {currentTag.label}
                 </Badge>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
-          <Tabs defaultValue="details" className="mt-2">
-            <TabsList className="w-full grid grid-cols-3">
-              <TabsTrigger value="details" className="gap-1.5 text-xs">
-                <FileText className="w-3.5 h-3.5" />
-                פרטים
-              </TabsTrigger>
-              <TabsTrigger value="attachments" className="gap-1.5 text-xs">
-                <Paperclip className="w-3.5 h-3.5" />
-                קבצים
-              </TabsTrigger>
-              <TabsTrigger value="timeline" className="gap-1.5 text-xs">
-                <MessageSquare className="w-3.5 h-3.5" />
-                הערות וציר זמן
-              </TabsTrigger>
-            </TabsList>
-
-            {/* Details Tab */}
-            <TabsContent value="details" className="space-y-4 mt-4">
-              {/* Info grid */}
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                {clientName && (
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">לקוח:</span>
-                    <span className="font-medium">{clientName}</span>
-                  </div>
-                )}
-                {assigneeName && (
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">אחראי:</span>
-                    <span className="font-medium">{assigneeName}</span>
-                  </div>
-                )}
-                {formData.department && (
-                  <div className="flex items-center gap-2">
-                    <ListTree className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">מחלקה:</span>
-                    <span className="font-medium">{formData.department}</span>
-                  </div>
-                )}
-                {assignedProject && (
-                  <div className="flex items-center gap-2">
-                    <FolderKanban className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">פרויקט:</span>
-                    <span className="font-medium">{assignedProject.name}</span>
-                  </div>
-                )}
-                {formData.dueDate && (
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">תאריך:</span>
-                    <span className="font-medium">{format(parseISO(formData.dueDate), "dd/MM/yyyy")}</span>
-                  </div>
-                )}
-                {formData.scheduledTime && (
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">שעה:</span>
-                    <span className="font-medium">{formData.scheduledTime}</span>
-                  </div>
-                )}
-                {formData.category && (
-                  <div className="flex items-center gap-2">
-                    <Target className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">קטגוריה:</span>
-                    <span className="font-medium">{formData.category}</span>
-                  </div>
-                )}
+          <div className="px-6 py-4 space-y-4">
+            {/* Description */}
+            {formData.description && (
+              <div className="space-y-1">
+                <p className="text-sm whitespace-pre-wrap text-muted-foreground">{formData.description}</p>
               </div>
+            )}
 
-              {/* Expected Result */}
-              {formData.expectedResult && (
-                <div className="space-y-1">
-                  <span className="text-xs font-medium text-muted-foreground">תוצאה מצופה</span>
-                  <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.expectedResult}</p>
+            <Tabs defaultValue="details">
+              <TabsList className="w-full grid grid-cols-3">
+                <TabsTrigger value="details" className="gap-1.5 text-xs">
+                  <FileText className="w-3.5 h-3.5" />
+                  פרטים
+                </TabsTrigger>
+                <TabsTrigger value="attachments" className="gap-1.5 text-xs">
+                  <Paperclip className="w-3.5 h-3.5" />
+                  קבצים
+                </TabsTrigger>
+                <TabsTrigger value="timeline" className="gap-1.5 text-xs">
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  הערות וציר זמן
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="details" className="space-y-4 mt-4">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {clientName && (
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">לקוח:</span>
+                      <span className="font-medium">{clientName}</span>
+                    </div>
+                  )}
+                  {assigneeName && (
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">אחראי:</span>
+                      <span className="font-medium">{assigneeName}</span>
+                    </div>
+                  )}
+                  {formData.department && (
+                    <div className="flex items-center gap-2">
+                      <ListTree className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">מחלקה:</span>
+                      <span className="font-medium">{formData.department}</span>
+                    </div>
+                  )}
+                  {assignedProject && (
+                    <div className="flex items-center gap-2">
+                      <FolderKanban className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">פרויקט:</span>
+                      <span className="font-medium">{assignedProject.name}</span>
+                    </div>
+                  )}
+                  {formData.dueDate && (
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">תאריך:</span>
+                      <span className="font-medium">{format(parseISO(formData.dueDate), "dd/MM/yyyy")}</span>
+                    </div>
+                  )}
+                  {formData.scheduledTime && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">שעה:</span>
+                      <span className="font-medium">{formData.scheduledTime}</span>
+                    </div>
+                  )}
+                  {formData.category && (
+                    <div className="flex items-center gap-2">
+                      <Target className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">קטגוריה:</span>
+                      <span className="font-medium">{formData.category}</span>
+                    </div>
+                  )}
                 </div>
-              )}
 
-              {/* Subtasks */}
-              {selectedTaskId && (
-                <div className="space-y-1">
-                  <span className="text-xs font-medium text-muted-foreground">תתי-משימות</span>
-                  <SubtaskList parentTaskId={selectedTaskId} />
+                {formData.expectedResult && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-medium text-muted-foreground">תוצאה מצופה</span>
+                    <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.expectedResult}</p>
+                  </div>
+                )}
+
+                {selectedTaskId && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-medium text-muted-foreground">תתי-משימות</span>
+                    <SubtaskList parentTaskId={selectedTaskId} />
+                  </div>
+                )}
+
+                <div className="border-t pt-4 space-y-2">
+                  <span className="text-xs font-medium text-muted-foreground">שנה סטטוס</span>
+                  <div className="flex flex-wrap gap-2">
+                    {statusOptions.map(s => (
+                      <Button
+                        key={s.value}
+                        variant={formData.status === s.value ? "default" : "outline"}
+                        size="sm"
+                        className={formData.status === s.value ? "" : s.color}
+                        onClick={() => {
+                          updateField('status', s.value);
+                          onSave();
+                        }}
+                        disabled={formData.status === s.value || isSaving}
+                      >
+                        {s.label}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-              )}
+              </TabsContent>
 
-              {/* Status change buttons */}
-              <div className="border-t pt-4 space-y-2">
-                <span className="text-xs font-medium text-muted-foreground">שנה סטטוס</span>
-                <div className="flex flex-wrap gap-2">
-                  {statusOptions.map(s => (
-                    <Button
-                      key={s.value}
-                      variant={formData.status === s.value ? "default" : "outline"}
-                      size="sm"
-                      className={formData.status === s.value ? "" : s.color}
-                      onClick={() => {
-                        updateField('status', s.value);
-                        onSave();
-                      }}
-                      disabled={formData.status === s.value || isSaving}
-                    >
-                      {s.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
+              <TabsContent value="attachments" className="mt-4">
+                {selectedTaskId && (
+                  <TaskAttachments taskId={selectedTaskId} />
+                )}
+              </TabsContent>
 
-            {/* Attachments Tab */}
-            <TabsContent value="attachments" className="mt-4">
-              {selectedTaskId && (
-                <TaskAttachments taskId={selectedTaskId} />
-              )}
-            </TabsContent>
-
-            {/* Timeline + Notes Tab */}
-            <TabsContent value="timeline" className="mt-4 space-y-4">
-              {/* Notes section */}
-              {formData.notes && (
-                <div className="space-y-1">
-                  <span className="text-xs font-medium text-muted-foreground">הערות פנימיות</span>
-                  <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.notes}</p>
-                </div>
-              )}
-              {selectedTaskId && (
-                <TaskActivityTimeline 
-                  taskId={selectedTaskId}
-                  taskCreatedBy={taskCreatedBy}
-                  taskAssignee={taskAssignee}
-                  taskCreatedAt={taskCreatedAt}
-                />
-              )}
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+              <TabsContent value="timeline" className="mt-4 space-y-4">
+                {formData.notes && (
+                  <div className="space-y-1">
+                    <span className="text-xs font-medium text-muted-foreground">הערות פנימיות</span>
+                    <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.notes}</p>
+                  </div>
+                )}
+                {selectedTaskId && (
+                  <TaskActivityTimeline 
+                    taskId={selectedTaskId}
+                    taskCreatedBy={taskCreatedBy}
+                    taskAssignee={taskAssignee}
+                    taskCreatedAt={taskCreatedAt}
+                  />
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </SheetContent>
+      </Sheet>
     );
   }
 
+  // Edit mode / New task
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="flex flex-row items-center justify-between pb-2 border-b">
-          <div className="flex items-center gap-3">
-            <DialogTitle>{selectedTaskId ? "עריכת משימה" : "משימה חדשה"}</DialogTitle>
-            {/* Status badge */}
-            {formData.status && (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-background border-b px-6 py-4">
+          <div className="flex items-center justify-between">
+            <SheetTitle>{selectedTaskId ? "עריכת משימה" : "משימה חדשה"}</SheetTitle>
+            <div className="flex items-center gap-2">
+              {selectedTaskId && (
+                <Button variant="ghost" size="sm" onClick={() => setIsViewOnly(true)} className="gap-1.5">
+                  <Eye className="w-4 h-4" />
+                  תצוגה
+                </Button>
+              )}
+              <Button onClick={onSave} disabled={isSaving} size="sm">
+                {isSaving && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
+                שמור
+              </Button>
+            </div>
+          </div>
+          <Separator className="mt-3" />
+          {/* Status badge */}
+          {formData.status && (
+            <div className="mt-3">
               <Badge 
                 variant="secondary" 
                 className={statusOptions.find(s => s.value === formData.status)?.color || ''}
               >
                 {statusOptions.find(s => s.value === formData.status)?.label}
               </Badge>
-            )}
-          </div>
-          <Button onClick={onSave} disabled={isSaving} size="sm">
-            {isSaving && <Loader2 className="w-4 h-4 ml-2 animate-spin" />}
-            שמור
-          </Button>
-        </DialogHeader>
+            </div>
+          )}
+        </div>
 
-        <div className="space-y-4 py-4">
+        <div className="px-6 py-4 space-y-4">
           {/* Area A: Title & Description */}
           <CollapsibleField
             label={microcopy.tasks.titleAndDescription}
@@ -490,7 +480,6 @@ export function TaskEditDialog({
             hasValue={!!formData.taskTag || formData.taskType !== 'operations'}
           >
             <div className="space-y-4">
-              {/* Task Type */}
               <div className="space-y-2">
                 <span className="text-xs font-medium text-muted-foreground">סוג משימה</span>
                 <TaskTypeSelector
@@ -500,7 +489,6 @@ export function TaskEditDialog({
                 />
               </div>
 
-              {/* Revenue tag */}
               <div className="space-y-2">
                 <span className="text-xs font-medium text-muted-foreground">תג עסקי</span>
                 <div className="flex flex-wrap gap-2">
@@ -539,7 +527,7 @@ export function TaskEditDialog({
             </div>
           </CollapsibleField>
 
-          {/* Client Selection - For agency view (both new and edit) */}
+          {/* Client Selection */}
           {showClientSelector && clients.length > 0 && (
             <CollapsibleField
               label="לקוח"
@@ -598,7 +586,6 @@ export function TaskEditDialog({
                 </Select>
               </div>
 
-              {/* Assignment Scope & Language */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs text-muted-foreground">סוג שיוך</Label>
@@ -654,7 +641,6 @@ export function TaskEditDialog({
               <div className="space-y-3">
                 <Select value={formData.projectId || "none"} onValueChange={(v) => {
                   updateField('projectId', v === "none" ? "" : v);
-                  // Clear stage when project changes
                   if (v === "none" || v !== formData.projectId) {
                     updateField('stageId', "");
                   }
@@ -673,7 +659,6 @@ export function TaskEditDialog({
                   </SelectContent>
                 </Select>
                 
-                {/* Stage selector - shows when project is selected */}
                 {formData.projectId && (
                   <StageSelector
                     projectId={formData.projectId}
@@ -709,7 +694,6 @@ export function TaskEditDialog({
                 </Select>
               </div>
 
-              {/* Quick Reminder Options */}
               <div className="border-t border-border pt-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Bell className="w-4 h-4 text-muted-foreground" />
@@ -746,7 +730,6 @@ export function TaskEditDialog({
                 )}
               </div>
 
-              {/* Notification Settings */}
               {selectedReminders.length > 0 && (
                 <div className="border-t border-border pt-4 space-y-3 animate-fade-in">
                   <div className="text-sm font-medium text-muted-foreground">שלח התראה ל:</div>
@@ -785,7 +768,6 @@ export function TaskEditDialog({
                     />
                   )}
 
-                  {/* Reminder Preview */}
                   {(formData.notificationEmail || formData.notificationSms) && (
                     <ReminderPreview
                       showPreview={showReminderPreview}
@@ -874,7 +856,6 @@ export function TaskEditDialog({
               updateField={updateField}
               onNavigateToTask={(taskId) => {
                 onOpenChange(false);
-                // Navigate via URL to open that task
                 window.dispatchEvent(new CustomEvent('navigate-to-task', { detail: taskId }));
               }}
             />
@@ -905,8 +886,8 @@ export function TaskEditDialog({
             </CardContent>
           </Card>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }
 
