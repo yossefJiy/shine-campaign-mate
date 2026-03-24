@@ -212,7 +212,7 @@ export function TaskEditDialog({
 
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
+        <SheetContent side="left" className="w-full sm:max-w-xl overflow-y-auto p-0">
           {/* Header with edit button */}
           <div className="sticky top-0 z-10 bg-background border-b px-6 py-4">
             <div className="flex items-center justify-between">
@@ -387,7 +387,7 @@ export function TaskEditDialog({
   // Edit mode / New task
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-0">
+      <SheetContent side="left" className="w-full sm:max-w-xl overflow-y-auto p-0">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-background border-b px-6 py-4">
           <div className="flex items-center justify-between">
