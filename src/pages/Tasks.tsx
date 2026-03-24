@@ -1026,6 +1026,9 @@ export default function Tasks() {
           clients={clients}
           selectedClientId={newTaskClientId || effectiveClient?.id}
           onClientChange={setNewTaskClientId}
+          taskCreatedBy={(selectedTask as any)?.created_by || null}
+          taskAssignee={(selectedTask as any)?.assignee || null}
+          taskCreatedAt={(selectedTask as any)?.created_at || null}
         />
 
         {/* Duplicate with Date Dialog */}

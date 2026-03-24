@@ -17,6 +17,7 @@ import {
   Send,
   Loader2,
   Clock,
+  UserPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,9 @@ interface TaskActivity {
 
 interface TaskActivityTimelineProps {
   taskId: string;
+  taskCreatedBy?: string | null;
+  taskAssignee?: string | null;
+  taskCreatedAt?: string | null;
 }
 
 const activityConfig: Record<string, { icon: typeof MessageSquare; label: string; color: string }> = {
@@ -52,7 +56,7 @@ const statusLabels: Record<string, string> = {
   blocked: "חסום",
 };
 
-export function TaskActivityTimeline({ taskId }: TaskActivityTimelineProps) {
+export function TaskActivityTimeline({ taskId, taskCreatedBy, taskAssignee, taskCreatedAt }: TaskActivityTimelineProps) {
   const queryClient = useQueryClient();
   const [newComment, setNewComment] = useState("");
 
@@ -70,19 +74,26 @@ export function TaskActivityTimeline({ taskId }: TaskActivityTimelineProps) {
     enabled: !!taskId,
   });
 
-  // Fetch user profiles for display
-  const userIds = [...new Set(activities.map(a => a.user_id).filter(Boolean))];
+  // Fetch user profiles
+  const allUserIds = [
+    ...new Set([
+      ...activities.map(a => a.user_id).filter(Boolean),
+      ...(taskCreatedBy ? [taskCreatedBy] : []),
+      ...(taskAssignee ? [taskAssignee] : []),
+    ])
+  ];
+  
   const { data: profiles = [] } = useQuery({
-    queryKey: ["activity-profiles", userIds.join(",")],
+    queryKey: ["activity-profiles", allUserIds.join(",")],
     queryFn: async () => {
-      if (userIds.length === 0) return [];
+      if (allUserIds.length === 0) return [];
       const { data } = await supabase
         .from("team")
         .select("user_id, name, avatar_color")
-        .in("user_id", userIds as string[]);
+        .in("user_id", allUserIds as string[]);
       return data || [];
     },
-    enabled: userIds.length > 0,
+    enabled: allUserIds.length > 0,
   });
 
   const addCommentMutation = useMutation({
@@ -116,12 +127,6 @@ export function TaskActivityTimeline({ taskId }: TaskActivityTimelineProps) {
     return profile?.name || "משתמש";
   };
 
-  const getUserColor = (userId: string | null) => {
-    if (!userId) return "#6B7280";
-    const profile = profiles.find((p: any) => p.user_id === userId);
-    return profile?.avatar_color || "#3B82F6";
-  };
-
   const renderActivityContent = (activity: TaskActivity) => {
     switch (activity.activity_type) {
       case "status_change": {
@@ -138,7 +143,7 @@ export function TaskActivityTimeline({ taskId }: TaskActivityTimelineProps) {
       case "assignment":
         return (
           <p className="text-sm text-muted-foreground">
-            שויך ל: <span className="font-medium text-foreground">{activity.metadata?.assignee}</span>
+            שויך ל: <span className="font-medium text-foreground">{getUserName(activity.metadata?.assignee) || activity.metadata?.assignee}</span>
           </p>
         );
       case "comment":
@@ -153,6 +158,11 @@ export function TaskActivityTimeline({ taskId }: TaskActivityTimelineProps) {
         ) : null;
     }
   };
+
+  // Build timeline items: static creation info + dynamic activities
+  const timelineItems = [
+    ...activities,
+  ];
 
   return (
     <div className="space-y-3">
@@ -190,35 +200,23 @@ export function TaskActivityTimeline({ taskId }: TaskActivityTimelineProps) {
         <div className="flex justify-center py-6">
           <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
         </div>
-      ) : activities.length === 0 ? (
-        <div className="text-center py-6 text-sm text-muted-foreground">
-          <Clock className="w-6 h-6 mx-auto mb-2 opacity-50" />
-          אין פעילות עדיין
-        </div>
       ) : (
         <ScrollArea className="max-h-[350px]">
           <div className="space-y-1">
+            {/* Dynamic activities */}
             {activities.map((activity, idx) => {
               const config = activityConfig[activity.activity_type] || activityConfig.created;
               const Icon = config.icon;
-              const isLast = idx === activities.length - 1;
+              const isLast = idx === activities.length - 1 && !taskCreatedAt;
 
               return (
                 <div key={activity.id} className="flex gap-3 relative">
-                  {/* Timeline line */}
                   {!isLast && (
                     <div className="absolute right-[15px] top-8 bottom-0 w-px bg-border" />
                   )}
-
-                  {/* Icon */}
-                  <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10",
-                    config.color
-                  )}>
+                  <div className={cn("w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10", config.color)}>
                     <Icon className="w-3.5 h-3.5" />
                   </div>
-
-                  {/* Content */}
                   <div className="flex-1 pb-4 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-medium">{getUserName(activity.user_id)}</span>
@@ -231,6 +229,49 @@ export function TaskActivityTimeline({ taskId }: TaskActivityTimelineProps) {
                 </div>
               );
             })}
+
+            {/* Static: task assigned */}
+            {taskAssignee && (
+              <div className="flex gap-3 relative">
+                {taskCreatedAt && <div className="absolute right-[15px] top-8 bottom-0 w-px bg-border" />}
+                <div className={cn("w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 text-info bg-info/10")}>
+                  <UserPlus className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex-1 pb-4 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-medium">שיוך</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    שויך ל: <span className="font-medium text-foreground">{getUserName(taskAssignee) || taskAssignee}</span>
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Static: task created */}
+            {taskCreatedAt && (
+              <div className="flex gap-3 relative">
+                <div className={cn("w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 text-muted-foreground bg-muted")}>
+                  <Plus className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex-1 pb-4 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-medium">{getUserName(taskCreatedBy || null)}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(taskCreatedAt), "dd/MM HH:mm")}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">יצר/ה את המשימה</p>
+                </div>
+              </div>
+            )}
+
+            {activities.length === 0 && !taskCreatedAt && (
+              <div className="text-center py-6 text-sm text-muted-foreground">
+                <Clock className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                אין פעילות עדיין
+              </div>
+            )}
           </div>
         </ScrollArea>
       )}
