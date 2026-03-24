@@ -171,6 +171,9 @@ export function TaskEditDialog({
   selectedClientId,
   onClientChange,
   initialViewOnly = false,
+  taskCreatedBy,
+  taskAssignee,
+  taskCreatedAt,
 }: TaskEditDialogProps) {
   const [addContactDialogOpen, setAddContactDialogOpen] = useState(false);
   const [addContactType, setAddContactType] = useState<'email' | 'phone'>('email');
