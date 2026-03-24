@@ -235,141 +235,165 @@ export function TaskEditDialog({
             </div>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            {/* Description */}
-            {formData.description && (
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-muted-foreground">תיאור</span>
-                <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.description}</p>
-              </div>
-            )}
+          <Tabs defaultValue="details" className="mt-2">
+            <TabsList className="w-full grid grid-cols-3">
+              <TabsTrigger value="details" className="gap-1.5 text-xs">
+                <FileText className="w-3.5 h-3.5" />
+                פרטים
+              </TabsTrigger>
+              <TabsTrigger value="attachments" className="gap-1.5 text-xs">
+                <Paperclip className="w-3.5 h-3.5" />
+                קבצים
+              </TabsTrigger>
+              <TabsTrigger value="timeline" className="gap-1.5 text-xs">
+                <MessageSquare className="w-3.5 h-3.5" />
+                ציר זמן
+              </TabsTrigger>
+            </TabsList>
 
-            {/* Status & Priority row */}
-            <div className="flex flex-wrap gap-3">
-              {currentPriority && (
+            {/* Details Tab */}
+            <TabsContent value="details" className="space-y-4 mt-4">
+              {/* Description */}
+              {formData.description && (
                 <div className="space-y-1">
-                  <span className="text-xs text-muted-foreground">עדיפות</span>
-                  <Badge variant="secondary" className={currentPriority.color}>{currentPriority.label}</Badge>
+                  <span className="text-xs font-medium text-muted-foreground">תיאור</span>
+                  <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.description}</p>
                 </div>
               )}
-              {currentTag && (
+
+              {/* Status & Priority row */}
+              <div className="flex flex-wrap gap-3">
+                {currentPriority && (
+                  <div className="space-y-1">
+                    <span className="text-xs text-muted-foreground">עדיפות</span>
+                    <Badge variant="secondary" className={currentPriority.color}>{currentPriority.label}</Badge>
+                  </div>
+                )}
+                {currentTag && (
+                  <div className="space-y-1">
+                    <span className="text-xs text-muted-foreground">תג</span>
+                    <Badge variant="outline" className={currentTag.color}>
+                      <currentTag.icon className="w-3 h-3 ml-1" />
+                      {currentTag.label}
+                    </Badge>
+                  </div>
+                )}
+              </div>
+
+              {/* Info grid */}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                {clientName && (
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">לקוח:</span>
+                    <span className="font-medium">{clientName}</span>
+                  </div>
+                )}
+                {assigneeName && (
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">אחראי:</span>
+                    <span className="font-medium">{assigneeName}</span>
+                  </div>
+                )}
+                {formData.department && (
+                  <div className="flex items-center gap-2">
+                    <ListTree className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">מחלקה:</span>
+                    <span className="font-medium">{formData.department}</span>
+                  </div>
+                )}
+                {assignedProject && (
+                  <div className="flex items-center gap-2">
+                    <FolderKanban className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">פרויקט:</span>
+                    <span className="font-medium">{assignedProject.name}</span>
+                  </div>
+                )}
+                {formData.dueDate && (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">תאריך:</span>
+                    <span className="font-medium">{format(parseISO(formData.dueDate), "dd/MM/yyyy")}</span>
+                  </div>
+                )}
+                {formData.scheduledTime && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">שעה:</span>
+                    <span className="font-medium">{formData.scheduledTime}</span>
+                  </div>
+                )}
+                {formData.category && (
+                  <div className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">קטגוריה:</span>
+                    <span className="font-medium">{formData.category}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Notes */}
+              {formData.notes && (
                 <div className="space-y-1">
-                  <span className="text-xs text-muted-foreground">תג</span>
-                  <Badge variant="outline" className={currentTag.color}>
-                    <currentTag.icon className="w-3 h-3 ml-1" />
-                    {currentTag.label}
-                  </Badge>
+                  <span className="text-xs font-medium text-muted-foreground">הערות</span>
+                  <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.notes}</p>
                 </div>
               )}
-            </div>
 
-            {/* Info grid */}
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              {clientName && (
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">לקוח:</span>
-                  <span className="font-medium">{clientName}</span>
+              {/* Expected Result */}
+              {formData.expectedResult && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">תוצאה מצופה</span>
+                  <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.expectedResult}</p>
                 </div>
               )}
-              {assigneeName && (
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">אחראי:</span>
-                  <span className="font-medium">{assigneeName}</span>
-                </div>
-              )}
-              {formData.department && (
-                <div className="flex items-center gap-2">
-                  <ListTree className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">מחלקה:</span>
-                  <span className="font-medium">{formData.department}</span>
-                </div>
-              )}
-              {assignedProject && (
-                <div className="flex items-center gap-2">
-                  <FolderKanban className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">פרויקט:</span>
-                  <span className="font-medium">{assignedProject.name}</span>
-                </div>
-              )}
-              {formData.dueDate && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">תאריך:</span>
-                  <span className="font-medium">{format(parseISO(formData.dueDate), "dd/MM/yyyy")}</span>
-                </div>
-              )}
-              {formData.scheduledTime && (
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">שעה:</span>
-                  <span className="font-medium">{formData.scheduledTime}</span>
-                </div>
-              )}
-              {formData.category && (
-                <div className="flex items-center gap-2">
-                  <Target className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">קטגוריה:</span>
-                  <span className="font-medium">{formData.category}</span>
-                </div>
-              )}
-            </div>
 
-            {/* Notes */}
-            {formData.notes && (
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-muted-foreground">הערות</span>
-                <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.notes}</p>
+              {/* Subtasks */}
+              {selectedTaskId && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">תתי-משימות</span>
+                  <SubtaskList parentTaskId={selectedTaskId} />
+                </div>
+              )}
+
+              {/* Status change buttons */}
+              <div className="border-t pt-4 space-y-2">
+                <span className="text-xs font-medium text-muted-foreground">שנה סטטוס</span>
+                <div className="flex flex-wrap gap-2">
+                  {statusOptions.map(s => (
+                    <Button
+                      key={s.value}
+                      variant={formData.status === s.value ? "default" : "outline"}
+                      size="sm"
+                      className={formData.status === s.value ? "" : s.color}
+                      onClick={() => {
+                        updateField('status', s.value);
+                        onSave();
+                      }}
+                      disabled={formData.status === s.value || isSaving}
+                    >
+                      {s.label}
+                    </Button>
+                  ))}
+                </div>
               </div>
-            )}
+            </TabsContent>
 
-            {/* Expected Result */}
-            {formData.expectedResult && (
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-muted-foreground">תוצאה מצופה</span>
-                <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.expectedResult}</p>
-              </div>
-            )}
-
-            {/* Subtasks */}
-            {selectedTaskId && (
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-muted-foreground">תתי-משימות</span>
-                <SubtaskList parentTaskId={selectedTaskId} />
-              </div>
-            )}
-
-            {/* Attachments */}
-            {selectedTaskId && (
-              <div className="space-y-1">
-                <span className="text-xs font-medium text-muted-foreground">קבצים</span>
+            {/* Attachments Tab */}
+            <TabsContent value="attachments" className="mt-4">
+              {selectedTaskId && (
                 <TaskAttachments taskId={selectedTaskId} />
-              </div>
-            )}
+              )}
+            </TabsContent>
 
-            {/* Status change buttons */}
-            <div className="border-t pt-4 space-y-2">
-              <span className="text-xs font-medium text-muted-foreground">שנה סטטוס</span>
-              <div className="flex flex-wrap gap-2">
-                {statusOptions.map(s => (
-                  <Button
-                    key={s.value}
-                    variant={formData.status === s.value ? "default" : "outline"}
-                    size="sm"
-                    className={formData.status === s.value ? "" : s.color}
-                    onClick={() => {
-                      updateField('status', s.value);
-                      onSave();
-                    }}
-                    disabled={formData.status === s.value || isSaving}
-                  >
-                    {s.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
+            {/* Timeline Tab */}
+            <TabsContent value="timeline" className="mt-4">
+              {selectedTaskId && (
+                <TaskActivityTimeline taskId={selectedTaskId} />
+              )}
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
     );
