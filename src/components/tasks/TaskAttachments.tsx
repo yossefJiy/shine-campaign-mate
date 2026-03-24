@@ -441,29 +441,75 @@ export function TaskAttachments({ taskId, compact = false, onCountChange }: Task
 
               {/* Add new */}
               <div className="space-y-3 pt-2 border-t border-border">
-                <div className="grid grid-cols-2 gap-2">
+                {/* Drop zone */}
+                <div
+                  ref={dropZoneRef}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={cn(
+                    "border-2 border-dashed rounded-lg p-4 text-center transition-colors",
+                    isDragging ? "border-primary bg-primary/5" : "border-border",
+                    isUploading && "opacity-50 pointer-events-none"
+                  )}
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" />
+                  ) : (
+                    <>
+                      <Clipboard className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+                      <p className="text-xs text-muted-foreground">
+                        גרור קבצים לכאן או הדבק (Ctrl+V)
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
                   <Button
                     variant="outline"
-                    className="gap-2"
+                    size="sm"
+                    className="gap-1.5 text-xs"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
                   >
-                    {isUploading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Upload className="w-4 h-4" />
-                    )}
-                    העלאת קובץ
+                    <Upload className="w-3.5 h-3.5" />
+                    קובץ
                   </Button>
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="הדבק קישור..."
-                      value={linkUrl}
-                      onChange={(e) => setLinkUrl(e.target.value)}
-                      className="flex-1 text-right"
-                      dir="rtl"
-                    />
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 text-xs"
+                    onClick={handleScreenCapture}
+                    disabled={isCapturing || isUploading}
+                  >
+                    {isCapturing ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <MonitorUp className="w-3.5 h-3.5" />
+                    )}
+                    צילום מסך
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 text-xs"
+                    onClick={() => {/* link input is below */}}
+                    disabled={isUploading}
+                  >
+                    <LinkIcon className="w-3.5 h-3.5" />
+                    קישור
+                  </Button>
+                </div>
+
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="הדבק קישור..."
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    className="flex-1 text-right text-sm"
+                    dir="rtl"
+                  />
                 </div>
 
                 {linkUrl && (
