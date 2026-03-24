@@ -66,10 +66,13 @@ const attachmentTypeLabels = {
 export function TaskAttachments({ taskId, compact = false, onCountChange }: TaskAttachmentsProps) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkName, setLinkName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
 
   const { data: attachments = [], isLoading } = useQuery({
     queryKey: ["task-attachments", taskId],
