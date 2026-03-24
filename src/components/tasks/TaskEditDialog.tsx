@@ -213,42 +213,37 @@ export function TaskEditDialog({
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="left" className="w-full sm:max-w-xl overflow-y-auto p-0">
-          {/* Header with edit button */}
-          <div className="sticky top-0 z-10 bg-background border-b px-6 py-4">
+          {/* Header row: badges + edit button */}
+          <div className="sticky top-0 z-10 bg-background border-b px-6 py-4 space-y-3">
             <div className="flex items-center justify-between">
-              <SheetTitle className="text-lg font-semibold">{formData.title || "משימה"}</SheetTitle>
-              <Button variant="outline" size="sm" onClick={() => setIsViewOnly(false)} className="gap-1.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                {currentStatus && (
+                  <Badge variant="secondary" className={currentStatus.color}>
+                    {currentStatus.label}
+                  </Badge>
+                )}
+                {currentPriority && (
+                  <Badge variant="secondary" className={currentPriority.color}>{currentPriority.label}</Badge>
+                )}
+                {currentTag && (
+                  <Badge variant="outline" className={currentTag.color}>
+                    <currentTag.icon className="w-3 h-3 ml-1" />
+                    {currentTag.label}
+                  </Badge>
+                )}
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setIsViewOnly(false)} className="gap-1.5 shrink-0">
                 <Pencil className="w-4 h-4" />
                 עריכה
               </Button>
             </div>
-            <Separator className="mt-3" />
-            {/* Status & Priority badges */}
-            <div className="flex items-center gap-2 mt-3">
-              {currentStatus && (
-                <Badge variant="secondary" className={currentStatus.color}>
-                  {currentStatus.label}
-                </Badge>
-              )}
-              {currentPriority && (
-                <Badge variant="secondary" className={currentPriority.color}>{currentPriority.label}</Badge>
-              )}
-              {currentTag && (
-                <Badge variant="outline" className={currentTag.color}>
-                  <currentTag.icon className="w-3 h-3 ml-1" />
-                  {currentTag.label}
-                </Badge>
-              )}
-            </div>
+            <SheetTitle className="text-lg font-semibold">{formData.title || "משימה"}</SheetTitle>
+            {formData.description && (
+              <p className="text-sm whitespace-pre-wrap text-muted-foreground">{formData.description}</p>
+            )}
           </div>
 
           <div className="px-6 py-4 space-y-4">
-            {/* Description */}
-            {formData.description && (
-              <div className="space-y-1">
-                <p className="text-sm whitespace-pre-wrap text-muted-foreground">{formData.description}</p>
-              </div>
-            )}
 
             <Tabs defaultValue="details">
               <TabsList className="w-full grid grid-cols-3">
