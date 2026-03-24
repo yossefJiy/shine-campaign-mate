@@ -662,20 +662,39 @@ export function TeamMemberDialog({ open, onOpenChange, member, teamMembers, depa
                 )}
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-2">
-                <div className="grid grid-cols-1 gap-1.5 max-h-48 overflow-y-auto p-3 rounded-lg border bg-muted/30">
-                  {clients.map(c => (
-                    <div key={c.id} className="flex items-center gap-2">
+                <div className="p-3 rounded-lg border bg-muted/30">
+                  {/* Select All toggle */}
+                  {clients.length > 0 && (
+                    <div className="flex items-center gap-2 pb-2 mb-2 border-b">
                       <Checkbox
-                        id={`scope-${c.id}`}
-                        checked={clientScopes.includes(c.id)}
-                        onCheckedChange={() => toggleClientScope(c.id)}
+                        id="scope-select-all"
+                        checked={clientScopes.length === clients.length && clients.length > 0}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setClientScopes(clients.map((c: any) => c.id));
+                          } else {
+                            setClientScopes([]);
+                          }
+                        }}
                       />
-                      <label htmlFor={`scope-${c.id}`} className="text-sm cursor-pointer">{c.name}</label>
+                      <label htmlFor="scope-select-all" className="text-sm font-medium cursor-pointer">גישה לכל הלקוחות</label>
                     </div>
-                  ))}
-                  {clients.length === 0 && (
-                    <p className="text-sm text-muted-foreground">אין לקוחות</p>
                   )}
+                  <div className="grid grid-cols-1 gap-1.5 max-h-48 overflow-y-auto">
+                    {clients.map(c => (
+                      <div key={c.id} className="flex items-center gap-2">
+                        <Checkbox
+                          id={`scope-${c.id}`}
+                          checked={clientScopes.includes(c.id)}
+                          onCheckedChange={() => toggleClientScope(c.id)}
+                        />
+                        <label htmlFor={`scope-${c.id}`} className="text-sm cursor-pointer">{c.name}</label>
+                      </div>
+                    ))}
+                    {clients.length === 0 && (
+                      <p className="text-sm text-muted-foreground">אין לקוחות</p>
+                    )}
+                  </div>
                 </div>
               </CollapsibleContent>
             </Collapsible>
