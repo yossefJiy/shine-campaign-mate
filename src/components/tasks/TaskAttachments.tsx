@@ -555,12 +555,26 @@ export function TaskAttachments({ taskId, compact = false, onCountChange }: Task
             <Badge variant="secondary" className="text-xs">{attachments.length}</Badge>
           )}
         </Label>
-        <div className="flex gap-2">
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleScreenCapture}
+            disabled={isCapturing || isUploading}
+            title="צילום מסך"
+          >
+            {isCapturing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <MonitorUp className="w-4 h-4" />
+            )}
+          </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
+            title="העלאת קובץ"
           >
             {isUploading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -577,7 +591,25 @@ export function TaskAttachments({ taskId, compact = false, onCountChange }: Task
         className="hidden"
         onChange={handleFileUpload}
         accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
+        multiple
       />
+
+      {/* Drop zone */}
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={cn(
+          "border-2 border-dashed rounded-lg p-3 text-center transition-colors",
+          isDragging ? "border-primary bg-primary/5" : "border-border",
+          isUploading && "opacity-50"
+        )}
+      >
+        <Clipboard className="w-4 h-4 mx-auto mb-1 text-muted-foreground" />
+        <p className="text-xs text-muted-foreground">
+          גרור קבצים או הדבק (Ctrl+V)
+        </p>
+      </div>
 
       {attachments.length > 0 ? (
         <div className="space-y-3">
@@ -597,7 +629,8 @@ export function TaskAttachments({ taskId, compact = false, onCountChange }: Task
                     <img 
                       src={attachment.url} 
                       alt={attachment.name} 
-                      className="max-h-48 w-auto rounded object-contain mx-auto"
+                      className="max-h-48 w-auto rounded object-contain mx-auto cursor-pointer"
+                      onClick={() => window.open(attachment.url, "_blank")}
                     />
                   </div>
                 )}
@@ -654,12 +687,7 @@ export function TaskAttachments({ taskId, compact = false, onCountChange }: Task
             );
           })}
         </div>
-      ) : (
-        <div className="text-center py-4 text-sm text-muted-foreground border border-dashed border-border rounded-lg">
-          <Paperclip className="w-6 h-6 mx-auto mb-2 opacity-50" />
-          אין נספחים
-        </div>
-      )}
+      ) : null}
 
       {/* Add link inline */}
       <div className="flex gap-2">
