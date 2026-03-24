@@ -112,13 +112,15 @@ interface TaskEditDialogProps {
   handleDepartmentChange: (department: string) => void;
   pendingAttachments: PendingAttachment[];
   setPendingAttachments: (attachments: PendingAttachment[]) => void;
-  // Client selection for agency view
   showClientSelector?: boolean;
   clients?: ClientOption[];
   selectedClientId?: string | null;
   onClientChange?: (clientId: string | null) => void;
-  // View mode - opens in read-only first
   initialViewOnly?: boolean;
+  // Task metadata for timeline
+  taskCreatedBy?: string | null;
+  taskAssignee?: string | null;
+  taskCreatedAt?: string | null;
 }
 
 const statusOptions = [
