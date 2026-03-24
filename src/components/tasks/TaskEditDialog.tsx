@@ -29,6 +29,8 @@ import {
   GitBranch,
   Pencil,
   Clock,
+  MessageSquare,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -51,6 +53,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StyledDatePicker } from "@/components/ui/styled-date-picker";
 import { CollapsibleField } from "./CollapsibleField";
 import { TaskAttachments } from "./TaskAttachments";
@@ -60,6 +63,7 @@ import { TaskTypeSelector } from "./TaskTypeSelector";
 import { TaskReferencesSection } from "./TaskReferencesSection";
 import { TaskCompletionSection } from "./TaskCompletionSection";
 import { TaskDependencySection } from "./TaskDependencySection";
+import { TaskActivityTimeline } from "./TaskActivityTimeline";
 import { TaskFormData, ReminderOption } from "@/hooks/useTaskForm";
 import { microcopy } from "@/lib/microcopy";
 
