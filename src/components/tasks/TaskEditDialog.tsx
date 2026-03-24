@@ -240,6 +240,32 @@ export function TaskEditDialog({
             </div>
           </DialogHeader>
 
+          {/* Title & Description between header and content */}
+          {formData.description && (
+            <div className="py-2 border-b">
+              <p className="text-sm whitespace-pre-wrap text-muted-foreground">{formData.description}</p>
+            </div>
+          )}
+
+          {/* Status & Priority & Tag row */}
+          <div className="flex flex-wrap gap-3 py-2 border-b">
+            {currentPriority && (
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground">עדיפות</span>
+                <Badge variant="secondary" className={currentPriority.color}>{currentPriority.label}</Badge>
+              </div>
+            )}
+            {currentTag && (
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground">תג</span>
+                <Badge variant="outline" className={currentTag.color}>
+                  <currentTag.icon className="w-3 h-3 ml-1" />
+                  {currentTag.label}
+                </Badge>
+              </div>
+            )}
+          </div>
+
           <Tabs defaultValue="details" className="mt-2">
             <TabsList className="w-full grid grid-cols-3">
               <TabsTrigger value="details" className="gap-1.5 text-xs">
@@ -252,39 +278,12 @@ export function TaskEditDialog({
               </TabsTrigger>
               <TabsTrigger value="timeline" className="gap-1.5 text-xs">
                 <MessageSquare className="w-3.5 h-3.5" />
-                ציר זמן
+                הערות וציר זמן
               </TabsTrigger>
             </TabsList>
 
             {/* Details Tab */}
             <TabsContent value="details" className="space-y-4 mt-4">
-              {/* Description */}
-              {formData.description && (
-                <div className="space-y-1">
-                  <span className="text-xs font-medium text-muted-foreground">תיאור</span>
-                  <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.description}</p>
-                </div>
-              )}
-
-              {/* Status & Priority row */}
-              <div className="flex flex-wrap gap-3">
-                {currentPriority && (
-                  <div className="space-y-1">
-                    <span className="text-xs text-muted-foreground">עדיפות</span>
-                    <Badge variant="secondary" className={currentPriority.color}>{currentPriority.label}</Badge>
-                  </div>
-                )}
-                {currentTag && (
-                  <div className="space-y-1">
-                    <span className="text-xs text-muted-foreground">תג</span>
-                    <Badge variant="outline" className={currentTag.color}>
-                      <currentTag.icon className="w-3 h-3 ml-1" />
-                      {currentTag.label}
-                    </Badge>
-                  </div>
-                )}
-              </div>
-
               {/* Info grid */}
               <div className="grid grid-cols-2 gap-3 text-sm">
                 {clientName && (
@@ -338,14 +337,6 @@ export function TaskEditDialog({
                 )}
               </div>
 
-              {/* Notes */}
-              {formData.notes && (
-                <div className="space-y-1">
-                  <span className="text-xs font-medium text-muted-foreground">הערות</span>
-                  <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.notes}</p>
-                </div>
-              )}
-
               {/* Expected Result */}
               {formData.expectedResult && (
                 <div className="space-y-1">
@@ -392,10 +383,22 @@ export function TaskEditDialog({
               )}
             </TabsContent>
 
-            {/* Timeline Tab */}
-            <TabsContent value="timeline" className="mt-4">
+            {/* Timeline + Notes Tab */}
+            <TabsContent value="timeline" className="mt-4 space-y-4">
+              {/* Notes section */}
+              {formData.notes && (
+                <div className="space-y-1">
+                  <span className="text-xs font-medium text-muted-foreground">הערות פנימיות</span>
+                  <p className="text-sm whitespace-pre-wrap bg-muted/30 rounded-lg p-3">{formData.notes}</p>
+                </div>
+              )}
               {selectedTaskId && (
-                <TaskActivityTimeline taskId={selectedTaskId} />
+                <TaskActivityTimeline 
+                  taskId={selectedTaskId}
+                  taskCreatedBy={taskCreatedBy}
+                  taskAssignee={taskAssignee}
+                  taskCreatedAt={taskCreatedAt}
+                />
               )}
             </TabsContent>
           </Tabs>
