@@ -265,7 +265,7 @@ export default function Projects() {
             >
               <option value="">כל הלקוחות</option>
               {clients
-                .filter((c: any) => !c.is_master_account && projects.some((p: any) => p.client_id === c.id))
+                .filter((c: any) => !c.is_master_account)
                 .map((c: any) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
