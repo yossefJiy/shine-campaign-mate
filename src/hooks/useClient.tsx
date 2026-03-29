@@ -44,7 +44,7 @@ export function ClientProvider({ children }: { children: ReactNode }) {
 
   // Fetch clients that the user has access to based on their role
   const { data: clients = [], isLoading } = useQuery({
-    queryKey: ["all-clients", user?.id],
+    queryKey: ["all-clients", user?.id, isClient, isAdmin, isAgencyManager],
     queryFn: async () => {
       // For client users (contacts) - only fetch their assigned clients via client_users
       if (isClient && user) {
