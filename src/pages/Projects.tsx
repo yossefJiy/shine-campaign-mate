@@ -85,9 +85,9 @@ export default function Projects() {
     setSelectedProjectId(project.id);
   };
 
-  // Fetch projects with stages count
+  // Fetch ALL projects (page has its own client filter dropdown)
   const { data: projects = [], isLoading } = useQuery({
-    queryKey: ["projects", selectedClient?.id],
+    queryKey: ["projects"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
@@ -101,14 +101,7 @@ export default function Projects() {
       if (error) throw error;
       
       // Filter out projects from deleted clients
-      let filteredProjects = data.filter((p: any) => !p.clients?.deleted_at);
-      
-      // Filter by client when not in agency view
-      if (selectedClient && !selectedClient.is_master_account) {
-        filteredProjects = filteredProjects.filter((p: any) => p.client_id === selectedClient.id);
-      }
-      
-      return filteredProjects;
+      return data.filter((p: any) => !p.clients?.deleted_at);
     },
   });
 
