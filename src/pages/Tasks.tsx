@@ -4,10 +4,8 @@ import { useSearchParams } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { DomainErrorBoundary } from "@/components/shared/DomainErrorBoundary";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { useClient } from "@/hooks/useClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { useTaskForm } from "@/hooks/useTaskForm";
 import {
   Plus,
@@ -93,6 +91,17 @@ interface Task {
   assignment_scope?: string | null;
 }
 
+interface ClientOption {
+  id: string;
+  name: string;
+  is_master_account: boolean;
+}
+
+interface ProjectOption extends Project {
+  client_id: string | null;
+  client_name?: string | null;
+}
+
 const categoryOptions = [
   "אסטרטגיה ותכנון",
   "קריאייטיב ועיצוב",
@@ -110,8 +119,6 @@ const timeOptions = Array.from({ length: 24 }, (_, h) =>
 ).flat();
 
 export default function Tasks() {
-  const { selectedClient, effectiveClient, isAgencyView, clients } = useClient();
-  const { user } = useAuth();
   const [newTaskClientId, setNewTaskClientId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -148,20 +155,30 @@ export default function Tasks() {
   const { data: allClients = [] } = useQuery({
     queryKey: ["all-clients-tasks"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("clients")
         .select("id, name, is_master_account")
-        .is("deleted_at", null);
-      return data || [];
+        .is("deleted_at", null)
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+      return (data || []) as ClientOption[];
     },
   });
 
+  const accessibleClients = useMemo(
+    () => allClients.filter((client) => !client.is_master_account),
+    [allClients]
+  );
+
+  const defaultTaskClientId = accessibleClients.length === 1 ? accessibleClients[0].id : null;
+
   const { data: projects = [] } = useQuery({
-    queryKey: ["projects-for-tasks", selectedClient?.id],
+    queryKey: ["projects-for-tasks"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("id, name, color, client_id, clients:clients!projects_client_id_fkey(is_master_account)")
+        .select("id, name, color, client_id, clients:clients!projects_client_id_fkey(name, is_master_account, deleted_at)")
         .order("name");
 
       if (error) throw error;
@@ -171,33 +188,38 @@ export default function Tasks() {
         name: string;
         color: string | null;
         client_id: string | null;
-        clients?: { is_master_account?: boolean } | null;
+        clients?: { name?: string | null; is_master_account?: boolean; deleted_at?: string | null } | null;
       }>;
 
-      const filtered = (selectedClient && !selectedClient.is_master_account)
-        ? rows.filter((p) => p.client_id === selectedClient.id)
-        : rows;
-
-      return filtered.map((p) => ({ id: p.id, name: p.name, color: p.color })) as Project[];
+      return rows
+        .filter((project) => !project.clients?.deleted_at && !project.clients?.is_master_account)
+        .map((project) => ({
+          id: project.id,
+          name: project.name,
+          color: project.color,
+          client_id: project.client_id,
+          client_name: project.clients?.name ?? null,
+        })) as ProjectOption[];
     },
   });
 
   const currentProject = projects.find(p => p.id === projectFilterId);
+  const currentFilteredClient = accessibleClients.find((client) => client.id === filterClientId) || null;
+  const activeTaskClientId = selectedTask?.client_id || newTaskClientId || currentProject?.client_id || filterClientId || defaultTaskClientId;
+
+  const availableProjectsForSelection = useMemo(() => {
+    if (!activeTaskClientId) return projects;
+    return projects.filter((project) => project.client_id === activeTaskClientId);
+  }, [activeTaskClientId, projects]);
 
   const { data: tasks = [], isLoading } = useQuery({
-    queryKey: ["tasks", selectedClient?.id],
+    queryKey: ["tasks"],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from("tasks")
         .select("*, clients!tasks_client_id_fkey(name, is_master_account, deleted_at), projects:projects!tasks_project_id_fkey(id, name, color)")
         .order("due_date", { ascending: true, nullsFirst: false })
         .order("scheduled_time", { ascending: true, nullsFirst: false });
-
-      if (selectedClient && !selectedClient.is_master_account) {
-        query = query.eq("client_id", selectedClient.id);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
       
       const filteredData = (data || []).filter(task => {
@@ -348,8 +370,8 @@ export default function Tasks() {
   const saveMutation = useMutation({
     mutationFn: async (task: Partial<Task> & { id?: string; client_id?: string }) => {
       const targetClientId = task.id 
-        ? (newTaskClientId || undefined)
-        : (task.client_id || newTaskClientId || effectiveClient?.id);
+        ? (newTaskClientId || task.client_id || undefined)
+        : (task.client_id || newTaskClientId || currentProject?.client_id || filterClientId || defaultTaskClientId || undefined);
       
       if (!task.id && !targetClientId) {
         throw new Error("יש לבחור לקוח לפני יצירת משימה");
@@ -534,7 +556,7 @@ export default function Tasks() {
     if (task?.client_id) {
       setNewTaskClientId(task.client_id);
     } else {
-      setNewTaskClientId(null);
+      setNewTaskClientId(currentProject?.client_id || filterClientId || defaultTaskClientId || null);
     }
     if (task) {
       taskForm.initFromTask({
@@ -573,6 +595,7 @@ export default function Tasks() {
       }, projectFilterId || undefined);
     } else {
       taskForm.resetForm();
+      setNewTaskClientId(currentProject?.client_id || filterClientId || defaultTaskClientId || null);
       if (projectFilterId) {
         taskForm.updateField('projectId', projectFilterId);
       }
@@ -683,7 +706,7 @@ export default function Tasks() {
       <DomainErrorBoundary domain="tasks">
         <div className="p-4 md:p-8">
           <PageHeader
-            title={currentProject ? `משימות - ${currentProject.name}` : (selectedClient ? `משימות - ${selectedClient.name}` : "ניהול משימות")}
+            title={currentProject ? `משימות - ${currentProject.name}` : (currentFilteredClient ? `משימות - ${currentFilteredClient.name}` : "ניהול משימות")}
             description={currentProject ? `${filteredTasks.length} משימות בפרויקט` : "ניהול משימות לפי סטטוס"}
             actions={
               <Button onClick={() => openDialog()}>
@@ -714,7 +737,7 @@ export default function Tasks() {
                 if (task) { setTaskToDelete(task); setDeleteDialogOpen(true); }
               }}
               onCreateProject={async (name, clientId) => {
-                const targetClientId = clientId || effectiveClient?.id;
+                const targetClientId = clientId || newTaskClientId || currentProject?.client_id || filterClientId || defaultTaskClientId;
                 if (!targetClientId) { toast.error("יש לבחור לקוח"); return null; }
                 const { data, error } = await supabase
                   .from("projects")
@@ -804,9 +827,7 @@ export default function Tasks() {
                 className="h-8 rounded-md border border-input bg-background px-3 text-xs min-w-[140px]"
               >
                 <option value="">כל הלקוחות</option>
-                {allClients
-                  .filter((c: any) => !c.is_master_account && tasks.some((t: any) => t.client_id === c.id))
-                  .map((c: any) => (
+                {accessibleClients.map((c) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
               </select>
@@ -995,7 +1016,7 @@ export default function Tasks() {
           onSave={handleSave}
           isSaving={saveMutation.isPending}
           teamMembers={teamMembers}
-          projects={projects}
+          projects={availableProjectsForSelection}
           departments={departments}
           categoryOptions={categoryOptions}
           timeOptions={timeOptions}
@@ -1023,9 +1044,19 @@ export default function Tasks() {
           pendingAttachments={pendingAttachments}
           setPendingAttachments={setPendingAttachments}
           showClientSelector={true}
-          clients={clients}
-          selectedClientId={newTaskClientId || effectiveClient?.id}
-          onClientChange={setNewTaskClientId}
+          clients={accessibleClients}
+          selectedClientId={activeTaskClientId}
+          onClientChange={(clientId) => {
+            setNewTaskClientId(clientId);
+
+            if (!taskForm.formData.projectId) return;
+
+            const selectedProjectForTask = projects.find((project) => project.id === taskForm.formData.projectId);
+            if (!selectedProjectForTask || selectedProjectForTask.client_id === clientId) return;
+
+            taskForm.updateField('projectId', '');
+            taskForm.updateField('stageId', '');
+          }}
           taskCreatedBy={(selectedTask as any)?.created_by || null}
           taskAssignee={(selectedTask as any)?.assignee || null}
           taskCreatedAt={(selectedTask as any)?.created_at || null}
