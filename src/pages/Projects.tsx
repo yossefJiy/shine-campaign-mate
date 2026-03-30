@@ -79,6 +79,12 @@ export default function Projects() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
   const [filterClientId, setFilterClientId] = useState<string>("");
 
+  const handleProjectCreated = (project: { id: string; client_id: string }) => {
+    setFilterStatus("all");
+    setFilterClientId(project.client_id);
+    setSelectedProjectId(project.id);
+  };
+
   // Fetch projects with stages count
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ["projects", selectedClient?.id],
@@ -484,6 +490,7 @@ export default function Projects() {
             onOpenChange={setShowInternalDialog}
             clients={clients}
             effectiveClient={effectiveClient}
+            onProjectCreated={handleProjectCreated}
           />
         </div>
       </DomainErrorBoundary>

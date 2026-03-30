@@ -32,6 +32,7 @@ interface CreateInternalProjectDialogProps {
   onOpenChange: (open: boolean) => void;
   clients: any[];
   effectiveClient: any;
+  onProjectCreated?: (project: { id: string; client_id: string }) => void;
 }
 
 /**
@@ -43,6 +44,7 @@ export function CreateInternalProjectDialog({
   onOpenChange,
   clients,
   effectiveClient,
+  onProjectCreated,
 }: CreateInternalProjectDialogProps) {
   const queryClient = useQueryClient();
 
@@ -72,7 +74,6 @@ export function CreateInternalProjectDialog({
       const targetClientId = formData.client_id || effectiveClient?.id;
       if (!targetClientId) throw new Error("יש לבחור לקוח");
 
-      // Create project
       const { data: project, error } = await supabase
         .from("projects")
         .insert({
@@ -91,7 +92,6 @@ export function CreateInternalProjectDialog({
 
       if (error) throw error;
 
-      // Create stages if any
       if (stages.length > 0) {
         const stageRows = stages.map((s, i) => ({
           project_id: project.id,
@@ -117,6 +117,7 @@ export function CreateInternalProjectDialog({
         description: `"${project.name}" — ${stages.length} שלבים`,
       });
       queryClient.invalidateQueries({ queryKey: ["projects"] });
+      onProjectCreated?.({ id: project.id, client_id: project.client_id });
       onOpenChange(false);
       resetForm();
     },
