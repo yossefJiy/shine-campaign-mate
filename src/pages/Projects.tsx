@@ -85,9 +85,9 @@ export default function Projects() {
     setSelectedProjectId(project.id);
   };
 
-  // Fetch projects with stages count
+  // Fetch ALL projects (page has its own client filter dropdown)
   const { data: projects = [], isLoading } = useQuery({
-    queryKey: ["projects", selectedClient?.id],
+    queryKey: ["projects"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
@@ -101,34 +101,18 @@ export default function Projects() {
       if (error) throw error;
       
       // Filter out projects from deleted clients
-      let filteredProjects = data.filter((p: any) => !p.clients?.deleted_at);
-      
-      // Filter by client when not in agency view
-      if (selectedClient && !selectedClient.is_master_account) {
-        filteredProjects = filteredProjects.filter((p: any) => p.client_id === selectedClient.id);
-      }
-      
-      return filteredProjects;
+      return data.filter((p: any) => !p.clients?.deleted_at);
     },
   });
 
-  // Fetch tasks for progress calculation
-  // In Agency view (no client selected or master account selected), fetch ALL tasks
-  // Only filter by client_id when a specific real client is selected
+  // Fetch ALL tasks for progress calculation (page filters handle client selection)
   const { data: allTasks = [] } = useQuery({
-    queryKey: ["project-tasks", selectedClient?.id, isAgencyView],
+    queryKey: ["project-tasks-all"],
     queryFn: async () => {
-      let query = supabase
+      const { data } = await supabase
         .from("tasks")
         .select("id, status, project_id, task_tag")
         .not("project_id", "is", null);
-      
-      // Only filter by client_id when a specific non-master client is selected
-      if (selectedClient && !selectedClient.is_master_account) {
-        query = query.eq("client_id", selectedClient.id);
-      }
-      
-      const { data } = await query;
       return data || [];
     },
   });
