@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -180,15 +180,16 @@ export function TaskEditDialog({
   const [newContactValue, setNewContactValue] = useState("");
   const [isViewOnly, setIsViewOnly] = useState(initialViewOnly);
 
-  const [prevTaskId, setPrevTaskId] = useState(selectedTaskId);
-  if (selectedTaskId !== prevTaskId) {
-    setPrevTaskId(selectedTaskId);
+  useEffect(() => {
     if (selectedTaskId && initialViewOnly) {
       setIsViewOnly(true);
-    } else if (!selectedTaskId) {
+      return;
+    }
+
+    if (!selectedTaskId) {
       setIsViewOnly(false);
     }
-  }
+  }, [initialViewOnly, selectedTaskId]);
 
   const openAddContactDialog = (type: 'email' | 'phone') => {
     setAddContactType(type);
@@ -245,7 +246,7 @@ export function TaskEditDialog({
 
           <div className="px-6 py-4 space-y-4">
 
-            <Tabs defaultValue="details">
+            <Tabs defaultValue={selectedTaskId ? "timeline" : "details"}>
               <TabsList className="w-full grid grid-cols-3">
                 <TabsTrigger value="details" className="gap-1.5 text-xs">
                   <FileText className="w-3.5 h-3.5" />
