@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -95,6 +95,30 @@ export function TaskActivityTimeline({ taskId, taskCreatedBy, taskAssignee, task
     },
     enabled: allUserIds.length > 0,
   });
+
+  useEffect(() => {
+    if (!taskId) return;
+
+    const channel = supabase
+      .channel(`task-activity-${taskId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "task_activity",
+          filter: `task_id=eq.${taskId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["task-activity", taskId] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient, taskId]);
 
   const addCommentMutation = useMutation({
     mutationFn: async (content: string) => {
