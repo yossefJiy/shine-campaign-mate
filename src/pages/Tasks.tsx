@@ -274,6 +274,23 @@ export default function Tasks() {
       return data || [];
     },
   });
+  // Realtime subscription for cross-user sync
+  useEffect(() => {
+    const channel = supabase
+      .channel('tasks-realtime-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tasks' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   // Derived state - Task categorization based on status tabs
   const departments = [...new Set([
