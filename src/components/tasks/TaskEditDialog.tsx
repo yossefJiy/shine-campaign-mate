@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   User,
@@ -197,6 +197,24 @@ export function TaskEditDialog({
     setAddContactDialogOpen(true);
   };
 
+  const queryClient = useQueryClient();
+
+  const handleQuickStatusChange = async (newStatus: string) => {
+    if (!selectedTaskId) return;
+    updateField("status", newStatus);
+    try {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ status: newStatus === "pending" ? "pending" : newStatus === "in-progress" ? "in_progress" : newStatus === "waiting" ? "waiting" : "completed" })
+        .eq("id", selectedTaskId);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast.success("סטטוס עודכן");
+    } catch {
+      toast.error("שגיאה בעדכון סטטוס");
+    }
+  };
+
   // View-only mode
   if (isViewOnly && selectedTaskId) {
     const currentStatus = statusOptions.find(s => s.value === formData.status);
@@ -214,15 +232,22 @@ export function TaskEditDialog({
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent side="left" className="w-full sm:max-w-xl overflow-y-auto p-0">
-          {/* Header row: badges + edit button */}
+          {/* Header row: status selector + badges + edit button */}
           <div className="sticky top-0 z-10 bg-background border-b px-6 py-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 flex-wrap">
-                {currentStatus && (
-                  <Badge variant="secondary" className={currentStatus.color}>
-                    {currentStatus.label}
-                  </Badge>
-                )}
+                <Select value={formData.status} onValueChange={handleQuickStatusChange}>
+                  <SelectTrigger className={`h-7 w-auto min-w-[100px] text-xs font-medium border-0 ${currentStatus?.color || ''}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statusOptions.map(s => (
+                      <SelectItem key={s.value} value={s.value}>
+                        <span className={`px-1.5 py-0.5 rounded text-xs ${s.color}`}>{s.label}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {currentPriority && (
                   <Badge variant="secondary" className={currentPriority.color}>{currentPriority.label}</Badge>
                 )}
